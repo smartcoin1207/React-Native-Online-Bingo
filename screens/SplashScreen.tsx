@@ -1,21 +1,20 @@
 import { View, ImageBackground, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from '../constants/navigate';
 
 const screenHeight = Dimensions.get('window').height;
-    const cellSize = screenHeight / 5; 
+const cellSize = screenHeight / 5; 
 
-export default function Splash() {
-    const navigation = useNavigation();
+type Props = NativeStackScreenProps<RootStackParamList, "Splash">;
 
+const SplashScreen: React.FC<Props> = ({navigation: {navigate}}) => {
     return (
         <ImageBackground
             source={require('../assets/images/splash.png')}
             style={styles.backgroundImage}
         >
-            {/* Add your other components here */}
             <View style={styles.container}>
-                {/* button position */}
-                <Pressable style={styles.button} onPress={() => navigation.navigate('HomeScreen')}>
+                <Pressable style={styles.button} onPress={() => navigate("Home")}>
                     <Text style={styles.textTitle}>START</Text>
                 </Pressable>
             </View>
@@ -55,3 +54,5 @@ const styles = StyleSheet.create({
 
     }
 });
+
+export default SplashScreen;

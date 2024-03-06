@@ -1,26 +1,38 @@
-import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { View, Text, StyleSheet, Pressable, Dimensions, TouchableOpacity } from 'react-native';
 
 const screenHeight = Dimensions.get('window').height;
     const cellSize = screenHeight / 5; 
 
 export default function Explain() {
+    const navigator = useNavigation();
     
     return (
+        <TouchableOpacity 
+            onPress={() => navigator.navigate("gameListScreen")}
+            style={styles.container}
+        >
             <View style={styles.container}>
-                
                     <Text style={styles.textTitle}>ビンゴ</Text>
                 
-                    <Text style={styles.textTitle}>ゲスト</Text>
+                    <Text style={styles.textTitle}>
+                        ゲストゲストゲストゲストゲストゲストゲストゲスト
+                        ゲストゲストゲストゲストゲストゲストゲストゲスト
+                        ゲストゲストゲストゲストゲストゲストゲストゲスト
+                    </Text>
             </View>
+        </TouchableOpacity>
     );
 }
 
 const styles = StyleSheet.create({
+
     container: {
         flex: 1,
         paddingTop: cellSize * 1,
         alignItems: 'center',
-        backgroundColor: 'black'
+        backgroundColor: 'black',
+        paddingHorizontal: 20
     },
     backgroundImage: {
         flex: 1,

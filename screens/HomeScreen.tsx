@@ -10,7 +10,7 @@ const openWebsite = () => {
         .catch((err) => console.error('An error occurred', err));
 };
 
-export default function Home() {
+const HomeScreen: React.FC = () => {
     const navigation = useNavigation();
 
     return (
@@ -20,7 +20,7 @@ export default function Home() {
                 <Text style={styles.textTitle}>アカウント登録</Text>
             </Pressable>
 
-            <Pressable style={styles.button2} onPress={() => navigation.navigate('loginScreen')}>
+            <Pressable style={styles.button2} onPress={() => navigation.navigate('login')}>
                 <Text style={styles.textTitle}>  　ログイン　  </Text>
             </Pressable>
         </View>
@@ -68,3 +68,5 @@ const styles = StyleSheet.create({
 
     }
 });
+
+export default HomeScreen;
