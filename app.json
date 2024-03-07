@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "bingo-app-typescript",
+    "name": "com.minibase.bingo1",
     "slug": "bingo-app-typescript",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -21,10 +21,25 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
+      },
+      "googleServicesFile": "./google-services.json",
+      "package": "com.minibase.bingo1"
+    },
+    "plugins": [
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth",
+      "@react-native-firebase/crashlytics"
+    ],
+    "extra": {
+      "firebase": {
+        "databaseURL": "https://mimi-base-default-rtdb.firebaseio.com/"
       }
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "react-native": {
+      "crashlytics_debug_enabled": true
     }
   }
 }

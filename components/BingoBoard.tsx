@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { StyleSheet, Text, View, Dimensions, TouchableWithoutFeedback } from 'react-native';
 import { createBingoCard, bingoCellStatusInit, bingoCellValues, bingoCheck } from './BingoEngine';
+import { getDatabase, ref, set, get, update, remove } from "firebase/database";
 
 interface Props {
     bingoTimerIntervalId: number;
@@ -29,6 +30,19 @@ const BingoBoard: React.FC = () => {
         setBingoCellValues(bingoCellValues());
         setCellStatus(bingoCellStatusInit());
     };
+    const db = getDatabase();
+
+    const addDataToRealtimeDatabase = (rowNum:number, columnNum:number, cellValue:string) => {
+        set(ref(db, 'users/' + cellValue), {
+            username: columnNum,
+            email: rowNum,
+            profile_picture : 'imageUrl'
+        });
+    };
+
+    const deleteDataRealtimeDatabase = (rowNum:number, columnNum:number, cellValue:string) => {
+        remove(ref(db, 'users/' + cellValue));
+    };
   
     const renderRow = (rowNum: any, columnValue: any): JSX.Element => {
         return (
@@ -52,7 +66,7 @@ const BingoBoard: React.FC = () => {
         }
 
         return (
-            <TouchableWithoutFeedback key={cellValue} onPress={() => console.log(rowNum, columnNum, cellValue)}>
+            <TouchableWithoutFeedback key={cellValue} onPress={() => deleteDataRealtimeDatabase(rowNum, columnNum, cellValue)}>
                 {renderCell(dynamicStyle, cellValue)}
             </TouchableWithoutFeedback>
         );
