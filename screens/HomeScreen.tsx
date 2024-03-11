@@ -1,6 +1,8 @@
 import { View, Text, StyleSheet, Pressable, Dimensions, Linking  } from 'react-native';
+import { UseSelector, useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-
+import { useEffect } from 'react';
+import { RootState } from '../store';
 const screenHeight = Dimensions.get('window').height;
 const cellSize = screenHeight / 5;
 
@@ -12,12 +14,23 @@ const openWebsite = () => {
 
 const HomeScreen: React.FC = () => {
     const navigation = useNavigation();
+    const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
+
+    useEffect(() => {
+        if(isLoggedIn) {
+            navigation.navigate('GameList');
+        }
+    }, [isLoggedIn])
 
     return (
         <View style={styles.container}>
             {/* button position */}
             <Pressable style={styles.button1} onPress={() => openWebsite()}>
                 <Text style={styles.textTitle}>アカウント登録</Text>
+            </Pressable>
+
+            <Pressable style={styles.button2} onPress={() => navigation.navigate('register')}>
+                <Text style={styles.textTitle}>    登録    </Text>
             </Pressable>
 
             <Pressable style={styles.button2} onPress={() => navigation.navigate('login')}>

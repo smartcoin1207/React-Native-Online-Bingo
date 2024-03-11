@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
-import { StatusBar } from 'expo-status-bar';
+import React, { useEffect, useState } from 'react';
+import { UseSelector, useDispatch, useSelector } from 'react-redux';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-
+import { validateEmail, validatePassword } from '../utils/ValidtionUtils';
+import { RootState } from '../store';
+import { signInAuthUser } from '../utils/firebase/FirebaseUtil';
+import { SignIn } from '../store/reducers/bingo/userSlice';
+import { User } from '../utils/Types';
 interface LoginScreenProps {}
 
 const Login: React.FC<LoginScreenProps> = () => {
@@ -11,35 +15,34 @@ const Login: React.FC<LoginScreenProps> = () => {
   const [emailError, setEmailError] = useState<string>('');
   const [passwordError, setPasswordError] = useState<string>('');
   const navigation = useNavigation();
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
+  const authUser = useSelector((state: RootState) => state.auth.authUser);
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if(isLoggedIn) {
+      navigation.navigate('GameList');
+    }
+    setEmail('potter@gmail.com');
+    setPassword('12345678')
+  }, [isLoggedIn])
 
   const handleLogin = () => {
-    navigation.navigate('GameList');
-    return;
-    //validation
-    let emailErr = '';
-    let passwordErr = '';
-    if (!email) {
-      emailErr = 'Email is required';
-    } else if (!/^\S+@\S+\.\S+$/.test(email)) {
-      emailErr = 'Invalid email format';
-    }
+    // Validation
+    const emailErr = validateEmail(email);
+    const passwordErr = validatePassword(password);
 
-    if (!password) {
-      passwordErr = "Password is required";
-    } else if (password.length < 6) {
-      passwordErr = "Password must be at least 6 characters";
-    } else if (!/^[a-zA-Z0-9]+$/.test(password)) {
-      passwordErr = 'Password can only contain letters and numbers';
-    }
-
-    setEmailError(emailErr);
-    setPasswordError(passwordErr);
+    setEmailError(emailErr || "");
+    setPasswordError(passwordErr || "");
 
     if (!emailErr && !passwordErr) {
-      // Perform login logic
-      console.log('Email:', email);
-      console.log('Password:', password);
-      navigation.navigate('gameListScreen');
+      signInAuthUser(email, password)
+      .then((userData) => {
+        if(userData) {
+          dispatch(SignIn(userData));
+        }
+      })
     }
   };
 
@@ -47,7 +50,7 @@ const Login: React.FC<LoginScreenProps> = () => {
     <View style={styles.container}>
       <View style={styles.subContainer}>
 
-        <Text style={styles.title}>会員ログイン(視聴者向け)
+        <Text style={styles.title}>会員ログイン
         </Text>
         <TextInput
           style={styles.input}
@@ -60,14 +63,12 @@ const Login: React.FC<LoginScreenProps> = () => {
         {
           emailError !== '' &&
           (
-
             <Text style={styles.errText}>{emailError}</Text>
           )
-
         }
         <TextInput
           style={styles.input}
-          placeholder="英数字6文字以上"
+          placeholder="パスワード"
           secureTextEntry
           value={password}
           onChangeText={(text) => setPassword(text)}
@@ -75,10 +76,8 @@ const Login: React.FC<LoginScreenProps> = () => {
         {
           passwordError !== '' &&
           (
-
             <Text style={styles.errText}>{passwordError}</Text>
           )
-
         }
         <TouchableOpacity
           style={styles.button}
@@ -90,7 +89,6 @@ const Login: React.FC<LoginScreenProps> = () => {
     </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {

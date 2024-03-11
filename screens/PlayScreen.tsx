@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingTop: '15%',
         flexDirection: 'column',
-        backgroundColor: '#241e20',
+        backgroundColor: 'black',
         alignItems: 'center',
     },
     title: {

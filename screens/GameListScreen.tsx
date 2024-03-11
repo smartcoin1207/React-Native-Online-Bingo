@@ -1,12 +1,32 @@
-import React, { useState } from "react";
-import { StatusBar } from "expo-status-bar";
+import React, { useEffect, useState } from "react";
+import { useSelector, useDispatch } from 'react-redux';
+
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { useNavigation } from '@react-navigation/native';
+import { RootState } from "../store";
+import { SignOut } from "../store/reducers/bingo/userSlice";
+import { signOutAuthUser } from "../utils/firebase/FirebaseUtil";
 
 interface GameListScreen { }
-
 const GameRoom: React.FC<GameListScreen> = () => {
     const navigation = useNavigation();
+    const authUser = useSelector((state: RootState) => state.auth.authUser);
+    const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
+    const dispatch  = useDispatch();
+
+    useEffect(() => {
+        if(!isLoggedIn) {
+            navigation.navigate('Splash');
+        }
+    }, [isLoggedIn])
+
+    const handleSignOut = () => {
+        // signOutAuthUser()
+        // .then(() => {
+            dispatch(SignOut());
+        // });
+    }
+
     return (
         <View style={styles.container}>
                 <Pressable 
@@ -27,11 +47,15 @@ const GameRoom: React.FC<GameListScreen> = () => {
                 <Pressable style={styles.button}>
                     <Text style={styles.textTitle}>B I N G O 5</Text>
                 </Pressable>
+
+                <Pressable style={styles.signBtn} onPress={handleSignOut}>
+                    <Text style={styles.textTitle}>Sign Out</Text>
+                </Pressable>
             </View>
     )
 }
-const styles = StyleSheet.create({
 
+const styles = StyleSheet.create({
     container: {
         flex: 1,
         justifyContent: 'center',
@@ -39,13 +63,20 @@ const styles = StyleSheet.create({
         backgroundColor: 'black',
         paddingHorizontal: 30,
         width: '100%',
-
     },
     button: {
         width: '100%',
         backgroundColor: '#ff0000',
         paddingVertical: 8,
         marginVertical: 4,
+        borderRadius: 6,
+    },
+    signBtn: {
+        width: '100%',
+        backgroundColor: '#ff0000',
+        paddingVertical: 8,
+        marginVertical: 4,
+        marginTop: 32,
         borderRadius: 6,
     },
     textTitle: {

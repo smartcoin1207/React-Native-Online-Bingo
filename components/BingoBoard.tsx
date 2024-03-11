@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { StyleSheet, Text, View, Dimensions, TouchableWithoutFeedback } from 'react-native';
 import { createBingoCard, bingoCellStatusInit, bingoCellValues, bingoCheck } from './BingoEngine';
-import { getDatabase, ref, set, get, update, remove } from "firebase/database";
-
+import {db} from '../utils/firebase/FirebaseInitialize';
+import 'firebase/firestore';
+import { collection, addDoc } from "firebase/firestore"; 
 interface Props {
     bingoTimerIntervalId: number;
     bingoGameHasStarted: boolean;
@@ -15,7 +16,7 @@ interface Props {
 }
 
 const BingoBoard: React.FC = () => {
-    const screenWidth = Dimensions.get('window').width;
+    const screenWidth = Dimensions.get('window').width * 0.9;
     const cellSize = screenWidth / 5; 
     
     const [bingoCellValue, setBingoCellValues] = React.useState<Array<Array<any>>>(bingoCellValues());
@@ -30,20 +31,11 @@ const BingoBoard: React.FC = () => {
         setBingoCellValues(bingoCellValues());
         setCellStatus(bingoCellStatusInit());
     };
-    const db = getDatabase();
 
-    const addDataToRealtimeDatabase = (rowNum:number, columnNum:number, cellValue:string) => {
-        set(ref(db, 'users/' + cellValue), {
-            username: columnNum,
-            email: rowNum,
-            profile_picture : 'imageUrl'
-        });
-    };
+    const handleClickBoard = (rowNum:number, columnNum:number, cellValue:string, cellStatusValue:number) => {
+        console.log(rowNum, columnNum, cellValue, cellStatusValue);
+    }
 
-    const deleteDataRealtimeDatabase = (rowNum:number, columnNum:number, cellValue:string) => {
-        remove(ref(db, 'users/' + cellValue));
-    };
-  
     const renderRow = (rowNum: any, columnValue: any): JSX.Element => {
         return (
             <View key={rowNum} style={styles.row}>
@@ -56,7 +48,7 @@ const BingoBoard: React.FC = () => {
         const cellValue = bingoCellValue[rowNum][columnNum];
         const cellStatusValue = cellStatus[rowNum][columnNum];
         const dynamicStyle = cellStatusValue === 1 ? styles.pressed : styles.normal;
-  
+        // console.log(rowNum, columnNum, cellValue, cellStatusValue)
         if (cellStatusValue === -1) {
             return (
                 <View key={cellValue}>
@@ -66,7 +58,7 @@ const BingoBoard: React.FC = () => {
         }
 
         return (
-            <TouchableWithoutFeedback key={cellValue} onPress={() => deleteDataRealtimeDatabase(rowNum, columnNum, cellValue)}>
+            <TouchableWithoutFeedback key={cellValue} onPress={() => handleClickBoard(rowNum, columnNum, cellValue, cellStatusValue)}>
                 {renderCell(dynamicStyle, cellValue)}
             </TouchableWithoutFeedback>
         );
@@ -94,11 +86,12 @@ const styles = StyleSheet.create({
         padding: 8,
         borderWidth: 3,
         textAlign: 'center',
-        fontSize: 25,
+        fontSize: 35,
         fontWeight: '700',
         color: 'red',
         borderColor: 'white',
-        textAlignVertical: 'center'
+        textAlignVertical: 'center',
+        backgroundColor: '#ffa725'
     },
     normal: {
         padding: 8,

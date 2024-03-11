@@ -11,7 +11,7 @@ const usaRules = (): number[][] => [
         [46, 60],
         [61, 75]
     ];
-  
+
 const bingoCellStatusInit = (): number[][] =>
     [
         [0, 0, 0, 0, 0],
