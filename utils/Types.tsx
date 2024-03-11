@@ -13,10 +13,11 @@ export interface BingoRoom {
     displayName: string,
     photoURL: string | null,
     subscriberNum: string,
+    password: string
 }
 
 export interface BingoWaitingRouteParams {
-    isCreator: boolean | null,
+    isCreator: boolean,
     bingoId: string 
 }
 
@@ -54,8 +55,8 @@ export interface BingoState {
     bingoId: string
 }
 
-
-
 export interface BingoPlayState {
     bingoBoard: any[]
 }
+
+type BingoCellValues = Array<Array<any>>;

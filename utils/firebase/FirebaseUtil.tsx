@@ -107,6 +107,7 @@ export const getWaitingBingoRooms = (callback: BingoRoomsCallBackFunction) => {
             const hostUser = await getDoc(hostRef);
             const hostUserInfo = hostUser.data();
 
+            const roomPassword = document.data().password;
             // bingo game host userinfo
             
             // subscribers of created bingo game
@@ -131,6 +132,7 @@ export const getWaitingBingoRooms = (callback: BingoRoomsCallBackFunction) => {
                 displayName: hostUserInfo?.displayName,
                 photoURL: hostUserInfo?.photoURL,
                 subscriberNum: subscriberNum,
+                password: roomPassword
             };            
         });
 
@@ -139,15 +141,15 @@ export const getWaitingBingoRooms = (callback: BingoRoomsCallBackFunction) => {
     });
 };
 
-export const createBingoRoom = async (uid: string) => {
-    //Add your uid to the subscribers array
+export const createBingoRoom = async (uid: string, password: string) => {
     const subscribers = [uid];
     const subscriberPromises = subscribers.map(subscriberId => doc(collection(db, "users"), subscriberId));
     const subscribersRef = await Promise.all(subscriberPromises);
     //Add a new bingo room document with uid and subscribers
     const docRef = await addDoc(collection(db, "bingos"), {
         uid: uid,
-        subscribers: subscribersRef
+        subscribers: subscribersRef,
+        password: password
     });
 
     return docRef.id;
@@ -171,17 +173,29 @@ export const joinBingoRoom = async (uid: string, bingoId: string) => {
     }
 }
 
-export const exitBingoRoom = async (uid: string, bingoId:string) => {
+export const exitBingoRoom = async (uid: string, bingoId:string, isHost: boolean) => {
     const docRef = doc(collection(db, "bingos"), bingoId);
-    const userReference = doc(collection(db, "users"), uid);
 
-    try {
-        await updateDoc(docRef, {
-            subscribers: arrayRemove(userReference)
+    if(!isHost) {
+        const userReference = doc(collection(db, "users"), uid);
+
+        try {
+            await updateDoc(docRef, {
+                subscribers: arrayRemove(userReference)
+            });
+        } catch (error) {
+            console.error('Error removing user from subscribers:', error);
+        }
+    } else {
+        deleteDoc(docRef)
+        .then(() => {
+            console.log("Document successfully deleted!");
+        })
+        .catch((error) => {
+            console.error("Error removing document: ", error);
         });
-    } catch (error) {
-        console.error('Error removing user from subscribers:', error);
     }
+    
 }
 
 export const removeUserFromBingoRoom = async (uid: string, bingoId: string) => {
@@ -217,7 +231,6 @@ export const getBingoRoomById = (bingoId: string, callback ) => {
                         displayName: subscriberDoc.data()?.displayName,
                         photoURL: subscriberDoc.data()?.photoURL
                     }
-
                     subscribersData.push(p);
                     subscribersNum++;
                 }
@@ -233,6 +246,12 @@ export const getBingoRoomById = (bingoId: string, callback ) => {
             callback(false);
         }
     });
+}
+
+export const getBingoPlay = (bingoId: string) => {
+    const docRef = doc(db, 'plays', bingoId);
+
+    
 }
 
 // export const exitBing

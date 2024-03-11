@@ -9,6 +9,9 @@ import {
   TouchableOpacity,
   Button,
   FlatList,
+  ActivityIndicator,
+  Modal,
+  TextInput,
 } from "react-native";
 
 import { Avatar, Image } from "react-native-elements";
@@ -24,38 +27,69 @@ const cellSize = screenHeight / 5;
 
 const GameRoomScreen = () => {
   const navigator: NavigatorType = useNavigation();
-  const [user, setUser] = useState<User | null>();
   const authUser = useSelector((state: RootState) => state.auth.authUser);
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
-  
+  const [listLoading, setListLoading] = useState<boolean>(false);
+  const [createRoomLoading, setCreateRoomLoading] = useState<boolean>(false);
+  const [modalPasswordText, setModalPasswordText] = useState<string>('');
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [password, setPassword] = useState<string>('');
+  const [currentJoinBingoRoom, setCurrentJoinBingoRoom] = useState<BingoRoom>();
+  const [isCreateModal, setIsCreateModal] = useState(true);
   const bingoRooms = useSelector((state: RootState) => state.bingoRoom.bingoRooms);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    setUser(authUser);
-  }, [authUser]);
-
-  useEffect(() => {
-  }, [bingoRooms])
-
-  useEffect(() => {
+    setListLoading(true);
     getWaitingBingoRooms((bingoRooms: BingoRoom[]) => {
       dispatch(setBingoRooms(bingoRooms));
+      setListLoading(false);
     });
   }, []);
 
   const createRoom = async () => {
+    if(createRoomLoading) return false;
+    
     if(authUser.uid) {
-        const newBingoId = await createBingoRoom(authUser.uid);
+        setCreateRoomLoading(true);
+        const newBingoId = await createBingoRoom(authUser.uid, password);
+        setCreateRoomLoading(false);
         navigator.navigate("prepare", { isCreator: true, bingoId: newBingoId });
     }
+
+    setModalVisible(false)
   };
 
+  const createRoomModal = () => {
+    setModalVisible(true);
+    setIsCreateModal(true)
+
+    setModalPasswordText("プレイルームのパスワードを設定してください。")
+  }
+
   const joinRoom = async (bingoRoomItem: BingoRoom) => {
+    if(createRoomLoading) return false;
+
+    if(password != bingoRoomItem.password) {
+      setModalVisible(false)
+      return false;
+    }
+
     if(authUser.uid) {
+      setCreateRoomLoading(true);
         const x = await joinBingoRoom(authUser.uid, bingoRoomItem.bingoId);
+        setCreateRoomLoading(false);
         navigator.navigate("prepare", { isCreator: false, bingoId: bingoRoomItem.bingoId })
     }
+    setModalVisible(false)
+  }
+
+  const joinRoomModal = (item: BingoRoom) => {
+    console.log(item)
+    setCurrentJoinBingoRoom(item);
+    setModalPasswordText("パスワードを入力してください。");
+    setIsCreateModal(false)
+    setModalVisible(true);
   }
 
   const renderPlayerItem = ({ item }: { item: BingoRoom }) => (
@@ -71,7 +105,7 @@ const GameRoomScreen = () => {
       <Text style={styles.nameTitle}>{item.subscriberNum}</Text>
       <Pressable
         style={styles.joinBtn}
-        onPress={() => joinRoom (item)}
+        onPress={() => joinRoomModal (item)}
         >
         <Text style={styles.joinBtnText}>参加する</Text>
       </Pressable>
@@ -98,37 +132,86 @@ const GameRoomScreen = () => {
 
   return (
     <View style={styles.container}>
-      {ProfileAvatar(user?.photoURL, user?.displayName)}
-
+      {ProfileAvatar(authUser?.photoURL, authUser?.displayName)}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+        setModalVisible(false);
+        }}
+      >
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#222222a6' }}>
+            
+            <View style={styles.modalBody}>
+              <Text style={styles.modalText}>
+                {modalPasswordText}
+              </Text>
+              <TextInput
+                style={styles.input}
+                placeholder="パスワード"
+                autoCapitalize="none"
+                value={password}
+                onChangeText={(text) => {
+                  // Allow only English letters (both lowercase and uppercase) and numbers
+                  setPassword(text);
+                }}
+              />
+              {createRoomLoading ? <ActivityIndicator size="large" color="#007AFF" /> : 
+              ''
+              }
+              <View style={styles.roomModalBtns}>
+                <Pressable 
+                        style={styles.modalCancelBtn}
+                        onPress={() => setModalVisible(false)}
+                    >
+                    <Text style={styles.modalOkText}>   キャンセル   </Text>
+                </Pressable>
+                {isCreateModal 
+                ? <Pressable
+                        style={styles.modalOkBtn}
+                        onPress={createRoom}
+                    >
+                    <Text style={styles.modalOkText}>   近   い   </Text>
+                  </Pressable> 
+                : <Pressable
+                        style={styles.modalOkBtn}
+                        onPress={() => joinRoom(currentJoinBingoRoom)}
+                    >
+                    <Text style={styles.modalOkText}>   近   い   </Text>
+                  </Pressable>
+              }
+                
+              </View>
+            </View>
+          </View>
+      </Modal>
       <View style={styles.btnList}>
         <Pressable
           style={styles.button}
-          onPress={createRoom}
+          onPress={createRoomModal}
         >
           <Text style={styles.textTitle}>プレイルームを作成</Text>
         </Pressable>
-
-        {/* <Pressable style={styles.button}>
-                        <Text style={styles.textTitle}>ゲーム参加</Text>
-                    </Pressable> */}
       </View>
-
+      <View style={styles.divider} />
       <Text style={styles.listTitle}>プレイルーム一覧</Text>
-
-      <View style={styles.FlatListStyle}>
-        <FlatList
-          data={bingoRooms}
-          renderItem={renderPlayerItem}
-          keyExtractor={(item, index) => index.toString()}
-        />
-      </View>
+        {listLoading ? <ActivityIndicator size="large" color="#007AFF" /> : 
+        <View style={styles.FlatListStyle}>
+          <FlatList
+            data={bingoRooms}
+            renderItem={renderPlayerItem}
+            keyExtractor={(item, index) => index.toString()}
+          />
+        </View>
+        }
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   profile: {
-    flexDirection: "row",
+    // flexDirection: "row",
     justifyContent: "center",
     width: "100%",
     textAlign: "center",
@@ -152,6 +235,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     marginHorizontal: 4,
     marginVertical: 4,
+    marginTop: 10,
     borderRadius: 6,
   },
   textTitle: {
@@ -209,6 +293,85 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     margin: 5,
   },
+  divider: {
+    borderBottomColor: 'grey',
+    borderBottomWidth: 1,
+    marginVertical: 10,
+    width: '100%'
+  },
+  modalBody: {
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: '#000000c2',
+    paddingHorizontal: 15,
+    paddingVertical: 50,
+    borderWidth: 1,
+    borderColor: 'grey',
+    borderRadius: 20,
+    width: "80%",
+  },
+  modalOkBtn: {
+    backgroundColor: '#ff0000',
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    padding: 4,
+    marginHorizontal: 4,
+    marginVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'white'
+  },
+  modalCancelBtn: {
+    backgroundColor: 'grey',
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    padding: 4,
+    marginHorizontal: 4,
+    marginVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'white'
+  },
+  modalOkText: {
+      fontSize: 16,
+      color: 'white',
+      fontFamily:'serif',
+      fontWeight: '700',
+      textAlign: 'center',
+  },
+
+  completedText: {
+      fontSize: 30,
+      color: 'white',
+      width: '90%',
+      fontFamily:'serif',
+      fontWeight: '700',
+      textAlign: 'center',
+  },
+  roomModalBtns: {
+    flexDirection: 'row'
+  },
+  input: {
+    // backgroundColor: '#ff000066',
+    width: '80%',
+    fontSize: 15,
+    color: 'white',
+    padding: 5,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: 'grey',
+    marginBottom: 20
+  },
+  modalText: {
+    fontSize: 16,
+    color: "white",
+    fontFamily: "serif",
+    fontWeight: "700",
+    textAlign: "center",
+    marginBottom: 20
+  }
+
 });
 
 export default GameRoomScreen;

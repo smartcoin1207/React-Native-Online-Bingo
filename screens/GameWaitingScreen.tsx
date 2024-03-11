@@ -57,7 +57,7 @@ const GameWaitingScreen = () => {
     const exitRoom = () => {
         if(authUser.uid) {
             navigator.navigate('gameRoom');
-            exitBingoRoom(authUser?.uid, bingoId);
+            exitBingoRoom(authUser?.uid, bingoId, isCreator);
         }
     }
 

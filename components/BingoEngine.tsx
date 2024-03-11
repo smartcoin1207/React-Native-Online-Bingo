@@ -59,7 +59,7 @@ const bingoCellValuesUS = (): BingoCellValues => {
         }
         cellValues.push(row);
     }
-    cellValues[2][2] = 0;
+    cellValues[2][2] = "💎";
   
     return cellValues;
 };
@@ -79,29 +79,35 @@ const randomBingoBallUS = (bingoBalls: number[]): any => {
 
 const bingoCheck = (cellValues: BingoCellValues, cellStatus: number[][], rowNum: number, columnNum: number): boolean => {
     const rowCount: number = cellValues.length;
+    let completed = false;
 
-    if (cellStatus[rowNum].indexOf(0) === -1) return true;
+    if (cellStatus[rowNum].indexOf(0) === -1) {
+        completed = true;
+    }
 
     let verticalCount: number = 0;
-    for (let row = 1; row < rowCount; row++) {
+    for (let row = 0; row < rowCount; row++) {
       if (cellStatus[row][columnNum] === 1) verticalCount++;
     }
 
-    if (verticalCount === cellValues[rowNum].length) return true;
+    if (verticalCount === cellValues[rowNum].length) {
+        completed = true;
+    } 
 
     let diagonalUpDownCounter: number = 0;
     let diagonalDownUpCounter: number = 0;
     let columnUpDown: number = 0;
 
-    for (let row = 1; row < rowCount; row++) {
+    for (let row = 0; row < rowCount; row++) {
         if (cellStatus[row][columnUpDown] === 1) diagonalUpDownCounter++;
-        if (cellStatus[rowCount - row][columnUpDown] === 1) diagonalDownUpCounter++;
+        if (cellStatus[rowCount - (row+1)][columnUpDown] === 1) diagonalDownUpCounter++;
         columnUpDown++;
     }
 
-    if ((diagonalUpDownCounter === rowCount - 1) || (diagonalDownUpCounter === rowCount - 1)) return true;
-  
-    return false;
+    if ((diagonalUpDownCounter === rowCount) || (diagonalDownUpCounter === rowCount)) {
+        completed = true;
+    } 
+    return completed;
 };
 
 export { createBingoCard, bingoCellValues, bingoCellStatusInit, bingoCheck, randomBingoBall };
