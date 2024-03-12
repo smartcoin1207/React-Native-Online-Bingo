@@ -1,48 +1,49 @@
 {
-    "project_info": {
-      "project_number": "960958133531",
-      "project_id": "mimi-base",
-      "storage_bucket": "mimi-base.appspot.com"
-    },
-    "client": [
-      {
-        "client_info": {
-          "mobilesdk_app_id": "1:960958133531:android:b72ab3f7445cc0e1934fbe",
-          "android_client_info": {
-            "package_name": "com.minibase.bingo"
-          }
-        },
-        "oauth_client": [],
-        "api_key": [
-          {
-            "current_key": "AIzaSyD88NOgTNLOc0UAb1kOvUKSVGasw5DHpLk"
-          }
-        ],
-        "services": {
-          "appinvite_service": {
-            "other_platform_oauth_client": []
-          }
+  "project_info": {
+    "project_number": "960958133531",
+    "firebase_url": "https://mimi-base-default-rtdb.firebaseio.com",
+    "project_id": "mimi-base",
+    "storage_bucket": "mimi-base.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:960958133531:android:a100ce786673cdc5934fbe",
+        "android_client_info": {
+          "package_name": "com.minibase.bingo1"
         }
       },
-      {
-        "client_info": {
-          "mobilesdk_app_id": "1:960958133531:android:ec61ec62ee05a05d934fbe",
-          "android_client_info": {
-            "package_name": "com.price_base.flutter_webview"
-          }
-        },
-        "oauth_client": [],
-        "api_key": [
-          {
-            "current_key": "AIzaSyD88NOgTNLOc0UAb1kOvUKSVGasw5DHpLk"
-          }
-        ],
-        "services": {
-          "appinvite_service": {
-            "other_platform_oauth_client": []
-          }
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD88NOgTNLOc0UAb1kOvUKSVGasw5DHpLk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
         }
       }
-    ],
-    "configuration_version": "1"
-  }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:960958133531:android:ec61ec62ee05a05d934fbe",
+        "android_client_info": {
+          "package_name": "com.price_base.flutter_webview"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD88NOgTNLOc0UAb1kOvUKSVGasw5DHpLk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

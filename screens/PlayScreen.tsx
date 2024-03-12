@@ -66,15 +66,6 @@ const PlayBoard: React.FC = () => {
                         setTurnText("")
                     }
                 }
-
-                if(bingoMyTurn) {
-                    setTurnText("あなたの番です。");
-
-                    if(sort.length == playerPassed.length) {
-                        setNextTurnPlayerId(sort, turnPlayerId);
-                    }
-                }
-               
                 const bingoInfo = {
                     bingoNextNumber : bingo?.bingoNextNumber,
                     bingoMyTurn: bingoMyTurn,
@@ -82,6 +73,19 @@ const PlayBoard: React.FC = () => {
                     sort: sort
                 };
                 setBingoInfo(bingoInfo);
+
+                console.log(bingoMyTurn, "play")
+
+                if(bingoMyTurn) {
+                    setTurnText("あなたの番です。");
+
+                    const playerPassedLength = playerPassed.length ? playerPassed.length : 0;
+                    const sortLength = sort.length ? sort.length : 0;
+                    if(sortLength == playerPassedLength) {
+                        setNextTurnPlayerId(sort, turnPlayerId);
+                    }
+                }
+
             }
         });
     }, []);

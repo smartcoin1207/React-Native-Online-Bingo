@@ -9,7 +9,7 @@ const INITIAL_STATE = {
     bingoBallsListToDisplay: [],
     bingoCellStatus: bingoCellStatusInit(),
     bingoNextNumber: '',
-    bingoMyTurn: false,
+    bingoMyTurn: true,
     isHost: false,
     bingoId: '',
     bingoTurn: '',

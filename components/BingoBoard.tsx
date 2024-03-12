@@ -39,7 +39,10 @@ const BingoBoard: React.FC = () => {
     const bingoId = useSelector((state: RootState) => state.bingo.bingoId)
 
     const dispatch = useDispatch();
-
+    
+    useEffect(() => {
+        console.log(bingoMyTurn, "xxx")
+    }, [bingoMyTurn])
     useEffect(() => {
         setCellStatus(bingoCellStatus);
     }, [bingoCellStatus])
