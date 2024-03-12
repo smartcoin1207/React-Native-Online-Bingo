@@ -21,6 +21,7 @@ import { BingoRoom, User, NavigatorType } from "../utils/Types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store";
 import { setBingoRooms } from "../store/reducers/bingo/bingoRoomSlice";
+import { modalBackgroundColor, modalContainerBackgroundColor } from "../utils/ValidationString";
 
 const screenHeight = Dimensions.get("window").height;
 const cellSize = screenHeight / 5;
@@ -54,7 +55,7 @@ const GameRoomScreen = () => {
         setCreateRoomLoading(true);
         const newBingoId = await createBingoRoom(authUser.uid, password);
         setCreateRoomLoading(false);
-        navigator.navigate("prepare", { isCreator: true, bingoId: newBingoId });
+        navigator.navigate("prepare", { isHost: true, bingoId: newBingoId });
     }
 
     setModalVisible(false)
@@ -62,7 +63,7 @@ const GameRoomScreen = () => {
 
   const createRoomModal = () => {
     setModalVisible(true);
-    setIsCreateModal(true)
+    setIsCreateModal(true);
 
     setModalPasswordText("プレイルームのパスワードを設定してください。")
   }
@@ -79,13 +80,12 @@ const GameRoomScreen = () => {
       setCreateRoomLoading(true);
         const x = await joinBingoRoom(authUser.uid, bingoRoomItem.bingoId);
         setCreateRoomLoading(false);
-        navigator.navigate("prepare", { isCreator: false, bingoId: bingoRoomItem.bingoId })
+        navigator.navigate("prepare", { isHost: false, bingoId: bingoRoomItem.bingoId })
     }
     setModalVisible(false)
   }
 
   const joinRoomModal = (item: BingoRoom) => {
-    console.log(item)
     setCurrentJoinBingoRoom(item);
     setModalPasswordText("パスワードを入力してください。");
     setIsCreateModal(false)
@@ -141,7 +141,7 @@ const GameRoomScreen = () => {
         setModalVisible(false);
         }}
       >
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#222222a6' }}>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: modalBackgroundColor }}>
             
             <View style={styles.modalBody}>
               <Text style={styles.modalText}>
@@ -151,6 +151,7 @@ const GameRoomScreen = () => {
                 style={styles.input}
                 placeholder="パスワード"
                 autoCapitalize="none"
+                placeholderTextColor="grey"
                 value={password}
                 onChangeText={(text) => {
                   // Allow only English letters (both lowercase and uppercase) and numbers
@@ -196,15 +197,17 @@ const GameRoomScreen = () => {
       </View>
       <View style={styles.divider} />
       <Text style={styles.listTitle}>プレイルーム一覧</Text>
-        {listLoading ? <ActivityIndicator size="large" color="#007AFF" /> : 
-        <View style={styles.FlatListStyle}>
-          <FlatList
-            data={bingoRooms}
-            renderItem={renderPlayerItem}
-            keyExtractor={(item, index) => index.toString()}
-          />
-        </View>
-        }
+      
+      {listLoading ? <ActivityIndicator size="large" color="#007AFF" /> : ''} 
+        
+      <View style={styles.FlatListStyle}>
+        <FlatList
+          data={bingoRooms}
+          renderItem={renderPlayerItem}
+          keyExtractor={(item, index) => index.toString()}
+        />
+      </View>
+      
     </View>
   );
 };
@@ -302,7 +305,7 @@ const styles = StyleSheet.create({
   modalBody: {
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: '#000000c2',
+    backgroundColor: modalContainerBackgroundColor,
     paddingHorizontal: 15,
     paddingVertical: 50,
     borderWidth: 1,

@@ -17,14 +17,14 @@ export interface BingoRoom {
 }
 
 export interface BingoWaitingRouteParams {
-    isCreator: boolean,
+    isHost: boolean,
     bingoId: string 
 }
 
 export type BingoRoomsCallBackFunction = (bingoRooms: BingoRoom[]) => void;
 
 export interface NavigatorType {
-    navigate: (screen: string, params: { isCreator: boolean; bingoId: string }) => void;
+    navigate: (screen: string, params: { isHost: boolean; bingoId: string }) => void;
     // Add other navigator properties as needed
 }
 

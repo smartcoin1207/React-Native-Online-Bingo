@@ -6,7 +6,7 @@ const INITIAL_STATE: UserState = {
         uid: '', 
         email: '',
         displayName: '',
-        photoUrl: ''
+        photoURL: ''
     },
     isLoggedIn : false
 };

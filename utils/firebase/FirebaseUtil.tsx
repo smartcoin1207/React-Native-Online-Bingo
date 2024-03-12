@@ -93,7 +93,7 @@ export const signOutAuthUser = () => {
  * get all waiting bingorooms
  */
 export const getWaitingBingoRooms = (callback: BingoRoomsCallBackFunction) => {
-    const q = query(collection(db, "bingos"));
+    const q = query(collection(db, "bingos"), where("bingoStarted", "==", false), where("bingoStopped", "==", false));
     
     return onSnapshot(q, async (snapshot) => {
         const promises = snapshot.docs.map(async (document) => {
@@ -149,7 +149,9 @@ export const createBingoRoom = async (uid: string, password: string) => {
     const docRef = await addDoc(collection(db, "bingos"), {
         uid: uid,
         subscribers: subscribersRef,
-        password: password
+        password: password,
+        bingoStarted: false,
+        bingoStopped: false
     });
 
     return docRef.id;
@@ -161,12 +163,24 @@ export const joinBingoRoom = async (uid: string, bingoId: string) => {
     const docRef = doc(collection(db, "bingos"), bingoId);
 
     try {
-        await updateDoc(docRef, {
-            subscribers: arrayUnion(userReference)
-        });
+        const docSnap = await getDoc(docRef);
+        const data = docSnap.data();
 
-        console.log('New subscriber added successfully');
-        return true;
+        if(data?.bingoStarted || data?.bingoStopped) {
+            return false;
+        }
+
+        if (data?.subscribers.length < 10) {
+            await updateDoc(docRef, {
+                subscribers: arrayUnion(userReference)
+            });
+
+            console.log('New subscriber added successfully');
+            return true;
+        } else {
+            console.log('Subscriber limit reached. Cannot add new subscriber.');
+            return false;
+        }
     } catch (error) {
         console.error('Error adding new subscriber:', error);
         return false;
@@ -195,7 +209,6 @@ export const exitBingoRoom = async (uid: string, bingoId:string, isHost: boolean
             console.error("Error removing document: ", error);
         });
     }
-    
 }
 
 export const removeUserFromBingoRoom = async (uid: string, bingoId: string) => {
@@ -250,8 +263,71 @@ export const getBingoRoomById = (bingoId: string, callback ) => {
 
 export const getBingoPlay = (bingoId: string) => {
     const docRef = doc(db, 'plays', bingoId);
-
-    
 }
 
-// export const exitBing
+export const setOrder  = async (bingoId: string, uids: string[]) => {
+    const turnPlayerId = uids[0];
+    try {
+        const docRef = doc(collection(db, "bingos"), bingoId);
+        await updateDoc(docRef, {
+            sort: uids,
+            turnPlayerId: turnPlayerId
+        });
+    } catch (error) {
+        console.log("bingo error")
+    }
+}
+
+export const getBingo = (bingoId: string, callback ) => {
+    const docRef = doc(db, 'bingos', bingoId);
+
+    return  onSnapshot(docRef, async (document) => {
+        if(document.exists()) {
+            const bingo = document.data();
+            callback(bingo)
+        } else {
+            console.log('error');
+            callback(false);
+        }
+    });
+}
+
+export const setFirestoreBingoNextNumber = async (uid: string, bingoId: string, bingoNextNumber: string) => {
+    const docRef = doc(db, 'bingos', bingoId);
+
+    try {
+        await updateDoc(docRef, {
+            bingoNextNumber: bingoNextNumber,
+            playerPassed: arrayUnion(uid)
+        })
+    } catch (error) {
+        console.log("bingo error")
+    }
+}
+
+export const setBingoPassed = async (uid: string, bingoId: string) => {
+    const docRef = doc(db, 'bingos', bingoId);
+
+    try {
+        await updateDoc(docRef, {
+            playerPassed: arrayUnion(uid)
+        })
+    } catch (error) {
+        console.log("bingo error")
+    }
+}
+
+export const setBingoTurn = async (newTurnPlayerId:string, bingoId: string) => {
+    const docRef = doc(db, 'bingos', bingoId);
+
+    try {
+        await updateDoc(docRef, {
+            playerPassed: [],
+            turnPlayerId: newTurnPlayerId
+        })
+    } catch (error) {
+        console.log("bingo error")
+    }
+}
+
+// export const setBingoCellStatus = 

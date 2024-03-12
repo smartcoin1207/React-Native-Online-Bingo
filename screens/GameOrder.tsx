@@ -10,13 +10,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { setCurrentBingoRoom } from '../store/reducers/bingo/bingoRoomSlice';
 import { modalBackgroundColor, modalContainerBackgroundColor } from '../utils/ValidationString';
-import { remove } from 'lodash';
-import { setBingoInitial } from '../store/reducers/bingo/bingoSlice';
 
 const screenHeight = Dimensions.get('window').height;
     const cellSize = screenHeight / 5; 
 
-const GameWaitingScreen = () => {
+const GameOrderScreen = () => {
     const navigator = useNavigation();
     const [subscribers, setSubscribers] = useState<Player[]>([]);
 
@@ -33,48 +31,45 @@ const GameWaitingScreen = () => {
     const dispatch = useDispatch();
     
     useEffect(() => {
-        dispatch(setBingoInitial({bingoId: bingoId, isHost: isHost}))
-    }, []);
-
-    useEffect(() => {
         if(currentBingoRoom) {
             setSubscribers(currentBingoRoom?.subscribersPlayers);
         } else {
             setSubscribers([]);
         }
     }, [currentBingoRoom]);
+
     //get bingo room from firebase 
-    useEffect(() => {
-        setListLoading(true);
+    // useEffect(() => {
+    //     // setListLoading(true);
 
-        getBingoRoomById(bingoId, (bingoRoom:any) => {
-            if(!bingoRoom) {
-                navigator.navigate('gameRoom');
-                dispatch(setCurrentBingoRoom(null));
-            }
-            if (!bingoRoom.subscribersPlayers.some((player: any) => player.uid === authUser.uid)) {
-                navigator.navigate('gameRoom');
-            }
+    //     getBingoRoomById(bingoId, (bingoRoom:any) => {
+    //         if(!bingoRoom) {
+    //             navigator.navigate('gameRoom');
+    //             dispatch(setCurrentBingoRoom(null));
+    //         }
+    //         if (!bingoRoom.subscribersPlayers.some(player => player.uid === authUser.uid)) {
+    //             navigator.navigate('gameRoom');
+    //         }
 
-            const currentBingoRoom = {
-                bingoId: bingoId,
-                subscribersPlayers:  bingoRoom?.subscribersPlayers
-            }
-            dispatch(setCurrentBingoRoom(currentBingoRoom));
-            setListLoading(false)
-        });
-    }, []);
+    //         const currentBingoRoom = {
+    //             bingoId: bingoId,
+    //             subscribersPlayers:  bingoRoom?.subscribersPlayers
+    //         }
+    //         dispatch(setCurrentBingoRoom(currentBingoRoom));
+    //         // setListLoading(false)
+    //     });
+    // }, []);
 
-    useEffect(() => {
-        const backAction = () => {
-            setModalAlertText("プレイルームを削除しますか？");
-            setExitModalVisible(true);
-          return true;
-        };
+    // useEffect(() => {
+    //     const backAction = () => {
+    //         setModalAlertText("プレイルームを削除しますか？");
+    //         setExitModalVisible(true);
+    //       return true;
+    //     };
     
-        const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-        return () => backHandler.remove(); // Clean up the event listener
-      }, []);
+    //     const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+    //     return () => backHandler.remove(); // Clean up the event listener
+    //   }, []);
 
     const exitRoom = () => {
         console.log('xxxx')
@@ -92,23 +87,8 @@ const GameWaitingScreen = () => {
         setModalAlertText("プレイルームを削除しますか？");
     }
     
-    const removeUser = (uid: string) => {
-        setExitModalVisible(false)
-        if(uid) {
-            removeUserFromBingoRoom(uid, bingoId);
-        }
-    }
-
-    const removeUserModal = (uid: string) => {
-        setExitModalVisible(true);
-        setIsExitModal(false);
-        setCurrentRemoveUserId(uid);
-        setModalAlertText("このユーザーをエクスポートしますか？");
-    }
-
     const renderPlayerItem = ({ item }: { item: Player }) => (
         <View style={styles.playerItem} >
-            
             <Avatar
                 rounded
                 size="medium"
@@ -199,22 +179,21 @@ const GameWaitingScreen = () => {
                     <Text style={styles.textTitle}>ゲーム開始</Text>
                 </Pressable>}
                 
-                <Pressable style={styles.button} onPress={() => exitRoomModal()}>
+                {/* <Pressable style={styles.button} onPress={() => exitRoomModal()}>
                     <Text style={styles.textTitle}>退出する</Text>
-                </Pressable>
+                </Pressable> */}
             </View>
 
             <Text style={styles.listTitle}>ゲームメンバー</Text>
-            
-            {listLoading ? <ActivityIndicator size="large" color="#007AFF" /> : ''} 
-        
-            <View style={styles.FlatListStyle}>
+            {listLoading ? <ActivityIndicator size="large" color="#007AFF" /> : 
+                <View style={styles.FlatListStyle}>
                 <FlatList
                     data={subscribers}
                     renderItem={renderPlayerItem}
                     keyExtractor={(item, index) => index.toString()}
                 />
-            </View>
+                </View>
+                }
         </View>
     );
 }
@@ -373,4 +352,4 @@ const styles = StyleSheet.create({
 });
 
 
-export default GameWaitingScreen;
+export default GameOrderScreen;

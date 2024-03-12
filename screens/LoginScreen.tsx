@@ -1,19 +1,26 @@
-import React, { useEffect, useState } from 'react';
-import { UseSelector, useDispatch, useSelector } from 'react-redux';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { validateEmail, validatePassword } from '../utils/ValidtionUtils';
-import { RootState } from '../store';
-import { signInAuthUser } from '../utils/firebase/FirebaseUtil';
-import { SignIn } from '../store/reducers/bingo/userSlice';
-import { User } from '../utils/Types';
+import React, { useEffect, useState } from "react";
+import { UseSelector, useDispatch, useSelector } from "react-redux";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { validateEmail, validatePassword } from "../utils/ValidtionUtils";
+import { RootState } from "../store";
+import { signInAuthUser } from "../utils/firebase/FirebaseUtil";
+import { SignIn } from "../store/reducers/bingo/userSlice";
+import { User } from "../utils/Types";
+import { modalBackgroundColor, modalContainerBackgroundColor } from "../utils/ValidationString";
 interface LoginScreenProps {}
 
 const Login: React.FC<LoginScreenProps> = () => {
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [emailError, setEmailError] = useState<string>('');
-  const [passwordError, setPasswordError] = useState<string>('');
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [emailError, setEmailError] = useState<string>("");
+  const [passwordError, setPasswordError] = useState<string>("");
   const navigation = useNavigation();
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const authUser = useSelector((state: RootState) => state.auth.authUser);
@@ -21,12 +28,12 @@ const Login: React.FC<LoginScreenProps> = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if(isLoggedIn) {
-      navigation.navigate('GameList');
+    if (isLoggedIn) {
+      navigation.navigate("GameList");
     }
-    setEmail('potter@gmail.com');
-    setPassword('12345678')
-  }, [isLoggedIn])
+    setEmail("potter@gmail.com");
+    setPassword("12345678");
+  }, [isLoggedIn]);
 
   const handleLogin = () => {
     // Validation
@@ -37,52 +44,40 @@ const Login: React.FC<LoginScreenProps> = () => {
     setPasswordError(passwordErr || "");
 
     if (!emailErr && !passwordErr) {
-      signInAuthUser(email, password)
-      .then((userData) => {
-        if(userData) {
+      signInAuthUser(email, password).then((userData) => {
+        if (userData) {
           dispatch(SignIn(userData));
         }
-      })
+      });
     }
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.subContainer}>
-
-        <Text style={styles.title}>会員ログイン
-        </Text>
+        <Text style={styles.title}>会員ログイン</Text>
         <TextInput
           style={styles.input}
           placeholder="メールアドレス"
+          placeholderTextColor="grey"
           keyboardType="email-address"
           autoCapitalize="none"
           value={email}
           onChangeText={(text) => setEmail(text)}
         />
-        {
-          emailError !== '' &&
-          (
-            <Text style={styles.errText}>{emailError}</Text>
-          )
-        }
+        {emailError !== "" && <Text style={styles.errText}>{emailError}</Text>}
         <TextInput
           style={styles.input}
           placeholder="パスワード"
+          placeholderTextColor="grey"
           secureTextEntry
           value={password}
           onChangeText={(text) => setPassword(text)}
         />
-        {
-          passwordError !== '' &&
-          (
-            <Text style={styles.errText}>{passwordError}</Text>
-          )
-        }
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleLogin}
-        >
+        {passwordError !== "" && (
+          <Text style={styles.errText}>{passwordError}</Text>
+        )}
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>ログイン</Text>
         </TouchableOpacity>
       </View>
@@ -93,63 +88,62 @@ const Login: React.FC<LoginScreenProps> = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 10,
-    backgroundColor: '#000000',
+    backgroundColor: 'black',
   },
   subContainer: {
     flex: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 30,
-    backgroundColor: 'hsla(0,0%,100%,.5)',
+    backgroundColor: modalContainerBackgroundColor,
     borderRadius: 20,
-    width: '100%',
+    borderWidth: 1,
+    borderColor: 'grey',
+    width: "90%",
   },
   title: {
     fontSize: 24,
     marginBottom: 50,
-    color: '#ffffff',
-    fontWeight: '900',
+    color: "#ffffff",
+    fontWeight: "900",
     // marginVertical: 60,
-
-
   },
   input: {
     height: 40,
-    width: '100%',
-    borderColor: 'gray',
-    borderWidth: 1,
+    width: "100%",
+    fontSize: 16,
     marginBottom: 12,
     paddingHorizontal: 10,
     paddingVertical: 2,
-    backgroundColor: '#ffffff',
-    borderRadius: 4,
-    fontSize: 16
+    backgroundColor: modalContainerBackgroundColor,
+    color: 'white',
+    borderRadius: 20,
+    borderColor: "gray",
+    borderWidth: 1,
   },
   button: {
-    backgroundColor: 'red',
-    width: '100%',
-    padding: 15,
-    borderRadius: 5,
+    backgroundColor: "red",
+    width: "100%",
+    padding: 10,
+    borderRadius: 20,
     marginTop: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   buttonText: {
-    color: '#ffffff',
-    textAlign: 'center',
-    fontWeight: 'bold',
+    color: "#ffffff",
+    textAlign: "center",
+    fontWeight: "bold",
     fontSize: 16,
   },
   errText: {
-    color: 'red',
+    color: "red",
     marginBottom: 20,
     fontSize: 16,
   },
 });
 
 export default Login;
-
-

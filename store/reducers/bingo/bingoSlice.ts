@@ -9,7 +9,11 @@ const INITIAL_STATE = {
     bingoBallsListToDisplay: [],
     bingoCellStatus: bingoCellStatusInit(),
     bingoNextNumber: '',
-    bingoMyTurn: true
+    bingoMyTurn: false,
+    isHost: false,
+    bingoId: '',
+    bingoTurn: '',
+    sort: []
 };
 
 export const bingoSlice = createSlice({
@@ -30,9 +34,19 @@ export const bingoSlice = createSlice({
         },
         setBingoMyTurn: (state, action) => {
             state.bingoMyTurn = action.payload;
+        },
+        setBingoInitial: (state, action) => {
+            state.bingoId = action.payload.bingoId;
+            state.isHost = action.payload.isHost;
+        },
+        setBingoInfo: (state, action) => {
+            state.bingoNextNumber = action.payload.bingoNextNumber;
+            state.bingoMyTurn = action.payload.bingoMyTurn;
+            state.bingoTurn = action.payload.bingoTurn;
+            state.sort = action.payload.sort;
         }
     },
 });
 
-export const { BingoStart, BingoStop, setBingoCellStatus, setBingoNextNumber, setBingoMyTurn } = bingoSlice.actions;
+export const { BingoStart, BingoStop, setBingoCellStatus, setBingoNextNumber, setBingoMyTurn, setBingoInitial, setBingoInfo } = bingoSlice.actions;
 export default bingoSlice.reducer;

@@ -1,15 +1,15 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 
-import { UseSelector, useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { StyleSheet, Text, View, Dimensions, TouchableWithoutFeedback, Modal, Button, Pressable, Image } from 'react-native';
 import { createBingoCard, bingoCellStatusInit, bingoCellValues, bingoCheck } from './BingoEngine';
-import {db} from '../utils/firebase/FirebaseInitialize';
 import 'firebase/firestore';
-import { collection, addDoc } from "firebase/firestore"; 
-import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { setBingoCellStatus, setBingoNextNumber } from '../store/reducers/bingo/bingoSlice';
+import { modalBackgroundColor, modalContainerBackgroundColor } from "../utils/ValidationString";
+import { setBingoPassed, setFirestoreBingoNextNumber } from '../utils/firebase/FirebaseUtil';
+
 interface Props {
     bingoTimerIntervalId: number;
     bingoGameHasStarted: boolean;
@@ -32,9 +32,11 @@ const BingoBoard: React.FC = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const [nextNumber, setNextNumber] = useState('');
     
+    const authUser = useSelector((state: RootState) => state.auth.authUser);
     const bingoCellStatus = useSelector((state: RootState) => state.bingo.bingoCellStatus);
     const bingoNextNumber = useSelector((state: RootState) => state.bingo.bingoNextNumber);
     const bingoMyTurn = useSelector((state: RootState) => state.bingo.bingoMyTurn);
+    const bingoId = useSelector((state: RootState) => state.bingo.bingoId)
 
     const dispatch = useDispatch();
 
@@ -55,12 +57,27 @@ const BingoBoard: React.FC = () => {
         setCellStatus(bingoCellStatusInit());
     };
 
+    const passButtonDisplay = () => {
+        let isValueIncluded = false;
+        const value = bingoCellValue;
+    
+        for (let i = 0; i < value.length; i++) {
+            for (let j = 0; j < value[i].length; j++) {
+                if (value[i][j] === bingoNextNumber) {
+                    isValueIncluded = true;
+                    break;
+                }
+            }
+        }
+    }
+
     const handleCellClick = (rowNum:number, columnNum:number, cellValue:string, cellStatusValue:number) => {
         // console.log(rowNum, columnNum, cellValue, cellStatusValue);
         if(cellStatusValue == 1 || completed) {
             return false;
         }
-        if(!bingoMyTurn) {
+
+        if(!bingoMyTurn && bingoNextNumber != cellValue) {
             return false;
         }
 
@@ -74,10 +91,20 @@ const BingoBoard: React.FC = () => {
               return row;
             }
           });
-
-        dispatch(setBingoNextNumber(cellValue));
-
+        
+        if(bingoMyTurn) {
+            dispatch(setBingoNextNumber(cellValue));
+            if(authUser.uid){
+                setFirestoreBingoNextNumber(authUser.uid, bingoId, cellValue);
+            }
+        } else {
+            if(authUser.uid) {
+                setBingoPassed(authUser.uid, bingoId);
+            }
+        }
+        
         dispatch(setBingoCellStatus(newCellStatusValues));
+
         const isCompleted = bingoCheck(bingoCellValue, newCellStatusValues, rowNum, columnNum);
         if(isCompleted) {
             setCompleted(true);
@@ -96,7 +123,7 @@ const BingoBoard: React.FC = () => {
     const renderColumn = (rowNum: number, columnNum: number): JSX.Element => {
         const cellValue = bingoCellValue[rowNum][columnNum];
         const cellStatusValue = cellStatus[rowNum][columnNum];
-        console.log(rowNum, columnNum, ":",bingoNextNumber, cellValue, )
+        // console.log(rowNum, columnNum, ":",bingoNextNumber, cellValue, )
 
         let dynamicStyle = styles.normal;
         if(cellStatusValue === 1) {
@@ -131,7 +158,6 @@ const BingoBoard: React.FC = () => {
     };
 
     const bingoCardLayout = createBingoCard(bingoCellValue, renderRow, renderColumn);
-  
     return (
         <View style={styles.container}>
             {bingoCardLayout}
@@ -143,7 +169,7 @@ const BingoBoard: React.FC = () => {
                 setModalVisible(false);
                 }}
             >
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#222222a6' }}>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: modalBackgroundColor }}>
                        <View style={styles.modalBody}>
                             {/* <Image
                                 source={require('../assets/images/bingo.png')}
@@ -207,7 +233,7 @@ const styles = StyleSheet.create({
     modalBody: {
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: '#000000d2',
+        backgroundColor: modalContainerBackgroundColor,
         paddingHorizontal: 15,
         paddingVertical: 50,
         borderWidth: 1,

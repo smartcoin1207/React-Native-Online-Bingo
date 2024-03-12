@@ -8,11 +8,13 @@ import {
   View,
   TextInput,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { validateEmail, validatePassword } from '../utils/ValidtionUtils';
 import { signUpAuthUser } from "../utils/firebase/FirebaseUtil";
 import { RootState } from "../store";
+import { modalContainerBackgroundColor } from "../utils/ValidationString";
 
 interface LoginScreenProps {}
 
@@ -25,11 +27,10 @@ const Register: React.FC<LoginScreenProps> = () => {
 
     const [emailError, setEmailError] = useState<string>("");
     const [passwordError, setPasswordError] = useState<string>("");
+    const [listLoading, setListLoading] = useState<boolean>(false);
+
     const navigation = useNavigation();
-
     const authUser = useSelector((state: RootState) => state.auth.authUser);
-
-
 
     const handleRegister = async () => {
         const emailErr = validateEmail(email);
@@ -39,9 +40,11 @@ const Register: React.FC<LoginScreenProps> = () => {
         setPasswordError(passwordErr || "");
     
         if (!emailErr && !passwordErr) {
+            setListLoading(true);
             signUpAuthUser(email, password, username, avatarUrl)
             .then(() => {
                 navigation.navigate("login");
+                setListLoading(false);
             });
         }
     };
@@ -53,6 +56,7 @@ const Register: React.FC<LoginScreenProps> = () => {
                 <TextInput
                     style={styles.input}
                     placeholder="メールアドレス"
+                    placeholderTextColor="grey"
                     keyboardType="email-address"
                     autoCapitalize="none"
                     value={email}
@@ -62,6 +66,7 @@ const Register: React.FC<LoginScreenProps> = () => {
                 <TextInput
                     style={styles.input}
                     placeholder="パスワード"
+                    placeholderTextColor="grey"
                     secureTextEntry
                     value={password}
                     onChangeText={(text) => setPassword(text)}
@@ -72,20 +77,22 @@ const Register: React.FC<LoginScreenProps> = () => {
                 <TextInput
                     style={styles.input}
                     placeholder="アカウント名"
+                    placeholderTextColor="grey"
                     value={username}
                     onChangeText={(text) => setUsername(text)}
                 />
                 <TextInput
                     style={styles.input}
-                    placeholder="AvatarUrl"
+                    placeholder="アバター url"
+                    placeholderTextColor="grey"
                     value={avatarUrl}
                     onChangeText={(text) => setAvatarUrl(text)}
-                    keyboardType="numeric"
                 />
                 <TouchableOpacity style={styles.button} onPress={handleRegister}>
                     <Text style={styles.buttonText}>登      録</Text>
                 </TouchableOpacity>
             </View>
+            {listLoading? <ActivityIndicator size="large" color="#007AFF" /> : ''}
         </View>
     );
 };
@@ -103,9 +110,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 30,
-    backgroundColor: "hsla(0,0%,100%,.5)",
+    backgroundColor: modalContainerBackgroundColor,
     borderRadius: 20,
-    width: "100%",
+    borderWidth: 1,
+    borderColor: 'grey',
+    width: "90%",
   },
   title: {
     fontSize: 24,
@@ -117,20 +126,21 @@ const styles = StyleSheet.create({
   input: {
     height: 40,
     width: "100%",
-    borderColor: "gray",
-    borderWidth: 1,
+    fontSize: 16,
     marginBottom: 12,
     paddingHorizontal: 10,
     paddingVertical: 2,
-    backgroundColor: "#ffffff",
-    borderRadius: 4,
-    fontSize: 16,
+    backgroundColor: modalContainerBackgroundColor,
+    color: 'white',
+    borderRadius: 20,
+    borderColor: "gray",
+    borderWidth: 1,
   },
   button: {
     backgroundColor: "red",
     width: "100%",
-    padding: 15,
-    borderRadius: 5,
+    padding: 10,
+    borderRadius: 20,
     marginTop: 10,
     justifyContent: "center",
     alignItems: "center",
