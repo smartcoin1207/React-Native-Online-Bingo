@@ -13,6 +13,7 @@ const INITIAL_STATE = {
     isHost: false,
     bingoId: '',
     bingoTurn: '',
+    bingoPassBtnDisplay: false,
     sort: []
 };
 

@@ -33,6 +33,9 @@
     "extra": {
       "firebase": {
         "databaseURL": "https://mimi-base-default-rtdb.firebaseio.com/"
+      },
+      "eas": {
+        "projectId": "45efd7ba-1cb2-4d3f-9cd5-8e6d54a4c42b"
       }
     },
     "web": {

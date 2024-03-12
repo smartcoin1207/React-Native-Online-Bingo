@@ -7,8 +7,9 @@ import { bingoCellStatusInit } from '../components/BingoEngine';
 import _ from "lodash";
 import { RootState } from '../store';
 import { modalBackgroundColor, modalContainerBackgroundColor } from '../utils/ValidationString';
-import { getBingo, setBingoTurn, setOrder } from '../utils/firebase/FirebaseUtil';
+import { getBingo, setBingoPassed, setBingoTurn, setOrder } from '../utils/firebase/FirebaseUtil';
 import { Player } from '../utils/Types';
+import { auth } from '../utils/firebase/FirebaseInitialize';
 
 const PlayBoard: React.FC = () => {
     const [modalVisible, setModalVisible] = useState(false);
@@ -21,6 +22,7 @@ const PlayBoard: React.FC = () => {
     const currentBingoRoom = useSelector((state: RootState) => state.bingoRoom.currentBingoRoom);
     const bingoSort = useSelector((state: RootState) => state.bingo.sort);
     const authUser = useSelector((state: RootState) => state.auth.authUser);
+    const bingoPassBtnDisplay = useSelector((state: RootState) => state.bingo.bingoPassBtnDisplay);
 
     const dispatch = useDispatch();
 
@@ -93,6 +95,12 @@ const PlayBoard: React.FC = () => {
         setBingoTurn(newTurnPlayerId, bingoId);        
     }
 
+    const handlePassBtnClick = () => {
+        if(authUser.uid){
+            setBingoPassed(authUser.uid, bingoId);
+        }
+    }
+
     const handleRandomOrder = async () => {
         const subscribersPlayers = currentBingoRoom?.subscribersPlayers;
         const uids = subscribersPlayers?.map((player) => {
@@ -140,6 +148,12 @@ const PlayBoard: React.FC = () => {
                 </View>
                 <Text style={styles.turnText}>{turnText}</Text>
 
+                <Pressable 
+                        style={styles.passBtn}
+                        onPress={handlePassBtnClick}
+                    >
+                    <Text style={styles.passBtnText}>   合格   </Text>
+                </Pressable>
                 <BingoBoard />
             </View>
             
@@ -273,7 +287,25 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         textAlign: "center",
         marginBottom: 20
-      }
+      },
+      passBtn: {
+        backgroundColor: 'red',
+        paddingVertical: 8,
+        paddingHorizontal: 6,
+        padding: 4,
+        marginHorizontal: 4,
+        marginVertical: 4,
+        borderRadius: 6,
+        borderWidth: 1,
+        borderColor: 'white'
+      },
+      passBtnText: {
+        fontSize: 16,
+        color: "white",
+        fontFamily: "serif",
+        fontWeight: "700",
+        textAlign: "center",
+      },
 });
 
 export default PlayBoard;

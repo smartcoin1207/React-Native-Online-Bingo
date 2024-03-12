@@ -56,7 +56,7 @@ const BingoBoard: React.FC = () => {
         setBingoCellValues(bingoCellValues());
         setCellStatus(bingoCellStatusInit());
     };
-
+    
     const passButtonDisplay = () => {
         let isValueIncluded = false;
         const value = bingoCellValue;
