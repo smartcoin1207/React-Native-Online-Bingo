@@ -21,7 +21,7 @@ export interface BingoWaitingRouteParams {
     bingoId: string 
 }
 
-export type BingoRoomsCallBackFunction = (bingoRooms: BingoRoom[]) => void;
+export type BingoRoomsCallBackFunction = (bingoRooms: any[]) => void;
 
 export interface NavigatorType {
     navigate: (screen: string, params: { isHost: boolean; bingoId: string }) => void;

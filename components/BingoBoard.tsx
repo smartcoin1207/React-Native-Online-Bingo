@@ -6,7 +6,7 @@ import { StyleSheet, Text, View, Dimensions, TouchableWithoutFeedback, Modal, Bu
 import { createBingoCard, bingoCellStatusInit, bingoCellValues, bingoCheck } from './BingoEngine';
 import 'firebase/firestore';
 import { RootState } from '../store';
-import { setBingoCellStatus, setBingoNextNumber } from '../store/reducers/bingo/bingoSlice';
+import { setBingoCellStatus, setBingoNextNumber, setCanBoardCellClick } from '../store/reducers/bingo/bingoSlice';
 import { modalBackgroundColor, modalContainerBackgroundColor } from "../utils/ValidationString";
 import { setBingoPassed, setFirestoreBingoNextNumber } from '../utils/firebase/FirebaseUtil';
 
@@ -25,58 +25,32 @@ const BingoBoard: React.FC = () => {
     const screenWidth = Dimensions.get('window').width ;
     const cellSize = screenWidth / 5; 
     
-    const [bingoCellValue, setBingoCellValues] = React.useState<Array<Array<any>>>(bingoCellValues());
     const [cellStatus, setCellStatus] = React.useState<number[][]>(bingoCellStatusInit());
     const [rerender, setRerender] = React.useState<number>(0);
     const [completed, setCompleted] = useState<boolean>(false);
     const [modalVisible, setModalVisible] = useState(false);
-    const [nextNumber, setNextNumber] = useState('');
     
     const authUser = useSelector((state: RootState) => state.auth.authUser);
     const bingoCellStatus = useSelector((state: RootState) => state.bingo.bingoCellStatus);
     const bingoNextNumber = useSelector((state: RootState) => state.bingo.bingoNextNumber);
     const bingoMyTurn = useSelector((state: RootState) => state.bingo.bingoMyTurn);
-    const bingoId = useSelector((state: RootState) => state.bingo.bingoId)
+    const bingoId = useSelector((state: RootState) => state.bingo.bingoId);
+    const canBoardCellClick = useSelector((state: RootState) => state.bingo.canBorardCellClick);
+    const bingoCellValue = useSelector((state: RootState) => state.bingo.bingoCellValue);
 
     const dispatch = useDispatch();
     
     useEffect(() => {
-        console.log(bingoMyTurn, "xxx")
-    }, [bingoMyTurn])
-    useEffect(() => {
-        setCellStatus(bingoCellStatus);
-    }, [bingoCellStatus])
+        console.log(bingoNextNumber, "xxx")
+    }, [bingoNextNumber]);
 
     useEffect(() => {
-        setNextNumber(bingoNextNumber);
-    }, [bingoNextNumber])
-  
-    const performRerender = (): void => {
-        setRerender(rerender === 1 ? 0 : 1);
-    };
-  
-    const initBingo = (): void => {
-        setBingoCellValues(bingoCellValues());
-        setCellStatus(bingoCellStatusInit());
-    };
-    
-    const passButtonDisplay = () => {
-        let isValueIncluded = false;
-        const value = bingoCellValue;
-    
-        for (let i = 0; i < value.length; i++) {
-            for (let j = 0; j < value[i].length; j++) {
-                if (value[i][j] === bingoNextNumber) {
-                    isValueIncluded = true;
-                    break;
-                }
-            }
-        }
-    }
+        setCellStatus(bingoCellStatus);
+    }, [bingoCellStatus]);
 
     const handleCellClick = (rowNum:number, columnNum:number, cellValue:string, cellStatusValue:number) => {
         // console.log(rowNum, columnNum, cellValue, cellStatusValue);
-        if(cellStatusValue == 1 || completed) {
+        if(cellStatusValue == 1 || completed || !canBoardCellClick) {
             return false;
         }
 
@@ -95,6 +69,8 @@ const BingoBoard: React.FC = () => {
             }
           });
         
+        dispatch(setCanBoardCellClick(false));
+
         if(bingoMyTurn) {
             dispatch(setBingoNextNumber(cellValue));
             if(authUser.uid){
@@ -107,7 +83,7 @@ const BingoBoard: React.FC = () => {
         }
         
         dispatch(setBingoCellStatus(newCellStatusValues));
-
+        console.log(newCellStatusValues)
         const isCompleted = bingoCheck(bingoCellValue, newCellStatusValues, rowNum, columnNum);
         if(isCompleted) {
             setCompleted(true);
@@ -151,7 +127,7 @@ const BingoBoard: React.FC = () => {
             </TouchableWithoutFeedback>
         );
     };
-  
+    
     const renderCell = (dynamicStyle: any, cellValue: number): JSX.Element => {
         return (
             <View>
@@ -161,6 +137,7 @@ const BingoBoard: React.FC = () => {
     };
 
     const bingoCardLayout = createBingoCard(bingoCellValue, renderRow, renderColumn);
+
     return (
         <View style={styles.container}>
             {bingoCardLayout}
@@ -178,13 +155,13 @@ const BingoBoard: React.FC = () => {
                                 source={require('../assets/images/bingo.png')}
                                 style={styles.backgroundImage}
                             /> */}
-                            <Text style={styles.completedText}>おめでとうございます。</Text>
+                            <Text style={styles.completedText}>BINGO！ おめでとう！</Text>
 
                             <Pressable 
                                     style={styles.modalOkBtn}
                                     onPress={() => setModalVisible(false)}
                                 >
-                                <Text style={styles.modalOkText}>   近   い   </Text>
+                                <Text style={styles.modalOkText}>   閉じる   </Text>
                             </Pressable>
                        </View>
                        

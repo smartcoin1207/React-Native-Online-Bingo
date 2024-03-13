@@ -18,18 +18,6 @@ import { AuthUserCallBackFunction, BingoRoom, BingoRoomsCallBackFunction, Player
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, updateProfile, signOut } from "firebase/auth";
 import { isArray } from "lodash";
 
-// export const getAuthUser = (callback:AuthUserCallBackFunction) => {
-//     return onAuthStateChanged(auth, async (user) => {
-//         if (user) {
-//           const userinfo = await getUserInfoByUserId(user.uid);
-//           callback(userinfo);
-//         } else {
-//           console.log("user is not logged in");
-//         }
-//       });
-// }
-
-
 //SignIn to Firebase
 export const signInAuthUser = (email:string, password:string) =>  {
     return signInWithEmailAndPassword(auth, email, password)
@@ -108,24 +96,11 @@ export const getWaitingBingoRooms = (callback: BingoRoomsCallBackFunction) => {
             const hostUserInfo = hostUser.data();
 
             const roomPassword = document.data().password;
-            // bingo game host userinfo
-            
+
             // subscribers of created bingo game
             const subscriberRefs = document.data()?.subscribers;
-
-            const subscriberNum = isArray(subscriberRefs)? subscriberRefs.length: '0';
-            // const subscribersData = [];
-            // let subscribersNum = 0;
+            const subscriberNum = isArray(subscriberRefs)? subscriberRefs.length: '0'; 
             
-            // Fetch full user data for each subscriber reference
-            // for (const subscriberRef of subscriberRefs) {
-            //     const subscriberDoc = await getDoc(subscriberRef);
-            //     if (subscriberDoc.exists()) {
-            //         subscribersData.push(subscriberDoc.data());
-            //         subscribersNum++;
-            //     }
-            // }
-
             return {
                 bingoId: bingoId,
                 uid: uid,
@@ -136,7 +111,7 @@ export const getWaitingBingoRooms = (callback: BingoRoomsCallBackFunction) => {
             };            
         });
 
-        const bingoRooms = await Promise.all(promises);
+        const bingoRooms : any[] = await Promise.all(promises);
         callback(bingoRooms);
     });
 };
@@ -187,6 +162,18 @@ export const joinBingoRoom = async (uid: string, bingoId: string) => {
     }
 }
 
+export const startGameFirestore = async (bingoId: string) => {
+    const docRef = doc(db, 'bingos', bingoId);
+
+    try {
+        await updateDoc(docRef, {
+            bingoStarted: true
+        })
+    } catch (error) {
+        console.log("bingo error")
+    }
+}    
+
 export const exitBingoRoom = async (uid: string, bingoId:string, isHost: boolean) => {
     const docRef = doc(collection(db, "bingos"), bingoId);
 
@@ -224,7 +211,7 @@ export const removeUserFromBingoRoom = async (uid: string, bingoId: string) => {
     }
 }
 
-export const getBingoRoomById = (bingoId: string, callback ) => {
+export const getBingoRoomById = (bingoId: string, callback: any ) => {
     const docRef = doc(db, 'bingos', bingoId);
 
     return  onSnapshot(docRef, async (document) => {
@@ -239,10 +226,11 @@ export const getBingoRoomById = (bingoId: string, callback ) => {
             for (const subscriberRef of subscriberRefs) {
                 const subscriberDoc = await getDoc(subscriberRef);
                 if (subscriberDoc.exists()) {
+                    const subscriberDocData: any = subscriberDoc.data();
                     const p:Player = {
                         uid: subscriberDoc.id,
-                        displayName: subscriberDoc.data()?.displayName,
-                        photoURL: subscriberDoc.data()?.photoURL
+                        displayName: subscriberDocData?.displayName,
+                        photoURL: subscriberDocData?.photoURL
                     }
                     subscribersData.push(p);
                     subscribersNum++;
@@ -271,14 +259,16 @@ export const setOrder  = async (bingoId: string, uids: string[]) => {
         const docRef = doc(collection(db, "bingos"), bingoId);
         await updateDoc(docRef, {
             sort: uids,
-            turnPlayerId: turnPlayerId
+            turnPlayerId: turnPlayerId,
+            turnCount: 1,
+            bingoCompleted: []
         });
     } catch (error) {
         console.log("bingo error")
     }
 }
 
-export const getBingo = (bingoId: string, callback ) => {
+export const getBingo = (bingoId: string, callback : any ) => {
     const docRef = doc(db, 'bingos', bingoId);
 
     return  onSnapshot(docRef, async (document) => {
@@ -317,13 +307,15 @@ export const setBingoPassed = async (uid: string, bingoId: string) => {
     }
 }
 
-export const setBingoTurn = async (newTurnPlayerId:string, bingoId: string) => {
+export const setBingoTurn = async (newTurnPlayerId:string, bingoId: string, newTurnCount: number) => {
     const docRef = doc(db, 'bingos', bingoId);
-
+    //turnNumber: 100
     try {
         await updateDoc(docRef, {
             playerPassed: [],
-            turnPlayerId: newTurnPlayerId
+            turnPlayerId: newTurnPlayerId,
+            turnCount: newTurnCount,
+            bingoNextNumber: ''
         })
     } catch (error) {
         console.log("bingo error")

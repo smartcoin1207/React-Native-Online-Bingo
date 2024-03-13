@@ -1,26 +1,46 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { bingoCellStatusInit } from '../../../components/BingoEngine';
+import { bingoCellStatusInit, bingoCellValues } from '../../../components/BingoEngine';
 
 const INITIAL_STATE = {
     bingoGameHasStarted: false,
     bingoGameHasCompleted: false,
     bingoRestartInitiated: false,
-    bingoBallsList: [],
-    bingoBallsListToDisplay: [],
     bingoCellStatus: bingoCellStatusInit(),
+    bingoCellValue: bingoCellValues(),
     bingoNextNumber: '',
-    bingoMyTurn: true,
+    bingoMyTurn: false,
     isHost: false,
     bingoId: '',
     bingoTurn: '',
     bingoPassBtnDisplay: false,
-    sort: []
+    sort: [],
+    canBorardCellClick: false,
+    turnCount: 0
 };
 
 export const bingoSlice = createSlice({
     name: 'bingo',
     initialState: INITIAL_STATE,
     reducers: {
+        setBingoInitial: (state, action) => {
+
+            if(action.payload) {
+                state.bingoId = action.payload.bingoId;
+                state.isHost = action.payload.isHost;
+            }
+            state.bingoGameHasStarted = false;
+            state.bingoGameHasCompleted = false;
+            state.bingoRestartInitiated = false;
+            state.bingoCellValue = bingoCellValues(),
+            state.bingoCellStatus = bingoCellStatusInit();
+            state.bingoNextNumber = '';
+            state.bingoMyTurn = false;
+            state.bingoPassBtnDisplay = false;
+            state.sort = [];
+            state.bingoTurn = '';
+            state.canBorardCellClick = false;
+            state.turnCount = 0;
+        },
         BingoStart: (state, action) => {
             state.bingoGameHasStarted = true;
         },
@@ -36,18 +56,30 @@ export const bingoSlice = createSlice({
         setBingoMyTurn: (state, action) => {
             state.bingoMyTurn = action.payload;
         },
-        setBingoInitial: (state, action) => {
-            state.bingoId = action.payload.bingoId;
-            state.isHost = action.payload.isHost;
-        },
         setBingoInfo: (state, action) => {
-            state.bingoNextNumber = action.payload.bingoNextNumber;
             state.bingoMyTurn = action.payload.bingoMyTurn;
             state.bingoTurn = action.payload.bingoTurn;
             state.sort = action.payload.sort;
+            state.bingoNextNumber = action.payload.bingoNextNumber;
+            state.turnCount = action.payload.turnCount;
+        }, 
+        setCanBoardCellClick: (state, action) => {
+            state.canBorardCellClick = action.payload; 
+        },
+        setTurnCount: (state, action) => {
+            state.turnCount  = action.payload;
         }
     },
 });
 
-export const { BingoStart, BingoStop, setBingoCellStatus, setBingoNextNumber, setBingoMyTurn, setBingoInitial, setBingoInfo } = bingoSlice.actions;
+export const {
+     BingoStart,
+     BingoStop, 
+     setBingoCellStatus, 
+     setBingoNextNumber, 
+     setBingoMyTurn, 
+     setBingoInitial, 
+     setBingoInfo, 
+     setCanBoardCellClick, 
+     setTurnCount } = bingoSlice.actions;
 export default bingoSlice.reducer;

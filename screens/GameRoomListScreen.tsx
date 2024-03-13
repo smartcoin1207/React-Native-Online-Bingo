@@ -65,9 +65,9 @@ const GameRoomScreen = () => {
     setModalVisible(true);
     setIsCreateModal(true);
 
-    setModalPasswordText("プレイルームのパスワードを設定してください。")
+    setModalPasswordText("パスワードを設定してください。 ")
   }
-
+  
   const joinRoom = async (bingoRoomItem: BingoRoom) => {
     if(createRoomLoading) return false;
 
@@ -173,7 +173,7 @@ const GameRoomScreen = () => {
                         style={styles.modalOkBtn}
                         onPress={createRoom}
                     >
-                    <Text style={styles.modalOkText}>   近   い   </Text>
+                    <Text style={styles.modalOkText}>　 設定 　</Text>
                   </Pressable> 
                 : <Pressable
                         style={styles.modalOkBtn}

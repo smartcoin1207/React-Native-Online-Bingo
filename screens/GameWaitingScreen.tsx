@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, Pressable, Dimensions, TouchableOpacity, Button
 import { Avatar, Image } from 'react-native-elements';
 import { useRoute } from '@react-navigation/native';
 
-import {exitBingoRoom, getBingoRoomById, removeUserFromBingoRoom} from '../utils/firebase/FirebaseUtil';
+import {exitBingoRoom, getBingoRoomById, removeUserFromBingoRoom, startGameFirestore} from '../utils/firebase/FirebaseUtil';
 import {BingoWaitingRouteParams, Player, User} from '../utils/Types';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
@@ -52,8 +52,14 @@ const GameWaitingScreen = () => {
                 navigator.navigate('gameRoom');
                 dispatch(setCurrentBingoRoom(null));
             }
-            if (!bingoRoom.subscribersPlayers.some((player: any) => player.uid === authUser.uid)) {
-                navigator.navigate('gameRoom');
+            if(bingoRoom.subscribersPlayers) {
+                if (!bingoRoom.subscribersPlayers.some((player: any) => player.uid === authUser.uid)) {
+                    navigator.navigate('gameRoom');
+                }
+            }
+        
+            if(bingoRoom?.bingoStarted == true) {
+                navigator.navigate('Play');
             }
 
             const currentBingoRoom = {
@@ -75,6 +81,11 @@ const GameWaitingScreen = () => {
         const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
         return () => backHandler.remove(); // Clean up the event listener
       }, []);
+
+    const startGame = async () => {
+        await startGameFirestore(bingoId);
+        navigator.navigate('Play');
+    }
 
     const exitRoom = () => {
         console.log('xxxx')
@@ -124,7 +135,7 @@ const GameWaitingScreen = () => {
                     style={styles.joinBtn}
                     onPress={() => removeUserModal(item.uid)}
                 >
-                    <Text style={styles.joinBtnText}>エクスポート</Text>
+                    <Text style={styles.joinBtnText}>　退出　</Text>
                 </Pressable>
             }
         </View>
@@ -192,9 +203,9 @@ const GameWaitingScreen = () => {
             {ProfileAvatar(authUser?.photoURL || '111', authUser?.displayName)}
 
             <View style={styles.btnList}>
-                {true && <Pressable 
+                {isHost && <Pressable 
                     style={styles.successButton}
-                    onPress={() => navigator.navigate('Play')}
+                    onPress={startGame}
                 >
                     <Text style={styles.textTitle}>ゲーム開始</Text>
                 </Pressable>}
