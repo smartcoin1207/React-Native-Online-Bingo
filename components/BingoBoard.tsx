@@ -8,7 +8,7 @@ import 'firebase/firestore';
 import { RootState } from '../store';
 import { setBingoCellStatus, setBingoNextNumber, setCanBoardCellClick } from '../store/reducers/bingo/bingoSlice';
 import { modalBackgroundColor, modalContainerBackgroundColor } from "../utils/ValidationString";
-import { setBingoPassed, setFirestoreBingoNextNumber } from '../utils/firebase/FirebaseUtil';
+import { setFirestoreBingoNextNumber } from '../utils/firebase/FirebaseUtil';
 
 interface Props {
     bingoTimerIntervalId: number;
@@ -26,7 +26,6 @@ const BingoBoard: React.FC = () => {
     const cellSize = screenWidth / 5; 
     
     const [cellStatus, setCellStatus] = React.useState<number[][]>(bingoCellStatusInit());
-    const [rerender, setRerender] = React.useState<number>(0);
     const [completed, setCompleted] = useState<boolean>(false);
     const [modalVisible, setModalVisible] = useState(false);
     
@@ -41,23 +40,20 @@ const BingoBoard: React.FC = () => {
     const dispatch = useDispatch();
     
     useEffect(() => {
-        console.log(bingoNextNumber, "xxx")
-    }, [bingoNextNumber]);
-
-    useEffect(() => {
         setCellStatus(bingoCellStatus);
     }, [bingoCellStatus]);
 
+    useEffect(() => {
+        if(!bingoMyTurn) {
+            clickCellByOther(bingoNextNumber);
+        }
+    }, [bingoNextNumber])
+
     const handleCellClick = (rowNum:number, columnNum:number, cellValue:string, cellStatusValue:number) => {
-        // console.log(rowNum, columnNum, cellValue, cellStatusValue);
-        if(cellStatusValue == 1 || completed || !canBoardCellClick) {
+        if(cellStatusValue == 1 || completed || !canBoardCellClick || !bingoMyTurn) {
             return false;
         }
-
-        if(!bingoMyTurn && bingoNextNumber != cellValue) {
-            return false;
-        }
-
+        
         const cellStatusValues = cellStatus;
         const rowIndex = rowNum;
         const colIndex = columnNum;
@@ -73,24 +69,64 @@ const BingoBoard: React.FC = () => {
 
         if(bingoMyTurn) {
             dispatch(setBingoNextNumber(cellValue));
-            if(authUser.uid){
-                setFirestoreBingoNextNumber(authUser.uid, bingoId, cellValue);
-            }
-        } else {
-            if(authUser.uid) {
-                setBingoPassed(authUser.uid, bingoId);
-            }
         }
         
         dispatch(setBingoCellStatus(newCellStatusValues));
-        console.log(newCellStatusValues)
         const isCompleted = bingoCheck(bingoCellValue, newCellStatusValues, rowNum, columnNum);
         if(isCompleted) {
             setCompleted(true);
             setModalVisible(true)
         }
     }
+
+    const clickCellByOther = (bingoNextNumber: string) => {
+        let isValueIncluded = false;
+        const value: any[][] = bingoCellValue;
+        let row = -1;
+        let column = -1;
     
+        for (let i = 0; i < value.length; i++) {
+            for (let j = 0; j < value[i].length; j++) {
+                if (value[i][j] == bingoNextNumber) {
+                    isValueIncluded = true;
+                    row = i;
+                    column = j;
+                    break;
+                }
+            }
+        }
+        if(isValueIncluded) {
+            bingoBoardCellClick(row, column);
+        }
+        return isValueIncluded;
+    }
+
+    const bingoBoardCellClick = (rowNum:number, columnNum:number) => {
+        const cellStatusValue = cellStatus[rowNum][columnNum];
+        if(cellStatusValue == 1 || completed || !canBoardCellClick) {
+            return false;
+        }
+        const cellStatusValues = cellStatus;
+        const rowIndex = rowNum;
+        const colIndex = columnNum;
+        let newCellStatusValues = cellStatusValues.map((row, i) => {
+            if (i === rowIndex) {
+              return row.map((col, j) => (j === colIndex ? 1 : col)); // Change the value at the specific index
+            } else {
+              return row;
+            }
+          });
+        
+        dispatch(setCanBoardCellClick(false));
+        dispatch(setBingoCellStatus(newCellStatusValues));
+
+        const isCompleted = bingoCheck(bingoCellValue, newCellStatusValues, rowNum, columnNum);
+        if(isCompleted) {
+            setCompleted(true);
+            setModalVisible(true)
+        }
+    }
+
     const renderRow = (rowNum: any, columnValue: any): JSX.Element => {
         return (
             <View key={rowNum} style={styles.row}>
@@ -102,16 +138,15 @@ const BingoBoard: React.FC = () => {
     const renderColumn = (rowNum: number, columnNum: number): JSX.Element => {
         const cellValue = bingoCellValue[rowNum][columnNum];
         const cellStatusValue = cellStatus[rowNum][columnNum];
-        // console.log(rowNum, columnNum, ":",bingoNextNumber, cellValue, )
 
         let dynamicStyle = styles.normal;
         if(cellStatusValue === 1) {
             dynamicStyle = styles.pressed;
         } else if(bingoNextNumber == cellValue) {
-            dynamicStyle = styles.pressable;
+            dynamicStyle = styles.selectedCell;
         } else {
             dynamicStyle = styles.normal;
-        }
+        } 
 
         if (cellStatusValue === -1) {
             return (
@@ -164,7 +199,6 @@ const BingoBoard: React.FC = () => {
                                 <Text style={styles.modalOkText}>   閉じる   </Text>
                             </Pressable>
                        </View>
-                       
                 </View>
             </Modal>
         </View>
@@ -202,6 +236,16 @@ const styles = StyleSheet.create({
         color: '#04AA6D',
         backgroundColor: 'red',
         borderColor: 'white',
+        textAlignVertical: 'center'
+    },
+    selectedCell: {
+        padding: 8,
+        borderWidth: 3,
+        textAlign: 'center',
+        fontSize: 35,
+        fontWeight: '700',
+        color: '#04AA6D',
+        borderColor: 'red',
         textAlignVertical: 'center'
     },
     container: {

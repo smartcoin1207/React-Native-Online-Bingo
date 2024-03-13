@@ -8,11 +8,10 @@ const INITIAL_STATE = {
     bingoCellStatus: bingoCellStatusInit(),
     bingoCellValue: bingoCellValues(),
     bingoNextNumber: '',
+    bingoPrevNumber: '',
     bingoMyTurn: false,
     isHost: false,
     bingoId: '',
-    bingoTurn: '',
-    bingoPassBtnDisplay: false,
     sort: [],
     canBorardCellClick: false,
     turnCount: 0
@@ -23,7 +22,6 @@ export const bingoSlice = createSlice({
     initialState: INITIAL_STATE,
     reducers: {
         setBingoInitial: (state, action) => {
-
             if(action.payload) {
                 state.bingoId = action.payload.bingoId;
                 state.isHost = action.payload.isHost;
@@ -34,10 +32,9 @@ export const bingoSlice = createSlice({
             state.bingoCellValue = bingoCellValues(),
             state.bingoCellStatus = bingoCellStatusInit();
             state.bingoNextNumber = '';
+            state.bingoPrevNumber = '';
             state.bingoMyTurn = false;
-            state.bingoPassBtnDisplay = false;
             state.sort = [];
-            state.bingoTurn = '';
             state.canBorardCellClick = false;
             state.turnCount = 0;
         },
@@ -51,6 +48,7 @@ export const bingoSlice = createSlice({
             state.bingoCellStatus = action.payload;
         },
         setBingoNextNumber: (state, action) => {
+            state.bingoPrevNumber = state.bingoNextNumber;
             state.bingoNextNumber = action.payload;
         },
         setBingoMyTurn: (state, action) => {
@@ -58,9 +56,10 @@ export const bingoSlice = createSlice({
         },
         setBingoInfo: (state, action) => {
             state.bingoMyTurn = action.payload.bingoMyTurn;
-            state.bingoTurn = action.payload.bingoTurn;
             state.sort = action.payload.sort;
+            state.bingoPrevNumber = state.bingoNextNumber;
             state.bingoNextNumber = action.payload.bingoNextNumber;
+
             state.turnCount = action.payload.turnCount;
         }, 
         setCanBoardCellClick: (state, action) => {

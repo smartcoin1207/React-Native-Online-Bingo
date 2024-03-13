@@ -64,26 +64,16 @@ const bingoCellValuesUS = (): BingoCellValues => {
     return cellValues;
 };
 
-const randomBingoBall = (bingoBalls: number[]): number => randomBingoBallUS(bingoBalls);
-
-const randomBingoBallUS = (bingoBalls: number[]): any => {
-    const ballCount: number = bingoBalls.length + 1;
-    let aRandomNumber: number = 0;
-    while (bingoBalls.length < ballCount) {
-        aRandomNumber = _.random(1, 75);
-        if (bingoBalls.indexOf(aRandomNumber) === -1) {
-            return aRandomNumber;
-        }
-    }
-};
 
 const bingoCheck = (cellValues: BingoCellValues, cellStatus: number[][], rowNum: number, columnNum: number): boolean => {
     const rowCount: number = cellValues.length;
     let completed = false;
-
-    if (cellStatus[rowNum].indexOf(0) === -1) {
-        completed = true;
+    if(cellStatus[rowNum]) {
+        if (cellStatus[rowNum].indexOf(0) === -1) {
+            completed = true;
+        }
     }
+    
 
     let verticalCount: number = 0;
     for (let row = 0; row < rowCount; row++) {
@@ -110,4 +100,4 @@ const bingoCheck = (cellValues: BingoCellValues, cellStatus: number[][], rowNum:
     return completed;
 };
 
-export { createBingoCard, bingoCellValues, bingoCellStatusInit, bingoCheck, randomBingoBall };
+export { createBingoCard, bingoCellValues, bingoCellStatusInit, bingoCheck };

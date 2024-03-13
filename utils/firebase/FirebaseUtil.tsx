@@ -287,32 +287,32 @@ export const setFirestoreBingoNextNumber = async (uid: string, bingoId: string, 
 
     try {
         await updateDoc(docRef, {
-            bingoNextNumber: bingoNextNumber,
-            playerPassed: arrayUnion(uid)
+            bingoNextNumber: bingoNextNumber
+            // playerPassed: arrayUnion(uid)
         })
     } catch (error) {
         console.log("bingo error")
     }
 }
 
-export const setBingoPassed = async (uid: string, bingoId: string) => {
-    const docRef = doc(db, 'bingos', bingoId);
+// export const setBingoPassed = async (uid: string, bingoId: string) => {
+//     const docRef = doc(db, 'bingos', bingoId);
 
-    try {
-        await updateDoc(docRef, {
-            playerPassed: arrayUnion(uid)
-        })
-    } catch (error) {
-        console.log("bingo error")
-    }
-}
+//     try {
+//         await updateDoc(docRef, {
+//             playerPassed: arrayUnion(uid)
+//         })
+//     } catch (error) {
+//         console.log("bingo error")
+//     }
+// }
 
 export const setBingoTurn = async (newTurnPlayerId:string, bingoId: string, newTurnCount: number) => {
     const docRef = doc(db, 'bingos', bingoId);
     //turnNumber: 100
     try {
         await updateDoc(docRef, {
-            playerPassed: [],
+            // playerPassed: [],
             turnPlayerId: newTurnPlayerId,
             turnCount: newTurnCount,
             bingoNextNumber: ''
