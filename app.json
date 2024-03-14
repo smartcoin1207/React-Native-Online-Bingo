@@ -35,7 +35,7 @@
         "databaseURL": "https://mimi-base-default-rtdb.firebaseio.com/"
       },
       "eas": {
-        "projectId": "45efd7ba-1cb2-4d3f-9cd5-8e6d54a4c42b"
+        "projectId": "18a7e552-a2ed-44b4-87b3-3e833894a790"
       }
     },
     "web": {
@@ -43,6 +43,7 @@
     },
     "react-native": {
       "crashlytics_debug_enabled": true
-    }
+    },
+    "owner": "mentai-daichidev"
   }
 }

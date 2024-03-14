@@ -12,8 +12,7 @@ import { validateEmail, validatePassword } from "../utils/ValidtionUtils";
 import { RootState } from "../store";
 import { signInAuthUser } from "../utils/firebase/FirebaseUtil";
 import { SignIn } from "../store/reducers/bingo/userSlice";
-import { User } from "../utils/Types";
-import { modalBackgroundColor, modalContainerBackgroundColor } from "../utils/ValidationString";
+import { modalContainerBackgroundColor } from "../utils/ValidationString";
 interface LoginScreenProps {}
 
 const Login: React.FC<LoginScreenProps> = () => {

@@ -98,7 +98,6 @@ const PlayBoard: React.FC = () => {
 
                 if(bingoMyTurn) {
                     setTurnText("あなたの番です。");
-                    // setNextTurnPlayerId(sort, turnPlayerId, bingo?.turnCount);
                 } else {
                     if(subscribersPlayers) {
                         const turnPlayer = subscribersPlayers.find(player => player.uid === turnPlayerId);

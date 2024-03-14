@@ -34,7 +34,6 @@ export const bingoSlice = createSlice({
             state.bingoNextNumber = '';
             state.bingoPrevNumber = '';
             state.bingoMyTurn = false;
-            state.sort = [];
             state.canBorardCellClick = false;
             state.turnCount = 0;
         },
