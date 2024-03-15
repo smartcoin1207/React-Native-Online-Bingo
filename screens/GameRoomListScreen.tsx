@@ -13,86 +13,111 @@ import {
   Modal,
   TextInput,
 } from "react-native";
-
-import { Avatar, Image } from "react-native-elements";
-
-import { createBingoRoom, getWaitingBingoRooms, joinBingoRoom } from "../utils/firebase/FirebaseUtil";
-import { BingoRoom, User, NavigatorType } from "../utils/Types";
+import { Avatar } from "react-native-elements";
+import {
+  createGameRoom,
+  getWaitingGameRooms,
+  joinGameRoom,
+} from "../utils/firebase/FirebaseUtil";
+import { GameRoom, NavigatorType } from "../utils/Types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store";
-import { setBingoRooms } from "../store/reducers/bingo/bingoRoomSlice";
-import { modalBackgroundColor, modalContainerBackgroundColor } from "../utils/ValidationString";
-
-const screenHeight = Dimensions.get("window").height;
-const cellSize = screenHeight / 5;
+import { setGameRooms } from "../store/reducers/bingo/gameRoomSlice";
+import {
+  modalBackgroundColor,
+  modalContainerBackgroundColor,
+} from "../utils/ValidationString";
 
 const GameRoomScreen = () => {
   const navigator: NavigatorType = useNavigation();
-  const authUser = useSelector((state: RootState) => state.auth.authUser);
-  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
+
   const [listLoading, setListLoading] = useState<boolean>(false);
   const [createRoomLoading, setCreateRoomLoading] = useState<boolean>(false);
-  const [modalPasswordText, setModalPasswordText] = useState<string>('');
-  const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const [password, setPassword] = useState<string>('');
-  const [currentJoinBingoRoom, setCurrentJoinBingoRoom] = useState<BingoRoom>();
+  const [roomModalVisible, setRoomModalVisible] = useState<boolean>(false);
+  
   const [isCreateModal, setIsCreateModal] = useState(true);
-  const bingoRooms = useSelector((state: RootState) => state.bingoRoom.bingoRooms);
+  const [gameRoomDisplayName, setGameRoomDisplayName] = useState<string>("");
+  const [gameRoomPasswordDescription, setGameRoomPasswordDescription] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+
+  const authUser = useSelector((state: RootState) => state.auth.authUser);
+  const [currentJoinGameRoom, setCurrentJoinGameRoom] = useState<GameRoom>({});
+
+  //data from redux
+  const gameRooms = useSelector(
+    (state: RootState) => state.gameRoom.gameRooms
+  );
+
   const dispatch = useDispatch();
 
   useEffect(() => {
     setListLoading(true);
-    getWaitingBingoRooms((bingoRooms: BingoRoom[]) => {
-      dispatch(setBingoRooms(bingoRooms));
+    getWaitingGameRooms((gameRooms: GameRoom[]) => {
+      
+      dispatch(setGameRooms(gameRooms));
       setListLoading(false);
     });
   }, []);
 
-  const createRoom = async () => {
-    if(createRoomLoading) return false;
-    
-    if(authUser.uid) {
-        setCreateRoomLoading(true);
-        const newBingoId = await createBingoRoom(authUser.uid, password);
-        setCreateRoomLoading(false);
-        navigator.navigate("prepare", { isHost: true, bingoId: newBingoId });
-    }
-
-    setModalVisible(false)
-  };
 
   const createRoomModal = () => {
-    setModalVisible(true);
+    setRoomModalVisible(true);
     setIsCreateModal(true);
 
-    setModalPasswordText("パスワードを設定してください。 ")
-  }
-  
-  const joinRoom = async (bingoRoomItem: BingoRoom) => {
-    if(createRoomLoading) return false;
+    setGameRoomPasswordDescription("パスワードを設定してください。 ");
+  };
 
-    if(password != bingoRoomItem.password) {
-      setModalVisible(false)
+  //新しいゲームルームを創造する。 Create new game room.
+  const createRoom = async () => {
+    if (createRoomLoading) return false;
+
+    if (authUser.uid) {
+      setCreateRoomLoading(true);
+
+      //firebaseに新しいroomが作成されるまで待ちます。
+      const newGameRoomId = await createGameRoom(authUser.uid, gameRoomDisplayName, password);
+      setCreateRoomLoading(false);
+      navigator.navigate("currentRoom", {
+        isHost: true,
+        gameRoomId: newGameRoomId,
+      });
+    }
+
+    setRoomModalVisible(false);
+  };
+
+  const joinRoomModal = (item: GameRoom) => {
+    if(item) {
+      setCurrentJoinGameRoom(item);
+      setGameRoomPasswordDescription("パスワードを入力してください。");
+      setIsCreateModal(false);
+      setRoomModalVisible(true);
+    }
+  };
+
+  const joinRoom = async () => {
+    const gameRoomItem: GameRoom = currentJoinGameRoom;
+    if (createRoomLoading) return false;
+
+    if (password != gameRoomItem.password) {
+      setRoomModalVisible(false);
       return false;
     }
 
-    if(authUser.uid) {
+    if (authUser.uid) {
       setCreateRoomLoading(true);
-        const x = await joinBingoRoom(authUser.uid, bingoRoomItem.bingoId);
-        setCreateRoomLoading(false);
-        navigator.navigate("prepare", { isHost: false, bingoId: bingoRoomItem.bingoId })
+      await joinGameRoom(authUser.uid, gameRoomItem.gameRoomId);
+      setCreateRoomLoading(false);
+      
+      navigator.navigate("currentRoom", {
+        isHost: false,
+        gameRoomId: gameRoomItem.gameRoomId,
+      });
     }
-    setModalVisible(false)
-  }
+    setRoomModalVisible(false);
+  };
 
-  const joinRoomModal = (item: BingoRoom) => {
-    setCurrentJoinBingoRoom(item);
-    setModalPasswordText("パスワードを入力してください。");
-    setIsCreateModal(false)
-    setModalVisible(true);
-  }
-
-  const renderPlayerItem = ({ item }: { item: BingoRoom }) => (
+  const renderGameRoomItem = ({ item }: { item: GameRoom }) => (
     <View style={styles.playerItem}>
       <Avatar
         rounded
@@ -101,12 +126,9 @@ const GameRoomScreen = () => {
           uri: item.photoURL,
         }}
       />
-      <Text style={styles.nameTitle}>{item.displayName}</Text>
+      <Text style={styles.nameTitle}>{item.displayRoomName}</Text>
       <Text style={styles.nameTitle}>{item.subscriberNum}</Text>
-      <Pressable
-        style={styles.joinBtn}
-        onPress={() => joinRoomModal (item)}
-        >
+      <Pressable style={styles.joinBtn} onPress={() => joinRoomModal(item)}>
         <Text style={styles.joinBtnText}>参加する</Text>
       </Pressable>
     </View>
@@ -136,78 +158,97 @@ const GameRoomScreen = () => {
       <Modal
         animationType="fade"
         transparent={true}
-        visible={modalVisible}
+        visible={roomModalVisible}
         onRequestClose={() => {
-        setModalVisible(false);
+          setRoomModalVisible(false);
         }}
       >
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: modalBackgroundColor }}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: modalBackgroundColor,
+          }}
+        >
+          <View style={styles.modalBody}>
+
+            {isCreateModal ? (
+              <>
+                <Text style={styles.modalRoomTitleText}>プレイルーム創造</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="プレイルーム名"
+                  autoCapitalize="none"
+                  placeholderTextColor="grey"
+                  value={gameRoomDisplayName}
+                  onChangeText={(text) => {
+                    // Allow only English letters (both lowercase and uppercase) and numbers
+                    setGameRoomDisplayName(text);
+                  }}
+                />
+              </>
+            ) : 
+            <Text style={styles.modalRoomTitleText}>プレイルームに参加</Text>
+            }
             
-            <View style={styles.modalBody}>
-              <Text style={styles.modalText}>
-                {modalPasswordText}
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder="パスワード"
-                autoCapitalize="none"
-                placeholderTextColor="grey"
-                value={password}
-                onChangeText={(text) => {
-                  // Allow only English letters (both lowercase and uppercase) and numbers
-                  setPassword(text);
-                }}
-              />
-              {createRoomLoading ? <ActivityIndicator size="large" color="#007AFF" /> : 
-              ''
-              }
-              <View style={styles.roomModalBtns}>
-                <Pressable 
-                        style={styles.modalCancelBtn}
-                        onPress={() => setModalVisible(false)}
-                    >
-                    <Text style={styles.modalOkText}>   キャンセル   </Text>
+            <Text style={styles.modalText}>{gameRoomPasswordDescription}</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="パスワード"
+              autoCapitalize="none"
+              placeholderTextColor="grey"
+              value={password}
+              onChangeText={(text) => {
+                // Allow only English letters (both lowercase and uppercase) and numbers
+                setPassword(text);
+              }}
+            />
+            {createRoomLoading ? (
+              <ActivityIndicator size="large" color="#007AFF" />
+            ) : (
+              ""
+            )}
+            <View style={styles.roomModalBtns}>
+              <Pressable
+                style={styles.modalCancelBtn}
+                onPress={() => setRoomModalVisible(false)}
+              >
+                <Text style={styles.roomModalButtonText}> キャンセル </Text>
+              </Pressable>
+              {isCreateModal ? (
+                <Pressable style={styles.modalOkBtn} onPress={createRoom}>
+                  <Text style={styles.roomModalButtonText}>　 設定 　</Text>
                 </Pressable>
-                {isCreateModal 
-                ? <Pressable
-                        style={styles.modalOkBtn}
-                        onPress={createRoom}
-                    >
-                    <Text style={styles.modalOkText}>　 設定 　</Text>
-                  </Pressable> 
-                : <Pressable
-                        style={styles.modalOkBtn}
-                        onPress={() => joinRoom(currentJoinBingoRoom)}
-                    >
-                    <Text style={styles.modalOkText}>   近   い   </Text>
-                  </Pressable>
-              }
-                
-              </View>
+              ) : (
+                <Pressable
+                  style={styles.modalOkBtn}
+                  onPress={joinRoom}
+                >
+                  <Text style={styles.roomModalButtonText}> 近 い </Text>
+                </Pressable>
+              )}
             </View>
           </View>
+        </View>
       </Modal>
       <View style={styles.btnList}>
-        <Pressable
-          style={styles.button}
-          onPress={createRoomModal}
-        >
+        <Pressable style={styles.button} onPress={createRoomModal}>
           <Text style={styles.textTitle}>プレイルームを作成</Text>
         </Pressable>
       </View>
       <View style={styles.divider} />
       <Text style={styles.listTitle}>プレイルーム一覧</Text>
-      
-      {listLoading ? <ActivityIndicator size="large" color="#007AFF" /> : ''} 
-        
+
+      {listLoading ? <ActivityIndicator size="large" color="#007AFF" /> : ""}
+
       <View style={styles.FlatListStyle}>
         <FlatList
-          data={bingoRooms}
-          renderItem={renderPlayerItem}
+          data={gameRooms}
+          renderItem={renderGameRoomItem}
           keyExtractor={(item, index) => index.toString()}
         />
       </View>
-      
     </View>
   );
 };
@@ -297,10 +338,10 @@ const styles = StyleSheet.create({
     margin: 5,
   },
   divider: {
-    borderBottomColor: 'grey',
+    borderBottomColor: "grey",
     borderBottomWidth: 1,
     marginVertical: 10,
-    width: '100%'
+    width: "100%",
   },
   modalBody: {
     justifyContent: "center",
@@ -309,12 +350,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 50,
     borderWidth: 1,
-    borderColor: 'grey',
+    borderColor: "grey",
     borderRadius: 20,
     width: "80%",
   },
+  modalRoomTitleText: {
+    fontSize: 20,
+    color: "white",
+    fontFamily: "serif",
+    fontWeight: "700",
+    textAlign: "center",
+    marginBottom: 20
+  },
   modalOkBtn: {
-    backgroundColor: '#ff0000',
+    backgroundColor: "#ff0000",
     paddingVertical: 8,
     paddingHorizontal: 6,
     padding: 4,
@@ -322,10 +371,10 @@ const styles = StyleSheet.create({
     marginVertical: 4,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: 'white'
+    borderColor: "white",
   },
   modalCancelBtn: {
-    backgroundColor: 'grey',
+    backgroundColor: "grey",
     paddingVertical: 8,
     paddingHorizontal: 6,
     padding: 4,
@@ -333,38 +382,38 @@ const styles = StyleSheet.create({
     marginVertical: 4,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: 'white'
+    borderColor: "white",
   },
-  modalOkText: {
-      fontSize: 16,
-      color: 'white',
-      fontFamily:'serif',
-      fontWeight: '700',
-      textAlign: 'center',
+  roomModalButtonText: {
+    fontSize: 16,
+    color: "white",
+    fontFamily: "serif",
+    fontWeight: "700",
+    textAlign: "center",
   },
 
   completedText: {
-      fontSize: 30,
-      color: 'white',
-      width: '90%',
-      fontFamily:'serif',
-      fontWeight: '700',
-      textAlign: 'center',
+    fontSize: 30,
+    color: "white",
+    width: "90%",
+    fontFamily: "serif",
+    fontWeight: "700",
+    textAlign: "center",
   },
   roomModalBtns: {
-    flexDirection: 'row'
+    flexDirection: "row",
   },
   input: {
     // backgroundColor: '#ff000066',
-    width: '80%',
+    width: "80%",
     fontSize: 15,
-    color: 'white',
+    color: "white",
     padding: 5,
     paddingHorizontal: 20,
     borderRadius: 25,
     borderWidth: 1,
-    borderColor: 'grey',
-    marginBottom: 20
+    borderColor: "grey",
+    marginBottom: 20,
   },
   modalText: {
     fontSize: 16,
@@ -372,9 +421,8 @@ const styles = StyleSheet.create({
     fontFamily: "serif",
     fontWeight: "700",
     textAlign: "center",
-    marginBottom: 20
-  }
-
+    marginBottom: 20,
+  },
 });
 
 export default GameRoomScreen;

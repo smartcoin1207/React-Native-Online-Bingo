@@ -6,12 +6,14 @@ import { bingoCellStatusInit, bingoCheck, createBingoCard } from '../components/
 import _ from "lodash";
 import { RootState } from '../store';
 import { modalBackgroundColor, modalContainerBackgroundColor } from '../utils/ValidationString';
-import { getBingo, setBingoTurn, setFirestoreBingoNextNumber, setOrder } from '../utils/firebase/FirebaseUtil';
+import { getBingo, setNextTurnPlayer, setBingoNextNumberUpdate, setPlayerGameSort } from '../utils/firebase/FirebaseUtil';
 import { Player } from '../utils/Types';
 
+const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
+
 const PlayBoard: React.FC = () => {
-    const screenWidth = Dimensions.get('window').width*0.9 ;
-    const cellSize = screenWidth / 5;
+    const screenWidth = Dimensions.get('window').width ;
+    const cellSize = screenWidth*0.9 / 5;
 
     const [modalSortVisible, setModalSortVisible] = useState(false);
     const [modalCompletedVisible, setModalCompletedVisible] = useState(false);
@@ -28,7 +30,7 @@ const PlayBoard: React.FC = () => {
     const [selectedCellValue, setSelectedCellValue] = useState<string>('');
 
     const authUser = useSelector((state: RootState) => state.auth.authUser);
-    const bingoId = useSelector((state: RootState) => state.bingo.bingoId);
+    const gameRoomId = useSelector((state: RootState) => state.bingo.gameRoomId);
     const isHost = useSelector((state: RootState) => state.bingo.isHost);
     const bingoCellValue = useSelector((state: RootState) => state.bingo.bingoCellValue);
     const bingoCellStatus = useSelector((state: RootState) => state.bingo.bingoCellStatus);
@@ -37,8 +39,8 @@ const PlayBoard: React.FC = () => {
     const bingoNextNumber = useSelector((state: RootState) => state.bingo.bingoNextNumber);
     const bingoPrevNumber = useSelector((state: RootState) => state.bingo.bingoPrevNumber);
 
-    const currentBingoRoom = useSelector((state: RootState) => state.bingoRoom.currentBingoRoom);
-    const turnCount = useSelector((state: RootState) => state.bingo.turnCount);
+    const currentGameRoom = useSelector((state: RootState) => state.gameRoom.currentGameRoom);
+    const turnNumber = useSelector((state: RootState) => state.bingo.turnNumber);
 
     const bingoMyTurn = useSelector((state: RootState) => state.bingo.bingoMyTurn);
 
@@ -78,19 +80,19 @@ const PlayBoard: React.FC = () => {
 
     //リアルタイムfirestoreから該当するビンゴゲームデータを取得する
     useEffect(() => {
-        getBingo(bingoId, (bingo: any) => {
+        getBingo(gameRoomId, (bingo: any) => {
             if(bingo?.sort) {
                 setModalSortVisible(false);
                 const sort: string[]  = bingo?.sort;
                 const turnPlayerId: string = bingo?.turnPlayerId;
                 const bingoMyTurn: boolean = turnPlayerId == authUser.uid;
-                const subscribersPlayers: Player[]| undefined = currentBingoRoom?.subscribersPlayers;
+                const subscribersPlayers: Player[]| undefined = currentGameRoom?.subscribersPlayers;
 
                 const bingoInfo = {
                     bingoMyTurn: bingoMyTurn,
                     sort: sort,
                     bingoNextNumber: bingo?.bingoNextNumber || "",
-                    turnCount: bingo?.turnCount
+                    turnNumber: bingo?.turnNumber
                 };
                 setTurnPlayerId(bingo?.turnPlayerId);
 
@@ -112,7 +114,7 @@ const PlayBoard: React.FC = () => {
         });
     }, []);
 
-    const setNextTurnPlayerId = (sort: string[], turnPlayerId: string, turnCount: number) => {
+    const setNextTurnPlayerId = (sort: string[], turnPlayerId: string, turnNumber: number) => {
         console.log(sort)
         try {
             if(sort) {
@@ -121,8 +123,8 @@ const PlayBoard: React.FC = () => {
                 const nextIndex = (currentIndex + 1) % sort.length;
                 const nextValue = sort[nextIndex];
                 const newTurnPlayerId = nextValue;
-                const newTurnCount = turnCount + 1;
-                setBingoTurn(newTurnPlayerId, bingoId, newTurnCount);        
+                const newTurnNumber = turnNumber + 1;
+                setNextTurnPlayer(newTurnPlayerId, gameRoomId, newTurnNumber);        
             }  
         } catch (error) {
             console.log('xxxx');
@@ -130,7 +132,7 @@ const PlayBoard: React.FC = () => {
     }
 
     const handleRandomSort = async () => {
-        const subscribersPlayers = currentBingoRoom?.subscribersPlayers;
+        const subscribersPlayers = currentGameRoom?.subscribersPlayers;
         const uids = subscribersPlayers?.map((player) => {
             return player.uid;
         });
@@ -139,7 +141,7 @@ const PlayBoard: React.FC = () => {
         uids?.sort(randomSort);
 
         const uids1 = uids ? uids : [];
-        await setOrder(bingoId, uids1);
+        await setPlayerGameSort(gameRoomId, uids1);
         setModalSortVisible(false)
     }
     
@@ -219,9 +221,8 @@ const PlayBoard: React.FC = () => {
 
         setSelectedCellValue("");
         if(authUser.uid) {
-            setFirestoreBingoNextNumber(authUser.uid, bingoId, selectedCellValue);
-            setNextTurnPlayerId(sort, turnPlayerId, turnCount);
-
+            setBingoNextNumberUpdate(authUser.uid, gameRoomId, selectedCellValue);
+            setNextTurnPlayerId(sort, turnPlayerId, turnNumber);
         }
         
         dispatch(setBingoCellStatus(newCellStatusValues));
@@ -342,16 +343,22 @@ const PlayBoard: React.FC = () => {
 
             <Text style={styles.title}>BINGO</Text>
             <View style={styles.container}>
-                {bingoNextNumber ? 
-                    <View style={styles.randomContainer}>
-                        <Text style={styles.selected}>{bingoNextNumber}</Text>
-                    </View>
-                :
-                    <View style={styles.randomContainer}>
-                        <ActivityIndicator size="large" color="#007AFF" />
-                    </View>
-                }
 
+                <View style={styles.row}>
+                    <View style={styles.randomContainer}>
+                        <Text style={styles.selected}>{bingoPrevNumber}</Text>
+                    </View>
+                    { bingoNextNumber ? 
+                        <View style={styles.randomContainer}>
+                            <Text style={styles.selected}>{bingoNextNumber}</Text>
+                        </View>
+                    :
+                        <View style={styles.randomContainer}>
+                            <ActivityIndicator size="large" style={styles.selected} color="#007AFF" />
+                        </View>
+                    }
+                </View>
+           
                 <Text style={styles.turnText}>{turnText}</Text>
                 <View style={styles.numberBtnContainer}>
                     { bingoMyTurn && selectedCellValue ? 
@@ -364,7 +371,10 @@ const PlayBoard: React.FC = () => {
                     }
                 </View>
                 
+                <View style={styles.boardContainer}>
                 {BingoBoard()}
+
+                </View>
                 {/* <View style={styles.randomContainer}>
                     <Text style={styles.selected}>{bingoPrevNumber}</Text>
                 </View> */}
@@ -386,6 +396,7 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 90,
         fontWeight: "700",
+        height: viewportHeight * 0.15
     },
 
     modalBtn: {
@@ -403,8 +414,8 @@ const styles = StyleSheet.create({
         backgroundColor: 'black',
         alignItems: 'center',
         borderColor: 'grey',
-        width: 80,
-        height: 80,
+        width: viewportWidth*0.2,
+        height: viewportWidth*0.2,
         borderWidth: 1,
         borderRadius: 6,
         marginBottom: 20,
@@ -415,6 +426,8 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 30,
         borderColor: 'white',
+        alignItems: 'center',
+        verticalAlign: 'middle'
     },
     randomBtn: {
         backgroundColor: '#ff0000',
@@ -451,8 +464,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: 'grey',
         borderRadius: 20,
-        width: "80%",
-        // height: '60%'
+        width: "80%"
       },
       modalOkBtn: {
         backgroundColor: '#ff0000',
@@ -526,9 +538,18 @@ const styles = StyleSheet.create({
         textAlign: "center",
       },
 
+      boardContainer: {
+        borderColor: 'grey',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
+      
       pressed: {
         padding: 8,
-        borderWidth: 3,
+        borderWidth: 1,
+        borderRadius: 5,        
         textAlign: 'center',
         fontSize: 35,
         fontWeight: '700',
@@ -539,7 +560,8 @@ const styles = StyleSheet.create({
     },
     normal: {
         padding: 8,
-        borderWidth: 3,
+        borderWidth: 1,
+        borderRadius: 5,
         textAlign: 'center',
         fontSize: 25,
         fontWeight: '700',
@@ -549,7 +571,8 @@ const styles = StyleSheet.create({
     },
     pressable: {
         padding: 8,
-        borderWidth: 3,
+        borderWidth: 1,
+        borderRadius: 5,
         textAlign: 'center',
         fontSize: 25,
         fontWeight: '700',
@@ -560,7 +583,8 @@ const styles = StyleSheet.create({
     },
     selectedCell: {
         padding: 8,
-        borderWidth: 3,
+        borderWidth: 1,
+        borderRadius: 5,        
         textAlign: 'center',
         fontSize: 35,
         fontWeight: '700',

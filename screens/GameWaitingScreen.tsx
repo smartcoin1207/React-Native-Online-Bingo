@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { View, Text, StyleSheet, Pressable, Dimensions, TouchableOpacity, Button, FlatList, BackHandler, ActivityIndicator, Modal, TextInput } from 'react-native';
-import { Avatar, Image } from 'react-native-elements';
+import { Avatar, Icon, Image } from 'react-native-elements';
 import { useRoute } from '@react-navigation/native';
 
-import {exitBingoRoom, getBingoRoomById, removeUserFromBingoRoom, startGameFirestore} from '../utils/firebase/FirebaseUtil';
-import {BingoWaitingRouteParams, Player, User} from '../utils/Types';
+import {exitGameRoom, getGameRoom, startGameRoom} from '../utils/firebase/FirebaseUtil';
+import {GameWaitingRouteParams, Player, User} from '../utils/Types';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
-import { setCurrentBingoRoom } from '../store/reducers/bingo/bingoRoomSlice';
+import { setCurrentGameRoom } from '../store/reducers/bingo/gameRoomSlice';
 import { modalBackgroundColor, modalContainerBackgroundColor } from '../utils/ValidationString';
 import { remove } from 'lodash';
 import { setBingoInitial } from '../store/reducers/bingo/bingoSlice';
@@ -21,59 +21,62 @@ const GameWaitingScreen = () => {
     const [subscribers, setSubscribers] = useState<Player[]>([]);
 
     const route = useRoute();
-    const { isHost, bingoId }: BingoWaitingRouteParams = route.params as BingoWaitingRouteParams;
+    const { isHost, gameRoomId }: GameWaitingRouteParams = route.params as GameWaitingRouteParams;
     const authUser = useSelector((state: RootState) => state.auth.authUser);
     const [listLoading, setListLoading] = useState<boolean>(false);
     const [exitModalVisible, setExitModalVisible] = useState<boolean>(false);
+    const [gameListModalVisible, setGameListModalVisible] = useState<boolean>(false);
+
     const [modalAlertText, setModalAlertText] = useState("");
     const [isExitModal, setIsExitModal] = useState(true);
     const [currentRemoveUserId, setCurrentRemoveUserId] = useState("");
     const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
-    const currentBingoRoom = useSelector((state: RootState) => state.bingoRoom.currentBingoRoom);
+    const currentGameRoom = useSelector((state: RootState) => state.gameRoom.currentGameRoom);
     const dispatch = useDispatch();
     
     useEffect(() => {
-        dispatch(setBingoInitial({bingoId: bingoId, isHost: isHost}))
+        dispatch(setBingoInitial({gameRoomId: gameRoomId, isHost: isHost}))
     }, []);
 
     useEffect(() => {
-        if(currentBingoRoom) {
-            setSubscribers(currentBingoRoom?.subscribersPlayers);
+        if(currentGameRoom) {
+            setSubscribers(currentGameRoom?.subscribersPlayers);
         } else {
             setSubscribers([]);
         }
-    }, [currentBingoRoom]);
+    }, [currentGameRoom]);
     //get bingo room from firebase 
     useEffect(() => {
         setListLoading(true);
 
-        getBingoRoomById(bingoId, (bingoRoom:any) => {
-            if(!bingoRoom) {
-                navigator.navigate('gameRoom');
-                dispatch(setCurrentBingoRoom(null));
+        getGameRoom(gameRoomId, (gameRoom:any) => {
+            console.log(gameRoom)
+            if(!gameRoom) {
+                navigator.navigate('gameRoomList');
+                dispatch(setCurrentGameRoom(null));
             }
-            if(bingoRoom.subscribersPlayers) {
-                if (!bingoRoom.subscribersPlayers.some((player: any) => player.uid === authUser.uid)) {
-                    navigator.navigate('gameRoom');
+            if(gameRoom.subscribersPlayers) {
+                if (!gameRoom.subscribersPlayers.some((player: any) => player.uid === authUser.uid)) {
+                    navigator.navigate('gameRoomList');
                 }
             }
         
-            if(bingoRoom?.bingoStarted == true) {
-                navigator.navigate('Play');
+            if(gameRoom?.gameStarted == true) {
+                navigator.navigate('bingo');
             }
 
-            const currentBingoRoom = {
-                bingoId: bingoId,
-                subscribersPlayers:  bingoRoom?.subscribersPlayers
+            const currentGameRoom = {
+                gameRoomId: gameRoomId,
+                subscribersPlayers:  gameRoom?.subscribersPlayers
             }
-            dispatch(setCurrentBingoRoom(currentBingoRoom));
+            dispatch(setCurrentGameRoom(currentGameRoom));
             setListLoading(false)
         });
     }, []);
 
     useEffect(() => {
         const backAction = () => {
-            setModalAlertText("プレイルームを削除しますか？");
+            setModalAlertText("プレイルームから脱退しますか？");
             setExitModalVisible(true);
           return true;
         };
@@ -82,17 +85,17 @@ const GameWaitingScreen = () => {
         return () => backHandler.remove(); // Clean up the event listener
       }, []);
 
-    const startGame = async () => {
-        await startGameFirestore(bingoId);
-        navigator.navigate('Play');
+    const startBingo = async () => {
+        await startGameRoom(gameRoomId);
+        navigator.navigate('bingo');
     }
 
     const exitRoom = () => {
         console.log('xxxx')
         if(authUser.uid) {
-            navigator.navigate('gameRoom');
+            navigator.navigate('gameRoomList');
             setExitModalVisible(false);
-            exitBingoRoom(authUser?.uid, bingoId, isHost);
+            exitGameRoom(authUser?.uid, gameRoomId, isHost);
         }
     }
 
@@ -106,7 +109,7 @@ const GameWaitingScreen = () => {
     const removeUser = (uid: string) => {
         setExitModalVisible(false)
         if(uid) {
-            removeUserFromBingoRoom(uid, bingoId);
+            exitGameRoom(uid, gameRoomId, false);
         }
     }
 
@@ -130,7 +133,7 @@ const GameWaitingScreen = () => {
             <Text style={styles.nameTitle}>{item.displayName}</Text>
             {/* <Text style={styles.nameTitle}>{item.age}</Text> */}
 
-            {isHost &&
+            {(isHost && item.uid != authUser.uid) &&
                 <Pressable 
                     style={styles.joinBtn}
                     onPress={() => removeUserModal(item.uid)}
@@ -187,25 +190,72 @@ const GameWaitingScreen = () => {
                                         style={styles.modalOkBtn}
                                         onPress={exitRoom}
                                     >
-                                    <Text style={styles.modalOkText}>   近   い   </Text>
+                                    <Text style={styles.modalOkText}>   は い   </Text>
                                 </Pressable>
                             :   <Pressable
                                         style={styles.modalOkBtn}
                                         onPress={() => removeUser(currentRemoveUserId)}
                                     >
-                                    <Text style={styles.modalOkText}>   近   い   </Text>
+                                    <Text style={styles.modalOkText}>   は い   </Text>
                                 </Pressable>
                             }
                         </View>
                     </View>
                 </View>
             </Modal>
+
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={gameListModalVisible}
+                onRequestClose={() => {
+                setGameListModalVisible(false);
+                }}
+            >
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: modalBackgroundColor }}>
+                    
+                    <View style={styles.modalBody}>
+                            {/* <Pressable style={styles.modalCloseButton}>
+                                <Icon
+                                    name="fontawesome|facebook-square"
+                                    
+                                >
+                                </Icon>
+                            </Pressable> */}
+                        <Text style={styles.modalText}>
+                            プレイするゲームを選択してください。
+                        </Text>
+
+                        <View style={styles.modalGameListContainer}>
+                            <Pressable 
+                                style={styles.modalGameListButton}
+                                onPress={() => startBingo()}
+                            >
+                                <Text style={styles.textTitle}>ビンゴ</Text>
+                            </Pressable>
+                            <Pressable style={styles.modalGameListButton}>
+                                <Text style={styles.textTitle}>ゲーム1</Text>
+                            </Pressable>
+                            <Pressable style={styles.modalGameListButton}>
+                                <Text style={styles.textTitle}>ゲーム2</Text>
+                            </Pressable>
+                            <Pressable style={styles.modalGameListButton}>
+                                <Text style={styles.textTitle}>ゲーム3</Text>
+                            </Pressable>
+                            <Pressable style={styles.modalGameListButton}>
+                                <Text style={styles.textTitle}>ゲーム4</Text>
+                            </Pressable>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
             {ProfileAvatar(authUser?.photoURL || '111', authUser?.displayName)}
 
             <View style={styles.btnList}>
                 {isHost && <Pressable 
                     style={styles.successButton}
-                    onPress={startGame}
+                    onPress={() => {setGameListModalVisible(true)}}
                 >
                     <Text style={styles.textTitle}>ゲーム開始</Text>
                 </Pressable>}
@@ -380,7 +430,30 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         textAlign: "center",
         marginBottom: 20
-      }
+      },
+      modalGameListContainer: {
+        justifyContent: "center",
+        alignItems: "center",
+        paddingHorizontal: 15,
+        // paddingVertical: 50,
+        // borderWidth: 1,
+        borderColor: 'grey',
+        borderRadius: 20,
+        width: "90%",
+      },
+      modalGameListButton : {
+        backgroundColor: '#ff0000',
+        paddingVertical: 8,
+        paddingHorizontal: 6,
+        marginHorizontal: 4,
+        marginVertical: 8,
+        borderRadius: 10,
+        width: '80%'
+    },
+    modalCloseButton: {
+        position: 'absolute',
+        color: 'green'
+    }
 });
 
 

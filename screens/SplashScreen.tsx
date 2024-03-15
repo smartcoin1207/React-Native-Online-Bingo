@@ -4,6 +4,7 @@ import { View, ImageBackground, Text, StyleSheet, Pressable, Dimensions } from '
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from '../constants/navigate';
 import { RootState } from '../store';
+
 const screenHeight = Dimensions.get('window').height;
 const cellSize = screenHeight / 5; 
 
@@ -34,6 +35,9 @@ const SplashScreen: React.FC<Props> = ({navigation: {navigate}}) => {
     );
 }
 
+const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
+console.log(viewportWidth, viewportHeight)
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -42,7 +46,13 @@ const styles = StyleSheet.create({
     },
     backgroundImage: {
         flex: 1,
-        resizeMode: 'cover', // or 'stretch' for different image resizing options
+        position: 'absolute',
+        resizeMode: 'cover',
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'transparent',
+        justifyContent: 'center',
+        alignItems: 'center'
     },
     text: {
         fontSize: 24,

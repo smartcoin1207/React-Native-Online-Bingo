@@ -8,7 +8,7 @@ import 'firebase/firestore';
 import { RootState } from '../store';
 import { setBingoCellStatus, setBingoNextNumber, setCanBoardCellClick } from '../store/reducers/bingo/bingoSlice';
 import { modalBackgroundColor, modalContainerBackgroundColor } from "../utils/ValidationString";
-import { setFirestoreBingoNextNumber } from '../utils/firebase/FirebaseUtil';
+import { setBingoNextNumberUpdate } from '../utils/firebase/FirebaseUtil';
 
 interface Props {
     bingoTimerIntervalId: number;
@@ -33,7 +33,7 @@ const BingoBoard: React.FC = () => {
     const bingoCellStatus = useSelector((state: RootState) => state.bingo.bingoCellStatus);
     const bingoNextNumber = useSelector((state: RootState) => state.bingo.bingoNextNumber);
     const bingoMyTurn = useSelector((state: RootState) => state.bingo.bingoMyTurn);
-    const bingoId = useSelector((state: RootState) => state.bingo.bingoId);
+    const gameRoomId = useSelector((state: RootState) => state.bingo.gameRoomId);
     const canBoardCellClick = useSelector((state: RootState) => state.bingo.canBorardCellClick);
     const bingoCellValue = useSelector((state: RootState) => state.bingo.bingoCellValue);
 

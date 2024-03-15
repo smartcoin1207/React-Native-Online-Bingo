@@ -6,6 +6,7 @@ import {
   View,
   TextInput,
   TouchableOpacity,
+  Dimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { validateEmail, validatePassword } from "../utils/ValidtionUtils";
@@ -14,6 +15,8 @@ import { signInAuthUser } from "../utils/firebase/FirebaseUtil";
 import { SignIn } from "../store/reducers/bingo/userSlice";
 import { modalContainerBackgroundColor } from "../utils/ValidationString";
 interface LoginScreenProps {}
+const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
+
 
 const Login: React.FC<LoginScreenProps> = () => {
   const [email, setEmail] = useState<string>("");
@@ -89,16 +92,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 10,
-    backgroundColor: 'black',
+    padding: viewportWidth*0.05,
+    backgroundColor: "#000000",
   },
   subContainer: {
-    flex: 0,
     justifyContent: "center",
     alignItems: "center",
-    padding: 30,
+    padding: viewportWidth*0.1,
     backgroundColor: modalContainerBackgroundColor,
-    borderRadius: 20,
+    borderRadius: viewportWidth*0.05,
     borderWidth: 1,
     borderColor: 'grey',
     width: "90%",
@@ -108,15 +110,13 @@ const styles = StyleSheet.create({
     marginBottom: 50,
     color: "#ffffff",
     fontWeight: "900",
-    // marginVertical: 60,
   },
   input: {
-    height: 40,
     width: "100%",
     fontSize: 16,
-    marginBottom: 12,
+    marginVertical: viewportHeight*0.01,
     paddingHorizontal: 10,
-    paddingVertical: 2,
+    paddingVertical: 5,
     backgroundColor: modalContainerBackgroundColor,
     color: 'white',
     borderRadius: 20,

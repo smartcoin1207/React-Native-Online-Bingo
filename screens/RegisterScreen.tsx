@@ -9,6 +9,7 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
+  Dimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { validateEmail, validatePassword } from '../utils/ValidtionUtils';
@@ -17,6 +18,9 @@ import { RootState } from "../store";
 import { modalContainerBackgroundColor } from "../utils/ValidationString";
 
 interface LoginScreenProps {}
+
+const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
+console.log(viewportWidth, viewportHeight)
 
 const Register: React.FC<LoginScreenProps> = () => {
 
@@ -102,34 +106,31 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 10,
+    padding: viewportWidth*0.05,
     backgroundColor: "#000000",
   },
   subContainer: {
-    flex: 0,
     justifyContent: "center",
     alignItems: "center",
-    padding: 30,
+    padding: viewportWidth*0.1,
     backgroundColor: modalContainerBackgroundColor,
-    borderRadius: 20,
+    borderRadius: viewportWidth*0.05,
     borderWidth: 1,
     borderColor: 'grey',
     width: "90%",
   },
   title: {
     fontSize: 24,
-    marginBottom: 50,
+    marginBottom: viewportHeight*0.08,
     color: "#ffffff",
-    fontWeight: "900",
-    // marginVertical: 60,
+    fontWeight: "900"
   },
   input: {
-    height: 40,
     width: "100%",
     fontSize: 16,
-    marginBottom: 12,
+    marginVertical: viewportHeight*0.01,
     paddingHorizontal: 10,
-    paddingVertical: 2,
+    paddingVertical: 5,
     backgroundColor: modalContainerBackgroundColor,
     color: 'white',
     borderRadius: 20,
@@ -153,7 +154,7 @@ const styles = StyleSheet.create({
   },
   errText: {
     color: "red",
-    marginBottom: 20,
+    marginBottom: viewportHeight*0.03,
     fontSize: 16,
   },
 });

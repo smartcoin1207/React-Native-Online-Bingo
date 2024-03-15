@@ -14,15 +14,19 @@ import {
   arrayRemove,
 } from "firebase/firestore";
 import { db, auth } from "./FirebaseInitialize";
-import { AuthUserCallBackFunction, BingoRoom, BingoRoomsCallBackFunction, Player, User } from "../Types";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, updateProfile, signOut } from "firebase/auth";
+import { GameRoomsCallBackFunction, Player, User } from "../Types";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, signOut } from "firebase/auth";
 import { isArray } from "lodash";
+
+const userTable = "users";
+const gameTable = "bingos";
 
 //SignIn to Firebase
 export const signInAuthUser = (email:string, password:string) =>  {
     return signInWithEmailAndPassword(auth, email, password)
     .then(async (userCredential) => {
       const user = userCredential.user;
+
       // Additional user data
       const displayName = user.displayName;
       const email = user.email;
@@ -53,7 +57,7 @@ export const signUpAuthUser = (email:string, password:string, displayName: strin
         photoURL: photoURL
       }).then( async () => {
         // Additional user data updated successfully
-        await setDoc(doc(collection(db, "users"), uid), {
+        await setDoc(doc(collection(db, userTable), uid), {
             displayName: displayName,
             photoURL: photoURL
         });
@@ -80,21 +84,21 @@ export const signOutAuthUser = () => {
 /**
  * get all waiting bingorooms
  */
-export const getWaitingBingoRooms = (callback: BingoRoomsCallBackFunction) => {
-    const q = query(collection(db, "bingos"), where("bingoStarted", "==", false), where("bingoStopped", "==", false));
+export const getWaitingGameRooms = (callback: GameRoomsCallBackFunction) => {
+    const q = query(collection(db, gameTable), where("gameStarted", "==", false), where("gameStopped", "==", false));
     
     return onSnapshot(q, async (snapshot) => {
         const promises = snapshot.docs.map(async (document) => {
             // document id of bingo collection
-            const bingoId = document.id;
+            const gameRoomId = document.id;
 
             // user id of the bingo game host
             const uid = document.data().uid;
 
-            const hostRef = doc(collection(db, "users"), uid);
+            const hostRef = doc(collection(db, userTable), uid);
             const hostUser = await getDoc(hostRef);
             const hostUserInfo = hostUser.data();
-
+            const displayRoomName = document.data().displayRoomName;
             const roomPassword = document.data().password;
 
             // subscribers of created bingo game
@@ -102,46 +106,48 @@ export const getWaitingBingoRooms = (callback: BingoRoomsCallBackFunction) => {
             const subscriberNum = isArray(subscriberRefs)? subscriberRefs.length: '0'; 
             
             return {
-                bingoId: bingoId,
+                gameRoomId: gameRoomId,
+                displayRoomName: displayRoomName,
+                password: roomPassword,
                 uid: uid,
                 displayName: hostUserInfo?.displayName,
                 photoURL: hostUserInfo?.photoURL,
-                subscriberNum: subscriberNum,
-                password: roomPassword
+                subscriberNum: subscriberNum
             };            
         });
 
-        const bingoRooms : any[] = await Promise.all(promises);
-        callback(bingoRooms);
+        const gameRooms : any[] = await Promise.all(promises);
+        callback(gameRooms);
     });
 };
 
-export const createBingoRoom = async (uid: string, password: string) => {
+export const createGameRoom = async (uid: string, displayRoomName: string,  password: string) => {
     const subscribers = [uid];
-    const subscriberPromises = subscribers.map(subscriberId => doc(collection(db, "users"), subscriberId));
+    const subscriberPromises = subscribers.map(subscriberId => doc(collection(db, userTable), subscriberId));
     const subscribersRef = await Promise.all(subscriberPromises);
     //Add a new bingo room document with uid and subscribers
-    const docRef = await addDoc(collection(db, "bingos"), {
+    const docRef = await addDoc(collection(db, gameTable), {
         uid: uid,
-        subscribers: subscribersRef,
+        displayRoomName: displayRoomName,
         password: password,
-        bingoStarted: false,
-        bingoStopped: false
+        subscribers: subscribersRef,
+        gameStarted: false,
+        gameStopped: false
     });
 
     return docRef.id;
 }
 
-export const joinBingoRoom = async (uid: string, bingoId: string) => {
+export const joinGameRoom = async (uid: string, gameRoomId: string) => {
 
-    const userReference = doc(collection(db, "users"), uid);
-    const docRef = doc(collection(db, "bingos"), bingoId);
+    const userReference = doc(collection(db, userTable), uid);
+    const docRef = doc(collection(db, gameTable), gameRoomId);
 
     try {
         const docSnap = await getDoc(docRef);
         const data = docSnap.data();
 
-        if(data?.bingoStarted || data?.bingoStopped) {
+        if(data?.gameStarted || data?.gameStopped) {
             return false;
         }
 
@@ -149,7 +155,6 @@ export const joinBingoRoom = async (uid: string, bingoId: string) => {
             await updateDoc(docRef, {
                 subscribers: arrayUnion(userReference)
             });
-
             console.log('New subscriber added successfully');
             return true;
         } else {
@@ -162,24 +167,11 @@ export const joinBingoRoom = async (uid: string, bingoId: string) => {
     }
 }
 
-export const startGameFirestore = async (bingoId: string) => {
-    const docRef = doc(db, 'bingos', bingoId);
-
-    try {
-        await updateDoc(docRef, {
-            bingoStarted: true
-        })
-    } catch (error) {
-        console.log("bingo error")
-    }
-}    
-
-export const exitBingoRoom = async (uid: string, bingoId:string, isHost: boolean) => {
-    const docRef = doc(collection(db, "bingos"), bingoId);
+export const exitGameRoom = async (uid: string, gameRoomId:string, isHost: boolean) => {
+    const docRef = doc(collection(db, gameTable), gameRoomId);
 
     if(!isHost) {
-        const userReference = doc(collection(db, "users"), uid);
-
+        const userReference = doc(collection(db, userTable), uid);
         try {
             await updateDoc(docRef, {
                 subscribers: arrayRemove(userReference)
@@ -198,21 +190,21 @@ export const exitBingoRoom = async (uid: string, bingoId:string, isHost: boolean
     }
 }
 
-export const removeUserFromBingoRoom = async (uid: string, bingoId: string) => {
-    const docRef = doc(collection(db, "bingos"), bingoId);
-    const userReference = doc(collection(db, "users"), uid);
-
+//
+export const startGameRoom = async (gameRoomId: string) => {
+    const docRef = doc(db, gameTable, gameRoomId);
     try {
         await updateDoc(docRef, {
-            subscribers: arrayRemove(userReference)
-        });
+            gameStarted: true
+        })
     } catch (error) {
-        console.error('Error removing user from subscribers:', error);
+        console.log("game error")
     }
-}
+}    
 
-export const getBingoRoomById = (bingoId: string, callback: any ) => {
-    const docRef = doc(db, 'bingos', bingoId);
+//
+export const getGameRoom = (gameRoomId: string, callback: any ) => {
+    const docRef = doc(db, gameTable, gameRoomId);
 
     return  onSnapshot(docRef, async (document) => {
         if(document.exists()) {
@@ -249,18 +241,15 @@ export const getBingoRoomById = (bingoId: string, callback: any ) => {
     });
 }
 
-export const getBingoPlay = (bingoId: string) => {
-    const docRef = doc(db, 'plays', bingoId);
-}
 
-export const setOrder  = async (bingoId: string, uids: string[]) => {
+export const setPlayerGameSort  = async (gameRoomId: string, uids: string[]) => {
     const turnPlayerId = uids[0];
     try {
-        const docRef = doc(collection(db, "bingos"), bingoId);
+        const docRef = doc(collection(db, gameTable), gameRoomId);
         await updateDoc(docRef, {
             sort: uids,
             turnPlayerId: turnPlayerId,
-            turnCount: 1,
+            turnNumber: 1,
             bingoCompleted: []
         });
     } catch (error) {
@@ -268,8 +257,8 @@ export const setOrder  = async (bingoId: string, uids: string[]) => {
     }
 }
 
-export const getBingo = (bingoId: string, callback : any ) => {
-    const docRef = doc(db, 'bingos', bingoId);
+export const getBingo = (gameRoomId: string, callback : any ) => {
+    const docRef = doc(db, gameTable, gameRoomId);
 
     return  onSnapshot(docRef, async (document) => {
         if(document.exists()) {
@@ -282,44 +271,27 @@ export const getBingo = (bingoId: string, callback : any ) => {
     });
 }
 
-export const setFirestoreBingoNextNumber = async (uid: string, bingoId: string, bingoNextNumber: string) => {
-    const docRef = doc(db, 'bingos', bingoId);
+export const setBingoNextNumberUpdate = async (uid: string, gameRoomId: string, bingoNextNumber: string) => {
+    const docRef = doc(db, gameTable, gameRoomId);
 
     try {
         await updateDoc(docRef, {
             bingoNextNumber: bingoNextNumber
-            // playerPassed: arrayUnion(uid)
         })
     } catch (error) {
         console.log("bingo error")
     }
 }
 
-// export const setBingoPassed = async (uid: string, bingoId: string) => {
-//     const docRef = doc(db, 'bingos', bingoId);
-
-//     try {
-//         await updateDoc(docRef, {
-//             playerPassed: arrayUnion(uid)
-//         })
-//     } catch (error) {
-//         console.log("bingo error")
-//     }
-// }
-
-export const setBingoTurn = async (newTurnPlayerId:string, bingoId: string, newTurnCount: number) => {
-    const docRef = doc(db, 'bingos', bingoId);
-    //turnNumber: 100
+export const setNextTurnPlayer = async (newTurnPlayerId:string, gameRoomId: string, newTurnNumber: number) => {
+    const docRef = doc(db, gameTable, gameRoomId);
     try {
         await updateDoc(docRef, {
-            // playerPassed: [],
             turnPlayerId: newTurnPlayerId,
-            turnCount: newTurnCount,
+            turnNumber: newTurnNumber,
             bingoNextNumber: ''
         })
     } catch (error) {
         console.log("bingo error")
     }
 }
-
-// export const setBingoCellStatus = 

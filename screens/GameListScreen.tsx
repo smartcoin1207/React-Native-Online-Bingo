@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from 'react-redux';
 
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { View, Text, StyleSheet, Pressable, Dimensions } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { RootState } from "../store";
 import { SignOut } from "../store/reducers/bingo/userSlice";
-import { signOutAuthUser } from "../utils/firebase/FirebaseUtil";
-
 interface GameListScreen { }
+
+const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
+
 const GameRoom: React.FC<GameListScreen> = () => {
     const navigation = useNavigation();
     const authUser = useSelector((state: RootState) => state.auth.authUser);
@@ -31,11 +32,11 @@ const GameRoom: React.FC<GameListScreen> = () => {
         <View style={styles.container}>
                 <Pressable 
                     style={styles.button}
-                    onPress={() => navigation.navigate("gameRoom")}
+                    onPress={() => navigation.navigate("gameRoomList")}
                 >
-                    <Text style={styles.textTitle}>B I N G O 1</Text>
+                    <Text style={styles.textTitle}>ゲームルーム</Text>
                 </Pressable>
-                <Pressable style={styles.button}>
+                {/* <Pressable style={styles.button}>
                     <Text style={styles.textTitle}>B I N G O 2</Text>
                 </Pressable>
                 <Pressable style={styles.button}>
@@ -46,10 +47,10 @@ const GameRoom: React.FC<GameListScreen> = () => {
                 </Pressable>
                 <Pressable style={styles.button}>
                     <Text style={styles.textTitle}>B I N G O 5</Text>
-                </Pressable>
+                </Pressable> */}
 
                 <Pressable style={styles.signBtn} onPress={handleSignOut}>
-                    <Text style={styles.textTitle}>Sign Out</Text>
+                    <Text style={styles.textTitle}>サインアウト</Text>
                 </Pressable>
             </View>
     )
@@ -58,12 +59,12 @@ const GameRoom: React.FC<GameListScreen> = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'black',
-        paddingHorizontal: 30,
-        width: '100%',
-    },
+        justifyContent: "center",
+        alignItems: "center",
+        padding: viewportWidth*0.1,
+        backgroundColor: "#000000",
+        width: '100%'
+      },
     button: {
         width: '100%',
         backgroundColor: '#ff0000',
@@ -76,7 +77,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#ff0000',
         paddingVertical: 8,
         marginVertical: 4,
-        marginTop: 32,
+        marginTop: viewportHeight*0.05,
         borderRadius: 6,
     },
     textTitle: {

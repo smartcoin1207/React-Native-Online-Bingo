@@ -17,13 +17,13 @@ const AppNavigator = () => {
   return (
     <Stack.Navigator initialRouteName='Splash'>
       <Stack.Screen name="Splash" component={SplashScreen} options={{ headerShown: false }}/>
-      <Stack.Screen name="Play" component={PlayBoard} options={{ headerShown: false }}/>
+      <Stack.Screen name="bingo" component={PlayBoard} options={{ headerShown: false }}/>
       <Stack.Screen name="Home" component={Home} options={{ headerShown: false }}/>
       <Stack.Screen name="register" component={Register} options={{ headerShown: false }}/>
       <Stack.Screen name="login" component={Login} options={{ headerShown: false }}/>
       <Stack.Screen name="GameList" component={GameList} options={{ headerShown: false }}/>
-      <Stack.Screen name="gameRoom" component={GameRoom} options={{ headerShown: false }}/>
-      <Stack.Screen name="prepare" component={GameWaitingScreen} options={{ headerShown: false }}/>
+      <Stack.Screen name="gameRoomList" component={GameRoom} options={{ headerShown: false }}/>
+      <Stack.Screen name="currentRoom" component={GameWaitingScreen} options={{ headerShown: false }}/>
       {/* <Stack.Screen name="order" component={GameOrder} options={{ headerShown: false }}/> */}
 
     </Stack.Navigator>

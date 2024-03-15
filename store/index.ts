@@ -1,14 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit';
 import bingoReducer from './reducers/bingo/bingoSlice';
 import authReducer from './reducers/bingo/userSlice';
-import bingoRoomReducer from './reducers/bingo/bingoRoomSlice';
-// import { RootState } from '../utils/Types';
+import gameRoomReducer from './reducers/bingo/gameRoomSlice';
 
 export const store = configureStore({
     reducer: {
         bingo: bingoReducer,
         auth: authReducer,
-        bingoRoom: bingoRoomReducer
+        gameRoom: gameRoomReducer
     },
 });
 

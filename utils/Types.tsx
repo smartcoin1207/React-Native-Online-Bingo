@@ -5,30 +5,26 @@ export interface User {
     photoURL: string | null
 }
 
-export type AuthUserCallBackFunction = (user: User) => void;
-
-export interface BingoRoom {
-    bingoId: string,
-    uid: string | null, 
+export interface GameRoom {
+    gameRoomId: string,
+    displayRoomName: string,
+    password: string
+    uid: string | null,
     displayName: string,
     photoURL: string | null,
     subscriberNum: string,
-    password: string
 }
 
-export interface BingoWaitingRouteParams {
+export interface GameWaitingRouteParams {
     isHost: boolean,
-    bingoId: string 
+    gameRoomId: string 
 }
 
-export type BingoRoomsCallBackFunction = (bingoRooms: any[]) => void;
+export type GameRoomsCallBackFunction = (gameRooms: any[]) => void;
 
 export interface NavigatorType {
-    navigate: (screen: string, params: { isHost: boolean; bingoId: string }) => void;
-    // Add other navigator properties as needed
+    navigate: (screen: string, params: { isHost: boolean; gameRoomId: string }) => void;
 }
-
-//redux types
 
 export interface UserState {
     authUser: User,
@@ -41,22 +37,16 @@ export interface Player {
     photoURL: string
 }
 
-export interface CurrentBingoRoom {
-    bingoId: string,
+export interface CurrentGameRoom {
+    gameRoomId: string,
     subscribersPlayers: Player[]
 }
 
-export interface BingoRoomState {
-    bingoRooms: BingoRoom[],
-    currentBingoRoom: CurrentBingoRoom | null
-}
-
-export interface BingoState {
-    bingoId: string
+export interface GameRoomState {
+    gameRooms: GameRoom[],
+    currentGameRoom: CurrentGameRoom | null
 }
 
 export interface BingoPlayState {
     bingoBoard: any[]
 }
-
-type BingoCellValues = Array<Array<any>>;

@@ -16,7 +16,7 @@ const bingoCellStatusInit = (): number[][] =>
     [
         [0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0],
-        [0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0]
     ];
@@ -43,6 +43,15 @@ const bingoCellValuesUS = (): BingoCellValues => {
     const cellValues: BingoCellValues = [];
     const rules: number[][] = usaRules();
     const columns: number[][] = [[], [], [], [], []];
+    let temp = [];
+
+    const numberArray = Array.from({ length: 25 }, (_, index) => index + 1);
+
+    // Function to generate random number for sorting
+    const randomSort = () => Math.random() - 0.5;
+
+    // Randomly sort the number array
+    const randomlySortedArray = numberArray.sort(randomSort);
   
     for (let rowNum = 1; rowNum < 6; rowNum++) {
         const row: any[] = [];
@@ -50,7 +59,7 @@ const bingoCellValuesUS = (): BingoCellValues => {
     
         for (let columnNum = 0; columnNum < 5; columnNum++) {
             while (columns[columnNum].length < rowNum) {
-                aRandomNumber = _.random(rules[columnNum][0], rules[columnNum][1]);
+                aRandomNumber = randomlySortedArray[(rowNum+1)*5 + columnNum];
                 if (columns[columnNum].indexOf(aRandomNumber) === -1) {
                     row.push(aRandomNumber);
                     columns[columnNum].push(aRandomNumber);
@@ -59,7 +68,7 @@ const bingoCellValuesUS = (): BingoCellValues => {
         }
         cellValues.push(row);
     }
-    cellValues[2][2] = "💎";
+    // cellValues[2][2] = "💎";
   
     return cellValues;
 };
