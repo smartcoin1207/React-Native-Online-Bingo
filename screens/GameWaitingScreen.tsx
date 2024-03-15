@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { View, Text, StyleSheet, Pressable, Dimensions, TouchableOpacity, Button, FlatList, BackHandler, ActivityIndicator, Modal, TextInput } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Dimensions, TouchableOpacity, Button, FlatList, BackHandler, BackHandlerEventHandle , ActivityIndicator, Modal, TextInput } from 'react-native';
 import { Avatar, Icon, Image } from 'react-native-elements';
 import { useRoute } from '@react-navigation/native';
 
@@ -15,6 +15,8 @@ import { setBingoInitial } from '../store/reducers/bingo/bingoSlice';
 
 const screenHeight = Dimensions.get('window').height;
     const cellSize = screenHeight / 5; 
+const defaultAvatar = require('../assets/images/default_profile.png');
+type BackFunction = () => void;
 
 const GameWaitingScreen = () => {
     const navigator = useNavigation();
@@ -26,6 +28,7 @@ const GameWaitingScreen = () => {
     const [listLoading, setListLoading] = useState<boolean>(false);
     const [exitModalVisible, setExitModalVisible] = useState<boolean>(false);
     const [gameListModalVisible, setGameListModalVisible] = useState<boolean>(false);
+    const [backHandler, setBackHandler] = useState<BackHandlerEventHandle | null>(null);
 
     const [modalAlertText, setModalAlertText] = useState("");
     const [isExitModal, setIsExitModal] = useState(true);
@@ -45,12 +48,12 @@ const GameWaitingScreen = () => {
             setSubscribers([]);
         }
     }, [currentGameRoom]);
+    
     //get bingo room from firebase 
     useEffect(() => {
         setListLoading(true);
 
         getGameRoom(gameRoomId, (gameRoom:any) => {
-            console.log(gameRoom)
             if(!gameRoom) {
                 navigator.navigate('gameRoomList');
                 dispatch(setCurrentGameRoom(null));
@@ -73,7 +76,7 @@ const GameWaitingScreen = () => {
             setListLoading(false)
         });
     }, []);
-
+    
     useEffect(() => {
         const backAction = () => {
             setModalAlertText("プレイルームから脱退しますか？");
@@ -82,8 +85,19 @@ const GameWaitingScreen = () => {
         };
     
         const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+        setBackHandler(backHandler);
         return () => backHandler.remove(); // Clean up the event listener
-      }, []);
+    }, []);
+
+    useEffect(() => {
+    const unsubscribe = navigator.addListener('beforeRemove', () => {
+        if (backHandler) {
+        backHandler.remove(); // Remove the BackHandler event listener
+        }
+    });
+
+    return unsubscribe;
+    }, [navigator, backHandler]);
 
     const startBingo = async () => {
         await startGameRoom(gameRoomId);
@@ -105,7 +119,7 @@ const GameWaitingScreen = () => {
     
         setModalAlertText("プレイルームを削除しますか？");
     }
-    
+
     const removeUser = (uid: string) => {
         setExitModalVisible(false)
         if(uid) {
@@ -126,9 +140,9 @@ const GameWaitingScreen = () => {
             <Avatar
                 rounded
                 size="medium"
-                source={{
-                uri: item.photoURL,
-                }}
+                source={ item.photoURL ?  {
+                    uri: item.photoURL,
+                } : defaultAvatar}
             />
             <Text style={styles.nameTitle}>{item.displayName}</Text>
             {/* <Text style={styles.nameTitle}>{item.age}</Text> */}
@@ -153,9 +167,9 @@ const GameWaitingScreen = () => {
             <Avatar
               rounded
               size="large"
-              source={{
+              source={ imageUrl ?  {
                 uri: imageUrl,
-              }}
+              } : defaultAvatar}
             />
             {/* <Text style={styles.textTitle}>{displayName}</Text> */}
           </View>
@@ -249,8 +263,7 @@ const GameWaitingScreen = () => {
                     </View>
                 </View>
             </Modal>
-
-            {ProfileAvatar(authUser?.photoURL || '111', authUser?.displayName)}
+            {ProfileAvatar(authUser?.photoURL, authUser?.displayName)}
 
             <View style={styles.btnList}>
                 {isHost && <Pressable 

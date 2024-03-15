@@ -52,6 +52,7 @@ const bingoCellValuesUS = (): BingoCellValues => {
 
     // Randomly sort the number array
     const randomlySortedArray = numberArray.sort(randomSort);
+    console.log(randomlySortedArray)
   
     for (let rowNum = 1; rowNum < 6; rowNum++) {
         const row: any[] = [];
@@ -59,8 +60,8 @@ const bingoCellValuesUS = (): BingoCellValues => {
     
         for (let columnNum = 0; columnNum < 5; columnNum++) {
             while (columns[columnNum].length < rowNum) {
-                aRandomNumber = randomlySortedArray[(rowNum+1)*5 + columnNum];
-                if (columns[columnNum].indexOf(aRandomNumber) === -1) {
+                aRandomNumber = randomlySortedArray[(rowNum-1)*5 + columnNum];
+                    if (columns[columnNum].indexOf(aRandomNumber) === -1) {
                     row.push(aRandomNumber);
                     columns[columnNum].push(aRandomNumber);
                 }

@@ -9,7 +9,6 @@ import Home from '../screens/HomeScreen';
 import GameList from '../screens/GameListScreen';
 import GameRoom from '../screens/GameRoomListScreen';
 import GameWaitingScreen  from '../screens/GameWaitingScreen';
-import GameOrder  from '../screens/GameOrder';
 
 const Stack = createNativeStackNavigator();
 
@@ -24,8 +23,6 @@ const AppNavigator = () => {
       <Stack.Screen name="GameList" component={GameList} options={{ headerShown: false }}/>
       <Stack.Screen name="gameRoomList" component={GameRoom} options={{ headerShown: false }}/>
       <Stack.Screen name="currentRoom" component={GameWaitingScreen} options={{ headerShown: false }}/>
-      {/* <Stack.Screen name="order" component={GameOrder} options={{ headerShown: false }}/> */}
-
     </Stack.Navigator>
   );
 };

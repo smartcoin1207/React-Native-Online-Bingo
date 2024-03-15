@@ -47,7 +47,6 @@ export const bingoSlice = createSlice({
             state.bingoCellStatus = action.payload;
         },
         setBingoNextNumber: (state, action) => {
-            state.bingoPrevNumber = state.bingoNextNumber;
             state.bingoNextNumber = action.payload;
         },
         setBingoMyTurn: (state, action) => {

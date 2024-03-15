@@ -17,7 +17,6 @@ import { modalContainerBackgroundColor } from "../utils/ValidationString";
 interface LoginScreenProps {}
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
-
 const Login: React.FC<LoginScreenProps> = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -31,10 +30,10 @@ const Login: React.FC<LoginScreenProps> = () => {
 
   useEffect(() => {
     if (isLoggedIn) {
-      navigation.navigate("GameList");
+      navigation.replace("GameList");
     }
-    setEmail("potter@gmail.com");
-    setPassword("12345678");
+    // setEmail("potter@gmail.com");
+    // setPassword("12345678");
   }, [isLoggedIn]);
 
   const handleLogin = () => {

@@ -1,19 +1,23 @@
 import  React, {useEffect, useState} from 'react';
 import { StyleSheet, Button, Text, View, BackHandler, Modal, Pressable, ActivityIndicator, TouchableWithoutFeedback, Dimensions} from 'react-native';
+import GradientText from "react-native-gradient-texts";
+
 import { useDispatch, useSelector } from 'react-redux';
 import { setBingoCellStatus, setBingoInfo, setBingoInitial, setBingoNextNumber } from '../store/reducers/bingo/bingoSlice';
 import { bingoCellStatusInit, bingoCheck, createBingoCard } from '../components/BingoEngine';
 import _ from "lodash";
 import { RootState } from '../store';
 import { modalBackgroundColor, modalContainerBackgroundColor } from '../utils/ValidationString';
-import { getBingo, setNextTurnPlayer, setBingoNextNumberUpdate, setPlayerGameSort } from '../utils/firebase/FirebaseUtil';
+import { getBingo, setNextTurnPlayer, setBingoNextNumberUpdate, setPlayerGameSort, setBingoCompletedPlayer } from '../utils/firebase/FirebaseUtil';
 import { Player } from '../utils/Types';
+import { useNavigation } from '@react-navigation/native';
 
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
 const PlayBoard: React.FC = () => {
     const screenWidth = Dimensions.get('window').width ;
     const cellSize = screenWidth*0.9 / 5;
+    const navigator = useNavigation();
 
     const [modalSortVisible, setModalSortVisible] = useState(false);
     const [modalCompletedVisible, setModalCompletedVisible] = useState(false);
@@ -23,6 +27,7 @@ const PlayBoard: React.FC = () => {
     const [cellStatus, setCellStatus] = React.useState<number[][]>(bingoCellStatusInit());
     const [completed, setCompleted] = useState<boolean>(false);
     const [turnPlayerId, setTurnPlayerId] = useState<string>('');
+    const [bingoCompleted, setBingoCompleted] = useState<string[]>([]);
     
     //bingo selected
     const [selectedCellRow, setSelectedCellRow] = useState<number>(0);
@@ -43,7 +48,6 @@ const PlayBoard: React.FC = () => {
     const turnNumber = useSelector((state: RootState) => state.bingo.turnNumber);
 
     const bingoMyTurn = useSelector((state: RootState) => state.bingo.bingoMyTurn);
-
     const dispatch = useDispatch();
     
     //退会時にビンゴゲームを初期化...
@@ -56,7 +60,7 @@ const PlayBoard: React.FC = () => {
         
         return () => backHandler.remove(); // Clean up the event listener
       }, []);
-
+    
     //ゲーム開始時にプレイヤーの順番を決める...
     useEffect(() => {
         if(isHost) {
@@ -76,26 +80,40 @@ const PlayBoard: React.FC = () => {
         if(!bingoMyTurn) {
             clickCellByOther(bingoNextNumber);
         }
-    }, [bingoNextNumber])
+    }, [bingoNextNumber]);
+    
+    useEffect(() => {
+        console.log(bingoCompleted)
+    }, [bingoCompleted]);
 
     //リアルタイムfirestoreから該当するビンゴゲームデータを取得する
     useEffect(() => {
         getBingo(gameRoomId, (bingo: any) => {
+            const sort: string[] = bingo?.sort;
+
+            if(sort.length == 0) {
+                if(isHost && bingo?.turnNumber) {
+                    navigator.navigate('currentRoom', {isHost: true, gameRoomId: gameRoomId});
+                }
+            }
+
             if(bingo?.sort) {
                 setModalSortVisible(false);
+
                 const sort: string[]  = bingo?.sort;
                 const turnPlayerId: string = bingo?.turnPlayerId;
                 const bingoMyTurn: boolean = turnPlayerId == authUser.uid;
                 const subscribersPlayers: Player[]| undefined = currentGameRoom?.subscribersPlayers;
-
+                const bingoCompletedFirestore: string[] = bingo?.bingoCompleted;
                 const bingoInfo = {
                     bingoMyTurn: bingoMyTurn,
                     sort: sort,
                     bingoNextNumber: bingo?.bingoNextNumber || "",
                     turnNumber: bingo?.turnNumber
                 };
-                setTurnPlayerId(bingo?.turnPlayerId);
 
+                setBingoCompleted(bingoCompletedFirestore);
+                setTurnPlayerId(bingo?.turnPlayerId);
                 dispatch(setBingoInfo(bingoInfo));
 
                 if(bingoMyTurn) {
@@ -115,17 +133,15 @@ const PlayBoard: React.FC = () => {
     }, []);
 
     const setNextTurnPlayerId = (sort: string[], turnPlayerId: string, turnNumber: number) => {
-        console.log(sort)
         try {
             if(sort) {
-                console.log("---------------------------------------------------")
                 const currentIndex = sort.indexOf(turnPlayerId);
                 const nextIndex = (currentIndex + 1) % sort.length;
                 const nextValue = sort[nextIndex];
                 const newTurnPlayerId = nextValue;
                 const newTurnNumber = turnNumber + 1;
                 setNextTurnPlayer(newTurnPlayerId, gameRoomId, newTurnNumber);        
-            }  
+            }
         } catch (error) {
             console.log('xxxx');
         }
@@ -149,9 +165,6 @@ const PlayBoard: React.FC = () => {
         if(cellStatusValue == 1 || completed || !bingoMyTurn) {
             return false;
         }
-
-        console.log(rowNum, columnNum)
-
         setSelectedCellRow(rowNum);
         setSelectedCellColumn(columnNum);
         setSelectedCellValue(cellValue);
@@ -201,6 +214,9 @@ const PlayBoard: React.FC = () => {
         const isCompleted = bingoCheck(bingoCellValue, newCellStatusValues, rowNum, columnNum);
         if(isCompleted) {
             setCompleted(true);
+            if(authUser.uid) {
+                setBingoCompletedPlayer(authUser.uid, gameRoomId)
+            }
             setModalCompletedVisible(true)
         }
     }
@@ -229,6 +245,9 @@ const PlayBoard: React.FC = () => {
         const isCompleted = bingoCheck(bingoCellValue, newCellStatusValues, selectedCellRow, selectedCellColumn);
         if(isCompleted) {
             setCompleted(true);
+            if(authUser.uid) {
+                setBingoCompletedPlayer(authUser.uid, gameRoomId)
+            }
             setModalCompletedVisible(true)
         }
     }
@@ -264,10 +283,29 @@ const PlayBoard: React.FC = () => {
         
         return (
             <TouchableWithoutFeedback key={cellValue} onPress={() => handleCellClick(rowNum, columnNum, cellValue, cellStatusValue)}>
-                {renderCell(dynamicStyle, cellValue)}
+                {cellStatusValue == 1 ? GradientTextCell(dynamicStyle, cellValue) : renderCell(dynamicStyle, cellValue)}
             </TouchableWithoutFeedback>
         );
     };
+
+    const GradientTextCell = (dynamicStyle: any, cellValue: number): JSX.Element => {
+        return (
+            <View>
+
+            <GradientText
+                    text={cellValue.toString()}
+                    fontSize={40}
+                    isGradientFill
+                    isGradientStroke
+                    style={[dynamicStyle]}
+                    height={cellSize}
+                    width={cellSize}
+                    locations={{ x: cellSize*0.5, y: cellSize*0.7 }}
+                    gradientColors={["#992507", "#c79a07"]}
+                />
+                </View>
+        )
+    }
     
     const renderCell = (dynamicStyle: any, cellValue: number): JSX.Element => {
         return (
@@ -313,7 +351,7 @@ const PlayBoard: React.FC = () => {
                     </View>
                 </View>
             </Modal>
-
+            
             <Modal
                 animationType="fade"
                 transparent={true}
@@ -343,7 +381,7 @@ const PlayBoard: React.FC = () => {
 
             <Text style={styles.title}>BINGO</Text>
             <View style={styles.container}>
-
+                
                 <View style={styles.row}>
                     <View style={styles.randomContainer}>
                         <Text style={styles.selected}>{bingoPrevNumber}</Text>
@@ -375,9 +413,6 @@ const PlayBoard: React.FC = () => {
                 {BingoBoard()}
 
                 </View>
-                {/* <View style={styles.randomContainer}>
-                    <Text style={styles.selected}>{bingoPrevNumber}</Text>
-                </View> */}
             </View>
             
         </View>
@@ -418,9 +453,10 @@ const styles = StyleSheet.create({
         height: viewportWidth*0.2,
         borderWidth: 1,
         borderRadius: 6,
+        marginHorizontal: 5,
         marginBottom: 20,
         paddingVertical: 10,
-        paddingHorizontal: 20
+        paddingHorizontal: 10
     },
     selected: {
         color: 'white',
@@ -556,7 +592,7 @@ const styles = StyleSheet.create({
         color: 'red',
         borderColor: 'white',
         textAlignVertical: 'center',
-        backgroundColor: '#ffa725'
+        backgroundColor: 'white'
     },
     normal: {
         padding: 8,

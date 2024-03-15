@@ -28,6 +28,9 @@ import {
   modalContainerBackgroundColor,
 } from "../utils/ValidationString";
 
+const defaultAvatar = require('../assets/images/default_profile.png');
+
+
 const GameRoomScreen = () => {
   const navigator: NavigatorType = useNavigation();
 
@@ -122,9 +125,9 @@ const GameRoomScreen = () => {
       <Avatar
         rounded
         size="medium"
-        source={{
+        source={ item.photoURL ?  {
           uri: item.photoURL,
-        }}
+        } : defaultAvatar}
       />
       <Text style={styles.nameTitle}>{item.displayRoomName}</Text>
       <Text style={styles.nameTitle}>{item.subscriberNum}</Text>
@@ -143,9 +146,9 @@ const GameRoomScreen = () => {
         <Avatar
           rounded
           size="large"
-          source={{
+          source={ photoURL ?  {
             uri: photoURL,
-          }}
+          }: defaultAvatar}
         />
         <Text style={styles.textTitle}>{displayName}</Text>
       </View>

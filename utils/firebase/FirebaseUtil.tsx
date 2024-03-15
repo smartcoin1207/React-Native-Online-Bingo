@@ -13,7 +13,14 @@ import {
   deleteDoc,
   arrayRemove,
 } from "firebase/firestore";
-import { db, auth } from "./FirebaseInitialize";
+import {
+    getStorage,
+    ref,
+    uploadBytesResumable,
+    getDownloadURL,
+    listAll,
+  } from "firebase/storage";
+import { db, auth, storage } from "./FirebaseInitialize";
 import { GameRoomsCallBackFunction, Player, User } from "../Types";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, signOut } from "firebase/auth";
 import { isArray } from "lodash";
@@ -61,7 +68,7 @@ export const signUpAuthUser = (email:string, password:string, displayName: strin
             displayName: displayName,
             photoURL: photoURL
         });
-        console.log("User created with additional data:", user);
+        // console.log("User created with additional data:", user);
       }).catch((error) => {
         console.error("Error updating profile:", error);
       });
@@ -241,7 +248,6 @@ export const getGameRoom = (gameRoomId: string, callback: any ) => {
     });
 }
 
-
 export const setPlayerGameSort  = async (gameRoomId: string, uids: string[]) => {
     const turnPlayerId = uids[0];
     try {
@@ -295,3 +301,48 @@ export const setNextTurnPlayer = async (newTurnPlayerId:string, gameRoomId: stri
         console.log("bingo error")
     }
 }
+
+export const setBingoCompletedPlayer = async (uid: string, gameRoomId: string) => {
+    const docRef = doc(db, gameTable, gameRoomId);
+    
+    try {
+        await updateDoc(docRef, {
+            bingoCompleted: arrayUnion(uid),
+            sort: arrayRemove(uid)
+        })
+    } catch (error) {
+        console.log("bingo error")
+    }
+}
+
+export const uploadToFirebase = async (uri: string, name: string, onProgress: ((progress: number) => void) | undefined) => {
+    const fetchResponse = await fetch(uri);
+    const theBlob = await fetchResponse.blob();
+  
+    const imageRef = ref(storage, `images1/${name}`);
+  
+    const uploadTask = uploadBytesResumable(imageRef, theBlob);
+  
+    return new Promise<{ downloadUrl: string, metadata: any }>((resolve, reject) => {
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          onProgress && onProgress(progress);
+        },
+        (error) => {
+          // Handle unsuccessful uploads
+          console.log(error);
+          reject(error);
+        },
+        async () => {
+          const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+          
+          resolve({
+            downloadUrl,
+            metadata: uploadTask.snapshot.metadata,
+          });
+        }
+      );
+    });
+  };
