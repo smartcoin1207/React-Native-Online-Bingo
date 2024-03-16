@@ -16,14 +16,14 @@ import { useNavigation } from "@react-navigation/native";
 import { validateEmail, validatePassword } from '../utils/ValidtionUtils';
 import { signUpAuthUser, uploadToFirebase } from "../utils/firebase/FirebaseUtil";
 import { RootState } from "../store";
-import { modalContainerBackgroundColor } from "../utils/ValidationString";
 import * as ImagePicker from 'expo-image-picker';
+import { customColors } from "../utils/Color";
 
 interface LoginScreenProps {}
 
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 console.log(viewportWidth, viewportHeight);
-const defaultAvatar = require('../assets/images/default_profile.png');
+const defaultAvatar = require('../assets/images/default1.png');
 
 const Register: React.FC<LoginScreenProps> = () => {
 
@@ -136,22 +136,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: viewportWidth*0.05,
-    backgroundColor: "#000000",
+    backgroundColor: customColors.black,
   },
   subContainer: {
     justifyContent: "center",
     alignItems: "center",
     padding: viewportWidth*0.1,
-    backgroundColor: modalContainerBackgroundColor,
+    backgroundColor: customColors.modalContainerBackgroundColor,
     borderRadius: viewportWidth*0.05,
     borderWidth: 1,
-    borderColor: 'grey',
+    borderColor: customColors.blackGrey,
     width: "90%",
   },
   title: {
     fontSize: 24,
     marginBottom: viewportHeight*0.03,
-    color: "#ffffff",
+    color: customColors.white,
     fontWeight: "900"
   },
   input: {
@@ -160,15 +160,14 @@ const styles = StyleSheet.create({
     marginVertical: viewportHeight*0.01,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    backgroundColor: modalContainerBackgroundColor,
-    color: 'white',
+    backgroundColor: customColors.modalContainerBackgroundColor,
+    color: customColors.white,
     borderRadius: 20,
-    borderColor: "gray",
+    borderColor: customColors.blackGrey,
     borderWidth: 1,
   },
   imageButton: {
-    backgroundColor: "red",
-    // width: "30%",
+    backgroundColor: customColors.blackGreen,
     padding: 10,
     borderRadius: 20,
     marginTop: 10,
@@ -176,7 +175,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   button: {
-    backgroundColor: "red",
+    backgroundColor: customColors.blackGreen,
     width: "100%",
     padding: 10,
     borderRadius: 20,
@@ -186,13 +185,13 @@ const styles = StyleSheet.create({
   },
 
   buttonText: {
-    color: "#ffffff",
+    color: customColors.white,
     textAlign: "center",
     fontWeight: "bold",
     fontSize: 16,
   },
   errText: {
-    color: "red",
+    color: customColors.blackRed,
     marginBottom: viewportHeight*0.03,
     fontSize: 16,
   },

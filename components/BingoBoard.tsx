@@ -7,8 +7,8 @@ import { createBingoCard, bingoCellStatusInit, bingoCellValues, bingoCheck } fro
 import 'firebase/firestore';
 import { RootState } from '../store';
 import { setBingoCellStatus, setBingoNextNumber, setCanBoardCellClick } from '../store/reducers/bingo/bingoSlice';
-import { modalBackgroundColor, modalContainerBackgroundColor } from "../utils/ValidationString";
 import { setBingoNextNumberUpdate } from '../utils/firebase/FirebaseUtil';
+import { customColors } from '../utils/Color';
 
 interface Props {
     bingoTimerIntervalId: number;
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
     modalBody: {
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: modalContainerBackgroundColor,
+        backgroundColor: customColors.modalContainerBackgroundColor,
         paddingHorizontal: 15,
         paddingVertical: 50,
         borderWidth: 1,

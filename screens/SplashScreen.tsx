@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { View, ImageBackground, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
+import { View, ImageBackground, Text, StyleSheet, Pressable, Dimensions, Image } from 'react-native';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from '../constants/navigate';
 import { RootState } from '../store';
@@ -22,16 +22,18 @@ const SplashScreen: React.FC<Props> = ({navigation: {navigate}}) => {
     }
     
     return (
-        <ImageBackground
-            source={require('../assets/images/splash.png')}
-            style={styles.backgroundImage}
-        >
-            <View style={styles.container}>
-                <Pressable style={styles.button} onPress={handleStart}>
-                    <Text style={styles.textTitle}>START</Text>
-                </Pressable>
-            </View>
-        </ImageBackground>
+        <View style={{flex: 1}}>
+            <Image
+                source={require('../assets/images/splash.png')}
+                style={styles.backgroundImage}
+            />
+                <View style={styles.container}>
+                    <Pressable style={styles.button} onPress={handleStart}>
+                        <Text style={styles.textTitle}>START</Text>
+                    </Pressable>
+                </View>
+        </View>
+        
     );
 }
 
@@ -47,6 +49,7 @@ const styles = StyleSheet.create({
     backgroundImage: {
         flex: 1,
         position: 'absolute',
+        objectFit:'fill',
         resizeMode: 'cover',
         width: '100%',
         height: '100%',

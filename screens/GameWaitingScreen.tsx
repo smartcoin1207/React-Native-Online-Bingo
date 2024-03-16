@@ -9,13 +9,13 @@ import {GameWaitingRouteParams, Player, User} from '../utils/Types';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { setCurrentGameRoom } from '../store/reducers/bingo/gameRoomSlice';
-import { modalBackgroundColor, modalContainerBackgroundColor } from '../utils/ValidationString';
 import { remove } from 'lodash';
 import { setBingoInitial } from '../store/reducers/bingo/bingoSlice';
+import { customColors } from '../utils/Color';
 
 const screenHeight = Dimensions.get('window').height;
     const cellSize = screenHeight / 5; 
-const defaultAvatar = require('../assets/images/default_profile.png');
+const defaultAvatar = require('../assets/images/default1.png');
 type BackFunction = () => void;
 
 const GameWaitingScreen = () => {
@@ -186,7 +186,7 @@ const GameWaitingScreen = () => {
                 setExitModalVisible(false);
                 }}
             >
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: modalBackgroundColor }}>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: customColors.modalBackgroundColor }}>
                     <View style={styles.modalBody}>
                         <Text style={styles.modalText}>
                             {modalAlertText}
@@ -226,7 +226,7 @@ const GameWaitingScreen = () => {
                 setGameListModalVisible(false);
                 }}
             >
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: modalBackgroundColor }}>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: customColors.modalBackgroundColor }}>
                     
                     <View style={styles.modalBody}>
                             {/* <Pressable style={styles.modalCloseButton}>
@@ -237,7 +237,7 @@ const GameWaitingScreen = () => {
                                 </Icon>
                             </Pressable> */}
                         <Text style={styles.modalText}>
-                            プレイするゲームを選択してください。
+                        ゲームを選択してください。
                         </Text>
 
                         <View style={styles.modalGameListContainer}>
@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row'
     },
     button : {
-        backgroundColor: '#ff0000',
+        backgroundColor: customColors.blackRed,
         paddingVertical: 8,
         paddingHorizontal: 6,
         marginHorizontal: 4,
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
         borderRadius: 6,
     },
     successButton: {
-        backgroundColor: '#04AA6D',
+        backgroundColor: customColors.blackGreen,
         paddingVertical: 8,
         paddingHorizontal: 6,
         marginHorizontal: 4,
@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
         color: '#ffffff'
     },
     joinBtn: {
-        backgroundColor: '#ff0000',
+        backgroundColor: customColors.blackRed,
         // paddingVertical: 8,
         // paddingHorizontal: 6,
         padding: 4,
@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
     modalBody: {
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: modalContainerBackgroundColor,
+        backgroundColor: customColors.modalContainerBackgroundColor,
         paddingHorizontal: 15,
         paddingVertical: 50,
         borderWidth: 1,
@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
         width: "80%",
       },
       modalOkBtn: {
-        backgroundColor: '#ff0000',
+        backgroundColor: customColors.blackRed,
         paddingVertical: 8,
         paddingHorizontal: 6,
         padding: 4,
@@ -448,14 +448,12 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         paddingHorizontal: 15,
-        // paddingVertical: 50,
-        // borderWidth: 1,
         borderColor: 'grey',
         borderRadius: 20,
         width: "90%",
       },
       modalGameListButton : {
-        backgroundColor: '#ff0000',
+        backgroundColor: customColors.blackGreen,
         paddingVertical: 8,
         paddingHorizontal: 6,
         marginHorizontal: 4,

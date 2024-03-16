@@ -3,6 +3,7 @@ import { UseSelector, useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useEffect } from 'react';
 import { RootState } from '../store';
+import { customColors } from '../utils/Color';
 const screenHeight = Dimensions.get('window').height;
 const cellSize = screenHeight / 5;
 
@@ -45,7 +46,7 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingTop: cellSize * 1,
         alignItems: 'center',
-        backgroundColor: 'black'
+        backgroundColor: customColors.black
     },
     backgroundImage: {
         flex: 1,
@@ -54,18 +55,18 @@ const styles = StyleSheet.create({
     text: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: 'white',
+        color: customColors.white,
     },
     button1: {
-        backgroundColor: '#ff3131',
+        backgroundColor: customColors.blackGreen,
         paddingVertical: 10,
         paddingHorizontal: 25,
-        borderColor: 'black',
+        borderColor: customColors.black,
         borderWidth: 1,
         borderRadius: 15
     },
     button2: {
-        backgroundColor: '#ff3131',
+        backgroundColor: customColors.blackGreen,
         paddingVertical: 10,
         paddingHorizontal: 25,
         borderColor: 'black',
@@ -75,10 +76,9 @@ const styles = StyleSheet.create({
     },
     textTitle: {
         fontSize: 20,
-        color: 'white',
+        color: customColors.white,
         fontFamily: 'serif',
         fontWeight: '700',
-
     }
 });
 

@@ -5,6 +5,7 @@ import { View, Text, StyleSheet, Pressable, Dimensions } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { RootState } from "../store";
 import { SignOut } from "../store/reducers/bingo/userSlice";
+import { customColors } from "../utils/Color";
 interface GameListScreen { }
 
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
@@ -22,32 +23,17 @@ const GameRoom: React.FC<GameListScreen> = () => {
     }, [isLoggedIn])
 
     const handleSignOut = () => {
-        // signOutAuthUser()
-        // .then(() => {
-            dispatch(SignOut());
-        // });
+        dispatch(SignOut());
     }
 
     return (
         <View style={styles.container}>
                 <Pressable 
-                    style={styles.button}
+                    style={styles.gameBtn}
                     onPress={() => navigation.navigate("gameRoomList")}
                 >
                     <Text style={styles.textTitle}>ゲームルーム</Text>
                 </Pressable>
-                {/* <Pressable style={styles.button}>
-                    <Text style={styles.textTitle}>B I N G O 2</Text>
-                </Pressable>
-                <Pressable style={styles.button}>
-                    <Text style={styles.textTitle}>B I N G O 3</Text>
-                </Pressable>
-                <Pressable style={styles.button}>
-                    <Text style={styles.textTitle}>B I N G O 4</Text>
-                </Pressable>
-                <Pressable style={styles.button}>
-                    <Text style={styles.textTitle}>B I N G O 5</Text>
-                </Pressable> */}
 
                 <Pressable style={styles.signBtn} onPress={handleSignOut}>
                     <Text style={styles.textTitle}>サインアウト</Text>
@@ -67,14 +53,22 @@ const styles = StyleSheet.create({
       },
     button: {
         width: '100%',
-        backgroundColor: '#ff0000',
+        backgroundColor: customColors.blackRed,
         paddingVertical: 8,
         marginVertical: 4,
         borderRadius: 6,
     },
+    gameBtn: {
+        width: '100%',
+        backgroundColor: customColors.blackGreen,
+        paddingVertical: 8,
+        marginVertical: 4,
+        marginTop: viewportHeight*0.05,
+        borderRadius: 6,
+    },
     signBtn: {
         width: '100%',
-        backgroundColor: '#ff0000',
+        backgroundColor: customColors.blackRed,
         paddingVertical: 8,
         marginVertical: 4,
         marginTop: viewportHeight*0.05,

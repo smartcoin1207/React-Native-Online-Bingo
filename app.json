@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "com.minibase.bingo1",
-    "slug": "bingo-app-typescript",
+    "slug": "bingo-typescript-1",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -35,7 +35,7 @@
         "databaseURL": "https://mimi-base-default-rtdb.firebaseio.com/"
       },
       "eas": {
-        "projectId": "18a7e552-a2ed-44b4-87b3-3e833894a790"
+        "projectId": "3213aee7-0b36-40ba-ba7d-ff2bd214530b"
       }
     },
     "web": {
@@ -44,6 +44,6 @@
     "react-native": {
       "crashlytics_debug_enabled": true
     },
-    "owner": "mentai-daichidev"
+    "owner": "nikita-popcorn"
   }
 }

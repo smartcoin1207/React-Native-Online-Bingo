@@ -23,12 +23,10 @@ import { GameRoom, NavigatorType } from "../utils/Types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store";
 import { setGameRooms } from "../store/reducers/bingo/gameRoomSlice";
-import {
-  modalBackgroundColor,
-  modalContainerBackgroundColor,
-} from "../utils/ValidationString";
 
-const defaultAvatar = require('../assets/images/default_profile.png');
+import { customColors } from "../utils/Color";
+
+const defaultAvatar = require('../assets/images/default1.png');
 
 
 const GameRoomScreen = () => {
@@ -125,6 +123,7 @@ const GameRoomScreen = () => {
       <Avatar
         rounded
         size="medium"
+        avatarStyle={{height: '100%', width: '100%'}}
         source={ item.photoURL ?  {
           uri: item.photoURL,
         } : defaultAvatar}
@@ -171,19 +170,19 @@ const GameRoomScreen = () => {
             flex: 1,
             justifyContent: "center",
             alignItems: "center",
-            backgroundColor: modalBackgroundColor,
+            backgroundColor: customColors.modalBackgroundColor,
           }}
         >
           <View style={styles.modalBody}>
 
             {isCreateModal ? (
               <>
-                <Text style={styles.modalRoomTitleText}>プレイルーム創造</Text>
+                <Text style={styles.modalRoomTitleText}>プレイルーム作成</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="プレイルーム名"
                   autoCapitalize="none"
-                  placeholderTextColor="grey"
+                  placeholderTextColor={customColors.blackGrey}
                   value={gameRoomDisplayName}
                   onChangeText={(text) => {
                     // Allow only English letters (both lowercase and uppercase) and numbers
@@ -200,7 +199,7 @@ const GameRoomScreen = () => {
               style={styles.input}
               placeholder="パスワード"
               autoCapitalize="none"
-              placeholderTextColor="grey"
+              placeholderTextColor = {customColors.blackGrey}
               value={password}
               onChangeText={(text) => {
                 // Allow only English letters (both lowercase and uppercase) and numbers
@@ -221,7 +220,7 @@ const GameRoomScreen = () => {
               </Pressable>
               {isCreateModal ? (
                 <Pressable style={styles.modalOkBtn} onPress={createRoom}>
-                  <Text style={styles.roomModalButtonText}>　 設定 　</Text>
+                  <Text style={styles.roomModalButtonText}>　 作成 　</Text>
                 </Pressable>
               ) : (
                 <Pressable
@@ -258,7 +257,6 @@ const GameRoomScreen = () => {
 
 const styles = StyleSheet.create({
   profile: {
-    // flexDirection: "row",
     justifyContent: "center",
     width: "100%",
     textAlign: "center",
@@ -268,7 +266,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "black",
+    backgroundColor: customColors.black,
     paddingHorizontal: 15,
     paddingVertical: 50,
     width: "100%",
@@ -277,7 +275,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   button: {
-    backgroundColor: "#ff0000",
+    backgroundColor: customColors.blackGreen,
     paddingVertical: 8,
     paddingHorizontal: 6,
     marginHorizontal: 4,
@@ -287,7 +285,7 @@ const styles = StyleSheet.create({
   },
   textTitle: {
     fontSize: 20,
-    color: "white",
+    color: customColors.white,
     fontFamily: "serif",
     fontWeight: "700",
     textAlign: "center",
@@ -298,21 +296,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
+    borderBottomColor: customColors.blackGrey,
     width: "100%",
   },
   nameTitle: {
-    color: "#ffffff",
+    color: customColors.white,
     fontSize: 18,
   },
   ItemStatus: {
     fontSize: 15,
-    color: "#ffffff",
+    color: customColors.white,
   },
   joinBtn: {
-    backgroundColor: "#ff0000",
-    // paddingVertical: 8,
-    // paddingHorizontal: 6,
+    backgroundColor: customColors.blackGreen,
     padding: 4,
     marginHorizontal: 4,
     marginVertical: 4,
@@ -320,14 +316,14 @@ const styles = StyleSheet.create({
   },
   joinBtnText: {
     fontSize: 16,
-    color: "white",
+    color: customColors.white,
     fontFamily: "serif",
     fontWeight: "700",
     textAlign: "center",
   },
   listTitle: {
     fontSize: 20,
-    color: "white",
+    color: customColors.white,
     fontFamily: "serif",
     fontWeight: "700",
     textAlign: "center",
@@ -336,12 +332,12 @@ const styles = StyleSheet.create({
   FlatListStyle: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "gray",
+    borderColor: customColors.blackGrey,
     borderRadius: 8,
     margin: 5,
   },
   divider: {
-    borderBottomColor: "grey",
+    borderBottomColor: customColors.blackGrey,
     borderBottomWidth: 1,
     marginVertical: 10,
     width: "100%",
@@ -349,24 +345,24 @@ const styles = StyleSheet.create({
   modalBody: {
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: modalContainerBackgroundColor,
+    backgroundColor: customColors.modalContainerBackgroundColor,
     paddingHorizontal: 15,
     paddingVertical: 50,
     borderWidth: 1,
-    borderColor: "grey",
+    borderColor: customColors.blackGrey,
     borderRadius: 20,
     width: "80%",
   },
   modalRoomTitleText: {
     fontSize: 20,
-    color: "white",
+    color: customColors.white,
     fontFamily: "serif",
     fontWeight: "700",
     textAlign: "center",
     marginBottom: 20
   },
   modalOkBtn: {
-    backgroundColor: "#ff0000",
+    backgroundColor: customColors.blackGreen,
     paddingVertical: 8,
     paddingHorizontal: 6,
     padding: 4,
@@ -374,10 +370,10 @@ const styles = StyleSheet.create({
     marginVertical: 4,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: "white",
+    borderColor: customColors.white,
   },
   modalCancelBtn: {
-    backgroundColor: "grey",
+    backgroundColor: customColors.blackGrey,
     paddingVertical: 8,
     paddingHorizontal: 6,
     padding: 4,
@@ -385,11 +381,11 @@ const styles = StyleSheet.create({
     marginVertical: 4,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: "white",
+    borderColor: customColors.white,
   },
   roomModalButtonText: {
     fontSize: 16,
-    color: "white",
+    color: customColors.white,
     fontFamily: "serif",
     fontWeight: "700",
     textAlign: "center",
@@ -397,7 +393,7 @@ const styles = StyleSheet.create({
 
   completedText: {
     fontSize: 30,
-    color: "white",
+    color: customColors.white,
     width: "90%",
     fontFamily: "serif",
     fontWeight: "700",
@@ -407,20 +403,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   input: {
-    // backgroundColor: '#ff000066',
     width: "80%",
     fontSize: 15,
-    color: "white",
+    color: customColors.white,
     padding: 5,
     paddingHorizontal: 20,
     borderRadius: 25,
     borderWidth: 1,
-    borderColor: "grey",
+    borderColor: customColors.blackGrey,
     marginBottom: 20,
   },
   modalText: {
     fontSize: 16,
-    color: "white",
+    color: customColors.white,
     fontFamily: "serif",
     fontWeight: "700",
     textAlign: "center",

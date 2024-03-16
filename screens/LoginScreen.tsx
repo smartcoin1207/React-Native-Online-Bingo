@@ -13,8 +13,9 @@ import { validateEmail, validatePassword } from "../utils/ValidtionUtils";
 import { RootState } from "../store";
 import { signInAuthUser } from "../utils/firebase/FirebaseUtil";
 import { SignIn } from "../store/reducers/bingo/userSlice";
-import { modalContainerBackgroundColor } from "../utils/ValidationString";
+import { customColors } from "../utils/Color";
 interface LoginScreenProps {}
+
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
 const Login: React.FC<LoginScreenProps> = () => {
@@ -32,8 +33,6 @@ const Login: React.FC<LoginScreenProps> = () => {
     if (isLoggedIn) {
       navigation.replace("GameList");
     }
-    // setEmail("potter@gmail.com");
-    // setPassword("12345678");
   }, [isLoggedIn]);
 
   const handleLogin = () => {
@@ -92,16 +91,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: viewportWidth*0.05,
-    backgroundColor: "#000000",
+    backgroundColor: customColors.black,
   },
   subContainer: {
     justifyContent: "center",
     alignItems: "center",
     padding: viewportWidth*0.1,
-    backgroundColor: modalContainerBackgroundColor,
+    backgroundColor: customColors.modalContainerBackgroundColor,
     borderRadius: viewportWidth*0.05,
     borderWidth: 1,
-    borderColor: 'grey',
+    borderColor: customColors.blackGrey,
     width: "90%",
   },
   title: {
@@ -116,14 +115,14 @@ const styles = StyleSheet.create({
     marginVertical: viewportHeight*0.01,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    backgroundColor: modalContainerBackgroundColor,
-    color: 'white',
+    backgroundColor: customColors.modalContainerBackgroundColor,
+    color: customColors.white,
     borderRadius: 20,
-    borderColor: "gray",
+    borderColor: customColors.blackGrey,
     borderWidth: 1,
   },
   button: {
-    backgroundColor: "red",
+    backgroundColor: customColors.blackGreen,
     width: "100%",
     padding: 10,
     borderRadius: 20,
@@ -132,13 +131,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buttonText: {
-    color: "#ffffff",
+    color: customColors.white,
     textAlign: "center",
     fontWeight: "bold",
     fontSize: 16,
   },
   errText: {
-    color: "red",
+    color: customColors.blackRed,
     marginBottom: 20,
     fontSize: 16,
   },
