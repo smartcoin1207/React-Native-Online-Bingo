@@ -27,6 +27,7 @@ import { setGameRooms } from "../store/reducers/bingo/gameRoomSlice";
 import { customColors } from "../utils/Color";
 
 const defaultAvatar = require('../assets/images/default1.png');
+const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
 
 const GameRoomScreen = () => {
@@ -227,7 +228,7 @@ const GameRoomScreen = () => {
                   style={styles.modalOkBtn}
                   onPress={joinRoom}
                 >
-                  <Text style={styles.roomModalButtonText}> 近 い </Text>
+                  <Text style={styles.roomModalButtonText}> 参加 </Text>
                 </Pressable>
               )}
             </View>
@@ -267,7 +268,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: customColors.black,
-    paddingHorizontal: 15,
+    paddingHorizontal: viewportWidth*0.03,
     paddingVertical: 50,
     width: "100%",
   },
@@ -335,6 +336,7 @@ const styles = StyleSheet.create({
     borderColor: customColors.blackGrey,
     borderRadius: 8,
     margin: 5,
+    width: '95%'
   },
   divider: {
     borderBottomColor: customColors.blackGrey,

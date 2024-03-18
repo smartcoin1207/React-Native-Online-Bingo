@@ -32,8 +32,6 @@ const Register: React.FC<LoginScreenProps> = () => {
     const [username, setUsername] = useState<string>("");
     // const [avatarUrl, setAvatarUrl] = useState<string>("");
     const [selectedImage, setSelectedImage] = useState<string>('');
-
-
     const [emailError, setEmailError] = useState<string>("");
     const [passwordError, setPasswordError] = useState<string>("");
     const [listLoading, setListLoading] = useState<boolean>(false);
@@ -52,7 +50,7 @@ const Register: React.FC<LoginScreenProps> = () => {
               });
               setSelectedImage(result.canceled?'':result.assets[0].uri);
               return result.canceled?null:result.assets[0].uri;
-          }catch(e){
+          } catch(e){
             throw e;
           }
       }
@@ -69,8 +67,12 @@ const Register: React.FC<LoginScreenProps> = () => {
             if(selectedImage) {
               const uploadResp = await uploadToFirebase(selectedImage, "" + Date.now(), (v) =>
                 console.log(v)
-              );
-              avatarUrl = uploadResp.downloadUrl;
+              ).then((res) => {
+                avatarUrl = res.downloadUrl;
+
+              }).catch((err) => {
+                console.log("upload error", err);
+              })
             }
 
             signUpAuthUser(email, password, username, avatarUrl)

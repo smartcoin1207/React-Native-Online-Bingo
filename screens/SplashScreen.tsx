@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { View, ImageBackground, Text, StyleSheet, Pressable, Dimensions, Image } from 'react-native';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -12,7 +12,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "Splash">;
 
 const SplashScreen: React.FC<Props> = ({navigation: {navigate}}) => {
     const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
-
+    
     const handleStart = () => {
         if(isLoggedIn) {
             navigate('GameList');

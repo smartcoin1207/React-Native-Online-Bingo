@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   TouchableWithoutFeedback,
   Dimensions,
+  TouchableOpacity
 } from "react-native";
 import GradientText from "react-native-gradient-texts";
 
@@ -58,7 +59,10 @@ const PlayBoard: React.FC = () => {
   const [completed, setCompleted] = useState<boolean>(false);
   const [turnPlayerId, setTurnPlayerId] = useState<string>("");
   const [bingoCompleted, setBingoCompleted] = useState<string[]>([]);
-
+  const [bingoCompletedNumber, setBingoCompletedNumber] = useState<string>('');
+  const [bingoNewCompleted, setBingoNewCompleted] = useState<string[]>([]);
+  const [bingoCompletedMessages, setBingoCompletedMessages] = useState<string[]>([]);
+  
   //bingo selected
   const [selectedCellRow, setSelectedCellRow] = useState<number>(0);
   const [selectedCellColumn, setSelectedCellColumn] = useState<number>(0);
@@ -91,6 +95,8 @@ const PlayBoard: React.FC = () => {
     (state: RootState) => state.bingo.bingoMyTurn
   );
   const dispatch = useDispatch();
+
+
 
   //退会時にビンゴゲームを初期化...
   useEffect(() => {
@@ -129,21 +135,42 @@ const PlayBoard: React.FC = () => {
 
   useEffect(() => {
     console.log(bingoCompleted);
+    if(bingoCompleted.length != bingoNewCompleted.length) {
+      setBingoNewCompleted(bingoCompleted);
+      const completedPlayerId = bingoCompleted[bingoCompleted.length-1];
+      console.log("bingocompleted last new: ", bingoCompleted[bingoCompleted.length-1]);
+      
+      if(authUser.uid != completedPlayerId) {
+        const subscribersPlayers: Player[] | undefined =
+        currentGameRoom?.subscribersPlayers;
+        
+        if(subscribersPlayers) {
+          const completedPlayer = subscribersPlayers.find(
+            (player) => player.uid === completedPlayerId
+          );
+  
+          if(completedPlayer) {
+            const newBiongoMessage =  completedPlayer['displayName']  + "さんがビンゴしました。";
+            const messages = bingoCompletedMessages;
+            messages.push(newBiongoMessage);
+            setBingoCompletedMessages(messages);
+          }
+          
+        }
+      }      
+    }
   }, [bingoCompleted]);
 
   //リアルタイムfirestoreから該当するビンゴゲームデータを取得する
   useEffect(() => {
     getBingo(gameRoomId, (bingo: any) => {
       const sort: string[] = bingo?.sort;
-
-      if (sort.length == 0) {
-        if (isHost && bingo?.turnNumber) {
-          navigator.navigate("currentRoom", {
-            isHost: true,
-            gameRoomId: gameRoomId,
-          });
-        }
-      }
+      // if (sort.length < 1 && isHost && bingo?.turnNumber>5) {
+      //   navigator.navigate("currentRoom", {
+      //     isHost: true,
+      //     gameRoomId: gameRoomId,
+      //   });
+      // }
 
       if (bingo?.sort) {
         setModalSortVisible(false);
@@ -173,7 +200,7 @@ const PlayBoard: React.FC = () => {
               (player) => player.uid === turnPlayerId
             );
             if (turnPlayer) {
-              setTurnText(turnPlayer?.displayName + " の番です。");
+              setTurnText(turnPlayer?.displayName + " さんの番です。");
             } else {
               setTurnText("");
             }
@@ -183,6 +210,29 @@ const PlayBoard: React.FC = () => {
     });
   }, []);
 
+  interface CustomNotifierProps {
+    title: string;
+    description: string;
+    onPress: () => void;
+  }
+
+  const CustomNotifier: React.FC<CustomNotifierProps> = ({ title, description, onPress }) => {
+    return (
+      <View style={styles.notifierContainer}>
+        <Text style={styles.notifierDescription}>{description}</Text>
+        <TouchableOpacity onPress={onPress} style={styles.notifierButton}>
+          <Text style={styles.notifierButtonText}>X</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  const closeNotification = (text: string) => {
+    const messages = bingoCompletedMessages;
+    const updatedItems = messages.filter(item => item !== text);
+    setBingoCompletedMessages(updatedItems);
+  }
+  
   const setNextTurnPlayerId = (
     sort: string[],
     turnPlayerId: string,
@@ -230,7 +280,7 @@ const PlayBoard: React.FC = () => {
     setSelectedCellValue(cellValue);
     dispatch(setBingoNextNumber(cellValue));
   };
-
+  
   const clickCellByOther = (bingoNextNumber: string) => {
     let isValueIncluded = false;
     const value: any[][] = bingoCellValue;
@@ -279,9 +329,14 @@ const PlayBoard: React.FC = () => {
     );
     if (isCompleted) {
       setCompleted(true);
+
       if (authUser.uid) {
         setBingoCompletedPlayer(authUser.uid, gameRoomId);
       }
+
+      const myBingoCompletedLength = bingoCompleted.length + 1;
+      setBingoCompletedNumber(myBingoCompletedLength.toString());
+      
       setModalCompletedVisible(true);
     }
   };
@@ -318,6 +373,11 @@ const PlayBoard: React.FC = () => {
       if (authUser.uid) {
         setBingoCompletedPlayer(authUser.uid, gameRoomId);
       }
+
+      
+      const myBingoCompletedLength = bingoCompleted.length + 1;
+      setBingoCompletedNumber(myBingoCompletedLength.toString());
+
       setModalCompletedVisible(true);
     }
   };
@@ -403,6 +463,23 @@ const PlayBoard: React.FC = () => {
 
   return (
     <View style={styles.container}>
+
+    <View style={{ padding: 0, margin: 0, alignItems: 'center', width: '100%', position: 'absolute', top: 0, zIndex: 100 }}>
+      {
+        bingoCompletedMessages.map((item, index) => (
+          <>
+          <CustomNotifier
+            title=""
+            description={item}
+            onPress={() => closeNotification(item)}
+          />
+      
+          </>
+    
+        ))
+      }
+    </View>
+
       <Modal
         animationType="fade"
         transparent={true}
@@ -451,11 +528,8 @@ const PlayBoard: React.FC = () => {
           }}
         >
           <View style={styles.modalBody}>
-            {/* <Image
-                                source={require('../assets/images/bingo.png')}
-                                style={styles.backgroundImage}
-                            /> */}
-            <Text style={styles.completedText}>BINGO！ おめでとう！</Text>
+
+            <Text style={styles.completedText}>{bingoCompletedNumber}位でBINGO！</Text>
 
             <Pressable
               style={styles.modalOkBtn}
@@ -512,6 +586,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     backgroundColor: "black",
     alignItems: "center",
+    // position: 'relative'
   },
   title: {
     color: customColors.white,
@@ -723,6 +798,48 @@ const styles = StyleSheet.create({
     position: "absolute",
     borderRadius: 30,
     opacity: 0.9,
+  },
+
+  notifiersContainer: {
+    flex: 1,
+    position: 'absolute'
+  },
+
+  notifierContainer: {
+    backgroundColor: customColors.modalBackgroundColor,
+    padding: 20,
+    borderRadius: 10,
+    elevation: 5,
+    width: '90%',
+    alignItems: 'center',
+    marginBottom: 5,
+    borderWidth: 1,
+    borderColor: customColors.blackGrey
+  },
+  notifierTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  notifierDescription: {
+    fontSize: 20,
+    marginBottom: 20,
+    color: customColors.white
+  },
+  notifierButton: {
+    // backgroundColor: customColors.blackGreen,
+    padding: 10,
+    // borderRadius: 20,
+    // borderWidth: 1,
+    borderColor: customColors.white,
+    alignItems: 'center',
+    position: 'absolute',
+    top: 0,
+    right: 0
+  },
+  notifierButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
 });
 
