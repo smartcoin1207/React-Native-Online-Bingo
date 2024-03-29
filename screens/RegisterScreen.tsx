@@ -39,21 +39,21 @@ const Register: React.FC<LoginScreenProps> = () => {
     const navigation = useNavigation();
     const authUser = useSelector((state: RootState) => state.auth.authUser);
 
-     const pickImage = async() => {
-          try{
-              const result = await ImagePicker.launchImageLibraryAsync({
-                  mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                  allowsEditing: true,
-                  aspect: [4,4],
-                  quality: 1,
-                  allowsMultipleSelection: false,
-              });
-              setSelectedImage(result.canceled?'':result.assets[0].uri);
-              return result.canceled?null:result.assets[0].uri;
-          } catch(e){
-            throw e;
-          }
+    const pickImage = async() => {
+      try{
+          const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              allowsEditing: true,
+              aspect: [4,4],
+              quality: 1,
+              allowsMultipleSelection: false,
+          });
+          setSelectedImage(result.canceled?'':result.assets[0].uri);
+          return result.canceled?null:result.assets[0].uri;
+      } catch(e){
+        throw e;
       }
+    }
 
     const handleRegister = async () => {
         const emailErr = validateEmail(email);
@@ -122,7 +122,6 @@ const Register: React.FC<LoginScreenProps> = () => {
                     value={username}
                     onChangeText={(text) => setUsername(text)}
                 />
-
                 <TouchableOpacity style={styles.button} onPress={handleRegister}>
                     <Text style={styles.buttonText}>登      録</Text>
                 </TouchableOpacity>
@@ -185,7 +184,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
   buttonText: {
     color: customColors.white,
     textAlign: "center",

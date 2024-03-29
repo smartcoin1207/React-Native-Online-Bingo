@@ -7736,6 +7736,11 @@ react-native-gesture-handler@*, react-native-gesture-handler@^2.15.0, "react-nat
     lodash "^4.17.21"
     prop-types "^15.7.2"
 
+react-native-gif@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.npmjs.org/react-native-gif/-/react-native-gif-1.0.3.tgz"
+  integrity sha512-UXeT8Gyff0ksCTiRYNZ3DqykevG1vZUQLi7oe9pB7yS4nSlMn11w22/nOcNCpHuZsaod86+xPi1MSxtNkFNJ5g==
+
 react-native-gradient-texts@^0.1.0:
   version "0.1.0"
   resolved "https://registry.npmjs.org/react-native-gradient-texts/-/react-native-gradient-texts-0.1.0.tgz"
@@ -7801,8 +7806,10 @@ react-native-svg@^13.1.0:
   dependencies:
     use-latest-callback "^0.1.5"
 
-react-native-vector-icons@>7.0.0:
+react-native-vector-icons@^10.0.3, react-native-vector-icons@>7.0.0:
   version "10.0.3"
+  resolved "https://registry.npmjs.org/react-native-vector-icons/-/react-native-vector-icons-10.0.3.tgz"
+  integrity sha512-ZgVlV5AdQgnPHHvBEihGf2xwyziT1acpXV1U+WfCgCv3lcEeCRsmwAsBU+kUSNsU+8TcWVsX04kdI6qUaS8D7w==
   dependencies:
     prop-types "^15.7.2"
     yargs "^16.1.1"

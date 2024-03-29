@@ -6,6 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import { RootState } from "../store";
 import { SignOut } from "../store/reducers/bingo/userSlice";
 import { customColors } from "../utils/Color";
+import { deleteBingoCollection, deleteGameCollection } from "../utils/firebase/FirebaseUtil";
 interface GameListScreen { }
 
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
@@ -26,6 +27,14 @@ const GameRoom: React.FC<GameListScreen> = () => {
         dispatch(SignOut());
     }
 
+    const handleDeleteBingo = async () => {
+        await deleteBingoCollection()
+    }
+
+    const handleDeleteGame = async () => {
+        await deleteGameCollection()
+    }
+
     return (
         <View style={styles.container}>
                 <Pressable 
@@ -38,6 +47,19 @@ const GameRoom: React.FC<GameListScreen> = () => {
                 <Pressable style={styles.signBtn} onPress={handleSignOut}>
                     <Text style={styles.textTitle}>サインアウト</Text>
                 </Pressable>
+                {
+                    authUser.email == 'hayate@gmail.com' && (
+                    <>
+                        <Pressable style={styles.signBtn} onPress={handleDeleteGame}>
+                            <Text style={styles.textTitle}>delete Game</Text>
+                        </Pressable>
+
+                        <Pressable style={styles.signBtn} onPress={handleDeleteBingo}>
+                            <Text style={styles.textTitle}>delete Bingo</Text>
+                        </Pressable>
+                    </>
+                    )
+                }
             </View>
     )
 }

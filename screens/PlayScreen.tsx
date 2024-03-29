@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
-  Button,
   Text,
   View,
   BackHandler,
@@ -10,9 +9,10 @@ import {
   ActivityIndicator,
   TouchableWithoutFeedback,
   Dimensions,
-  TouchableOpacity
+  TouchableOpacity,
+  Image
 } from "react-native";
-import GradientText from "react-native-gradient-texts";
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -39,6 +39,7 @@ import {
 import { Player } from "../utils/Types";
 import { useNavigation } from "@react-navigation/native";
 import { customColors } from "../utils/Color";
+import { AnimatedCell } from "./AnimatedCell";
 
 const { width: viewportWidth, height: viewportHeight } =
   Dimensions.get("window");
@@ -95,8 +96,6 @@ const PlayBoard: React.FC = () => {
     (state: RootState) => state.bingo.bingoMyTurn
   );
   const dispatch = useDispatch();
-
-
 
   //退会時にビンゴゲームを初期化...
   useEffect(() => {
@@ -165,12 +164,6 @@ const PlayBoard: React.FC = () => {
   useEffect(() => {
     getBingo(gameRoomId, (bingo: any) => {
       const sort: string[] = bingo?.sort;
-      // if (sort.length < 1 && isHost && bingo?.turnNumber>5) {
-      //   navigator.navigate("currentRoom", {
-      //     isHost: true,
-      //     gameRoomId: gameRoomId,
-      //   });
-      // }
 
       if (bingo?.sort) {
         setModalSortVisible(false);
@@ -414,30 +407,8 @@ const PlayBoard: React.FC = () => {
           handleCellClick(rowNum, columnNum, cellValue, cellStatusValue)
         }
       >
-        {/* {cellStatusValue == 1 ? GradientTextCell(dynamicStyle, cellValue) : renderCell(dynamicStyle, cellValue)} */}
-        {renderCell(dynamicStyle, cellValue)}
+        {animatedCell(dynamicStyle, cellValue)}
       </TouchableWithoutFeedback>
-    );
-  };
-
-  const GradientTextCell = (
-    dynamicStyle: any,
-    cellValue: number
-  ): JSX.Element => {
-    return (
-      <View>
-        <GradientText
-          text={cellValue.toString()}
-          fontSize={40}
-          isGradientFill
-          isGradientStroke
-          style={[dynamicStyle]}
-          height={cellSize}
-          width={cellSize}
-          locations={{ x: cellSize * 0.5, y: cellSize * 0.7 }}
-          gradientColors={["#992507", "#c79a07"]}
-        />
-      </View>
     );
   };
 
@@ -447,6 +418,14 @@ const PlayBoard: React.FC = () => {
         <Text style={[dynamicStyle, { width: cellSize, height: cellSize }]}>
           {cellValue}
         </Text>
+      </View>
+    );
+  };
+
+  const animatedCell = (dynamicStyle: any, cellValue: number): JSX.Element => {
+    return (
+      <View>
+         <AnimatedCell cellSize={cellSize} cellValue={cellValue} dynamicStyle={dynamicStyle} />
       </View>
     );
   };
@@ -528,15 +507,28 @@ const PlayBoard: React.FC = () => {
           }}
         >
           <View style={styles.modalBody}>
+            <Image
+                source={require('../assets/images/bingo-win.gif')}
+                style={styles.backgroundImage}
+            />
 
-            <Text style={styles.completedText}>{bingoCompletedNumber}位でBINGO！</Text>
+            <View style={{flexDirection: 'row', alignSelf: 'center', alignContent: 'center', alignItems: 'center' }}>
+              <Text style={styles.completedTextNumber}>{bingoCompletedNumber}</Text>
+              <Text style={styles.completedText}>位</Text>
+            </View>
 
-            <Pressable
+
+            <TouchableOpacity style={styles.closeTouchableButton} onPress={() => setModalCompletedVisible(false)}>
+              <View style={styles.buttonContainer}>
+                <Icon name="times" size={20} color="white" />
+              </View>
+            </TouchableOpacity>
+            {/* <Pressable
               style={styles.modalOkBtn}
               onPress={() => setModalCompletedVisible(false)}
             >
-              <Text style={styles.modalOkText}> 閉じる </Text>
-            </Pressable>
+              <Text style={styles.modalOkText}> X </Text>
+            </Pressable> */}
           </View>
         </View>
       </Modal>
@@ -593,7 +585,6 @@ const styles = StyleSheet.create({
     fontSize: viewportWidth * 0.2,
     fontWeight: "700",
   },
-
   modalBtn: {
     display: "flex",
     flexDirection: "row",
@@ -653,15 +644,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: customColors.modalContainerBackgroundColor,
-    paddingHorizontal: 15,
-    paddingVertical: 50,
+    paddingHorizontal: 5,
+    paddingVertical: 5,
     borderWidth: 1,
     borderColor: "grey",
     borderRadius: 20,
     width: "80%",
+    height: '60%'
   },
   modalOkBtn: {
     backgroundColor: customColors.blackGreen,
+ 
     paddingVertical: 8,
     paddingHorizontal: 6,
     padding: 4,
@@ -690,11 +683,17 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   completedText: {
-    fontSize: 30,
+    fontSize: viewportWidth*0.15,
     color: customColors.white,
-    width: "90%",
     fontFamily: "serif",
-    fontWeight: "700",
+    fontWeight: "900",
+    textAlign: "center",
+  },
+  completedTextNumber: {
+    fontSize: viewportWidth*0.25,
+    color: customColors.white,
+    fontFamily: "serif",
+    fontWeight: "900",
     textAlign: "center",
   },
   roomModalBtns: {
@@ -793,10 +792,12 @@ const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
     resizeMode: "cover",
-    height: "40%",
-    width: "90%",
+    height: "100%",
+    width: "100%",
     position: "absolute",
-    borderRadius: 30,
+    borderRadius: 10,
+    borderWidth:  1,
+    borderColor: 'white',
     opacity: 0.9,
   },
 
@@ -841,6 +842,23 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
   },
+
+  buttonContainer: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    // backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'white',
+  },
+
+  closeTouchableButton: {
+    position: 'absolute',
+    top: -12,
+    right: -12
+  }
 });
 
 export default PlayBoard;

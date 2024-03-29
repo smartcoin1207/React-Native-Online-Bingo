@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Pressable, Dimensions, Linking  } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Dimensions, Linking, Animated, Easing  } from 'react-native';
 import { UseSelector, useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useEffect } from 'react';
@@ -6,6 +6,9 @@ import { RootState } from '../store';
 import { customColors } from '../utils/Color';
 const screenHeight = Dimensions.get('window').height;
 const cellSize = screenHeight / 5;
+
+import { useRef } from 'react';
+import { delectDirectory, deleteBingoCollection } from '../utils/firebase/FirebaseUtil';
 
 const openWebsite = () => {
     const url = 'https://newgate-llc.shop/listener/registration';
@@ -25,15 +28,12 @@ const HomeScreen: React.FC = () => {
 
     return (
         <View style={styles.container}>
-            {/* button position */}
             <Pressable style={styles.button1} onPress={() => openWebsite()}>
                 <Text style={styles.textTitle}>アカウント登録</Text>
             </Pressable>
-
             <Pressable style={styles.button2} onPress={() => navigation.navigate('register')}>
                 <Text style={styles.textTitle}>    登録    </Text>
             </Pressable>
-
             <Pressable style={styles.button2} onPress={() => navigation.navigate('login')}>
                 <Text style={styles.textTitle}>  　ログイン　  </Text>
             </Pressable>
@@ -48,10 +48,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: customColors.black
     },
-    backgroundImage: {
+
+    container1: {
         flex: 1,
-        resizeMode: 'cover', // or 'stretch' for different image resizing options
-    },
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#ffffff',
+      },
     text: {
         fontSize: 24,
         fontWeight: 'bold',
@@ -83,3 +86,4 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
+

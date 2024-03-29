@@ -12,6 +12,7 @@ import {
   arrayUnion,
   deleteDoc,
   arrayRemove,
+  deleteField
 } from "firebase/firestore";
 import {
     getStorage,
@@ -19,6 +20,7 @@ import {
     uploadBytesResumable,
     getDownloadURL,
     listAll,
+    deleteObject
   } from "firebase/storage";
 import { db, auth, storage } from "./FirebaseInitialize";
 import { GameRoomsCallBackFunction, Player, User } from "../Types";
@@ -26,7 +28,8 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfi
 import { isArray } from "lodash";
 
 const userTable = "users";
-const gameTable = "bingos";
+const gameTable = "games";
+const bingoTable = "bingos";
 
 //SignIn to Firebase
 export const signInAuthUser = (email:string, password:string) =>  {
@@ -92,7 +95,7 @@ export const signOutAuthUser = () => {
  * get all waiting bingorooms
  */
 export const getWaitingGameRooms = (callback: GameRoomsCallBackFunction) => {
-    const q = query(collection(db, gameTable), where("gameStarted", "==", false), where("gameStopped", "==", false));
+    const q = query(collection(db, gameTable));
     
     return onSnapshot(q, async (snapshot) => {
         const promises = snapshot.docs.map(async (document) => {
@@ -197,17 +200,6 @@ export const exitGameRoom = async (uid: string, gameRoomId:string, isHost: boole
     }
 }
 
-//
-export const startGameRoom = async (gameRoomId: string) => {
-    const docRef = doc(db, gameTable, gameRoomId);
-    try {
-        await updateDoc(docRef, {
-            gameStarted: true
-        })
-    } catch (error) {
-        console.log("game error")
-    }
-}    
 
 //
 export const getGameRoom = (gameRoomId: string, callback: any ) => {
@@ -248,10 +240,30 @@ export const getGameRoom = (gameRoomId: string, callback: any ) => {
     });
 }
 
+//
+export const startGameRoom = async (gameRoomId: string) => {
+    const docRef = doc(db, gameTable, gameRoomId);
+    try {
+        await updateDoc(docRef, {
+            gameStarted: true
+        });
+
+        // Add a new document to the "bingos" collection
+        const bingosCollectionRef = collection(db, bingoTable);
+        const newBingoDocRef = doc(bingosCollectionRef, gameRoomId);
+        await setDoc(newBingoDocRef, {
+        });
+
+        console.log('New document added to "bingos" collection with ID:', newBingoDocRef.id);
+    } catch (error) {
+        console.log("game error");
+    }
+}
+
 export const setPlayerGameSort  = async (gameRoomId: string, uids: string[]) => {
     const turnPlayerId = uids[0];
     try {
-        const docRef = doc(collection(db, gameTable), gameRoomId);
+        const docRef = doc(collection(db, bingoTable), gameRoomId);
         await updateDoc(docRef, {
             sort: uids,
             turnPlayerId: turnPlayerId,
@@ -264,7 +276,7 @@ export const setPlayerGameSort  = async (gameRoomId: string, uids: string[]) => 
 }
 
 export const getBingo = (gameRoomId: string, callback : any ) => {
-    const docRef = doc(db, gameTable, gameRoomId);
+    const docRef = doc(db, bingoTable, gameRoomId);
 
     return  onSnapshot(docRef, async (document) => {
         if(document.exists()) {
@@ -278,8 +290,8 @@ export const getBingo = (gameRoomId: string, callback : any ) => {
 }
 
 export const setBingoNextNumberUpdate = async (uid: string, gameRoomId: string, bingoNextNumber: string) => {
-    const docRef = doc(db, gameTable, gameRoomId);
-
+    const docRef = doc(db, bingoTable, gameRoomId);
+    
     try {
         await updateDoc(docRef, {
             bingoNextNumber: bingoNextNumber
@@ -290,7 +302,7 @@ export const setBingoNextNumberUpdate = async (uid: string, gameRoomId: string, 
 }
 
 export const setNextTurnPlayer = async (newTurnPlayerId:string, gameRoomId: string, newTurnNumber: number) => {
-    const docRef = doc(db, gameTable, gameRoomId);
+    const docRef = doc(db, bingoTable, gameRoomId);
     try {
         await updateDoc(docRef, {
             turnPlayerId: newTurnPlayerId,
@@ -303,7 +315,7 @@ export const setNextTurnPlayer = async (newTurnPlayerId:string, gameRoomId: stri
 }
 
 export const setBingoCompletedPlayer = async (uid: string, gameRoomId: string) => {
-    const docRef = doc(db, gameTable, gameRoomId);
+    const docRef = doc(db, bingoTable, gameRoomId);
     
     try {
         await updateDoc(docRef, {
@@ -314,7 +326,7 @@ export const setBingoCompletedPlayer = async (uid: string, gameRoomId: string) =
         console.log("bingo error")
     }
 }
-
+// upload image to firebase storage /images1 directory
 export const uploadToFirebase = async (uri: string, name: string, onProgress: ((progress: number) => void) | undefined) => {
     const fetchResponse = await fetch(uri);
     const theBlob = await fetchResponse.blob();
@@ -346,3 +358,40 @@ export const uploadToFirebase = async (uri: string, name: string, onProgress: ((
       );
     });
   };
+
+  export const delectDirectory = async () => {
+    const imageDirectoryRef = ref(storage, 'images1/1710757871941');
+
+    try {
+        await deleteObject(imageDirectoryRef);
+        console.log('images1 directory deleted successfully');
+      } catch (error) {
+        console.error('Error deleting images1 directory:', error);
+      }
+  }
+
+  export const deleteBingoCollection = async () => {
+    const collectionRef = collection(db, bingoTable); // Replace 'bingo' with the name of the collection to delete
+  
+    const querySnapshot = await getDocs(collectionRef);
+  
+    querySnapshot.forEach(async (doc) => {
+      await deleteDoc(doc.ref);
+      console.log('xxx')
+    });
+  
+    console.log('Collection "bingo" deleted successfully');
+  };
+  
+  export const deleteGameCollection = async () => {
+    const collectionRef = collection(db, gameTable); // Replace 'bingo' with the name of the collection to delete
+  
+    const querySnapshot = await getDocs(collectionRef);
+  
+    querySnapshot.forEach(async (doc) => {
+      await deleteDoc(doc.ref);
+    });
+  
+    console.log('Collection "game" deleted successfully');
+  };
+  

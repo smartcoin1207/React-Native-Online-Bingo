@@ -10,7 +10,6 @@ import {
   Button,
   FlatList,
   BackHandler,
-  BackHandlerEventHandle,
   ActivityIndicator,
   Modal,
   TextInput,
@@ -47,9 +46,7 @@ const GameWaitingScreen = () => {
   const [exitModalVisible, setExitModalVisible] = useState<boolean>(false);
   const [gameListModalVisible, setGameListModalVisible] =
     useState<boolean>(false);
-  const [backHandler, setBackHandler] = useState<BackHandlerEventHandle | null>(
-    null
-  );
+
 
   const [modalAlertText, setModalAlertText] = useState("");
   const [isExitModal, setIsExitModal] = useState(true);
@@ -114,19 +111,8 @@ const GameWaitingScreen = () => {
       "hardwareBackPress",
       backAction
     );
-    setBackHandler(backHandler);
     return () => backHandler.remove(); // Clean up the event listener
   }, []);
-
-  useEffect(() => {
-    const unsubscribe = navigator.addListener("beforeRemove", () => {
-      if (backHandler) {
-        backHandler.remove(); // Remove the BackHandler event listener
-      }
-    });
-
-    return unsubscribe;
-  }, [navigator, backHandler]);
 
   const startBingo = async () => {
     await startGameRoom(gameRoomId);

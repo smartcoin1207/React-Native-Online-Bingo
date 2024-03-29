@@ -6,7 +6,7 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-    apiKey: "AIzaSyD88NOgTNLOc0UAb1kOvUKSVGasw5DHpLk",
+    apiKey: "AIzaSyDed59tOofXTdNWbrJQ1luN25Ik-JZ69Ak",
     authDomain: "mimi-base.firebaseapp.com",
     databaseURL: "https://mimi-base-default-rtdb.firebaseio.com/",
     projectId: "mimi-base",

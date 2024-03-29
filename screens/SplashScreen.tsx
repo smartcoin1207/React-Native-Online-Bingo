@@ -18,7 +18,7 @@ const SplashScreen: React.FC<Props> = ({navigation: {navigate}}) => {
             navigate('GameList');
         } else {
             navigate('Home');
-        } 
+        }
     }
     
     return (
@@ -27,13 +27,12 @@ const SplashScreen: React.FC<Props> = ({navigation: {navigate}}) => {
                 source={require('../assets/images/splash.png')}
                 style={styles.backgroundImage}
             />
-                <View style={styles.container}>
-                    <Pressable style={styles.button} onPress={handleStart}>
-                        <Text style={styles.textTitle}>START</Text>
-                    </Pressable>
-                </View>
+            <View style={styles.container}>
+                <Pressable style={styles.button} onPress={handleStart}>
+                    <Text style={styles.textTitle}>START</Text>
+                </Pressable>
+            </View>
         </View>
-        
     );
 }
 
