@@ -7,6 +7,10 @@ import { RootState } from "../store";
 import { SignOut } from "../store/reducers/bingo/userSlice";
 import { customColors } from "../utils/Color";
 import { deleteBingoCollection, deleteGameCollection } from "../utils/firebase/FirebaseUtil";
+import Language from "../utils/Variables";
+
+const jpLanguage = Language.jp;
+
 interface GameListScreen { }
 
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
@@ -47,31 +51,31 @@ const GameRoom: React.FC<GameListScreen> = () => {
                 >
                     <Text style={styles.textTitle}>ゲームルーム</Text>
                 </TouchableOpacity>
-
-                <TouchableOpacity style={styles.signBtn} onPress={handleSignOut}>
-                    <Text style={styles.textTitle}>サインアウト</Text>
-                </TouchableOpacity>
                 {
                     authUser.email == 'hayate@gmail.com' && (
                     <>
-                        <TouchableOpacity style={styles.signBtn} onPress={handleDeleteGame}>
+                        {/* <TouchableOpacity style={styles.signBtn} onPress={handleDeleteGame}>
                             <Text style={styles.textTitle}>delete Game</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity style={styles.signBtn} onPress={handleDeleteBingo}>
                             <Text style={styles.textTitle}>delete Bingo</Text>
+                        </TouchableOpacity> */}
+
+                        <TouchableOpacity style={styles.gameBtn} onPress={handleMovePenalty}>
+                            <Text style={styles.textTitle}>{jpLanguage.penaltyGameEditString}</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.signBtn} onPress={handleMovePenalty}>
-                            <Text style={styles.textTitle}>tab example</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.signBtn} onPress={() => {navigation.navigate('penaltyEdit')}}>
-                            <Text style={styles.textTitle}>super admin penalty</Text>
+                        <TouchableOpacity style={styles.gameBtn} onPress={() => {navigation.navigate('penaltyEdit')}}>
+                            <Text style={styles.textTitle}>{jpLanguage.penaltyListTitleString}</Text>
                         </TouchableOpacity>
                     </>
                     )
                 }
+                <TouchableOpacity style={styles.signBtn} onPress={handleSignOut}>
+                    <Text style={styles.textTitle}>サインアウト</Text>
+                </TouchableOpacity>
+
             </View>
     )
 }

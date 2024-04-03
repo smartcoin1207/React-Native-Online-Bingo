@@ -9,18 +9,13 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { Penalty } from '../utils/Types';
 import { RootState } from '../store';
-import { addPenalty, deletePenalty, getAllPenalty } from '../utils/firebase/FirebaseUtil';
+import { addPenalty, deletePenalty, getAllPenalty, updatePenalty } from '../utils/firebase/FirebaseUtil';
 import { addPenaltyList, setPenaltyList } from '../store/reducers/bingo/penaltySlice';
-
+import Language from '../utils/Variables';
 const { width: viewportWidth, height: viewportHeight } =
   Dimensions.get("window");
 
-const gameRooms: Penalty[] = [
-    {
-        id: "1  位",
-        title: "全員に1杯プレゼントする"
-    },
-];
+const jpLanguage = Language.jp;
 
 // penaltyList Tab start
 const FirstRoute = () => {
@@ -28,6 +23,7 @@ const FirstRoute = () => {
     const  [modalVisible, setModalVisible] = useState<boolean>(false);
     const [isCreateModal, setIsCreateModal] = useState(true);
     const [inputText, setInputText] = useState("");
+    const [editPenaltyId, setEditPenaltyId] = useState("");
 
     const penaltyList = useSelector((state: RootState) => state.penalty.penaltyList);
     const [selectedItem, setSelectedItem] = useState<number | null>(null);
@@ -51,9 +47,7 @@ const FirstRoute = () => {
       }, []);
 
     const addPenaltyHandle = async () => {
-        console.log(inputText);
         setModalVisible(false);
-
         const title = inputText;
         const temp = {
             id: '', 
@@ -63,22 +57,23 @@ const FirstRoute = () => {
         dispatch(addPenaltyList(temp));
 
         await addPenalty(title);
-        const penaltyList1 = await getAllPenalty();
-        console.log(penaltyList1);
-        dispatch(setPenaltyList(penaltyList1));
+        const penaltyList = await getAllPenalty();
+        dispatch(setPenaltyList(penaltyList));
     }
 
     const updatePenaltyHandle = async () => {
+        await updatePenalty(editPenaltyId, inputText);
+        setModalVisible(false);
 
+        const penaltyList = await getAllPenalty();
+        dispatch(setPenaltyList(penaltyList));
     }
 
     const deletePenaltyPress = async (id: string) => {
         await deletePenalty(id);
 
-        const penaltyList1 = await getAllPenalty();
-        console.log(penaltyList1);
-        dispatch(setPenaltyList(penaltyList1));
-        
+        const penaltyList = await getAllPenalty();
+        dispatch(setPenaltyList(penaltyList));
     }
 
     const renderGameRoomItem = ({ item, index }: { item: Penalty, index: number }) => {
@@ -95,7 +90,7 @@ const FirstRoute = () => {
                 </View>
             
                 <View style={[styles.iconContainer, selectedItem === index && styles.pressedIconContainer]}>
-                    <TouchableOpacity style={styles.editIconBtn}>
+                    <TouchableOpacity style={styles.editIconBtn} onPress={() => {setModalVisible(true); setEditPenaltyId(item.id); setInputText(item.title), setIsCreateModal(false);}}>
                         <MaterialCommunityIcons name="book-edit" size={24} color="#00c0ff" />
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.deleteIconBtn} onPress={() => deletePenaltyPress(item.id)}>
@@ -118,8 +113,8 @@ const FirstRoute = () => {
 
             <View style={styles.orderBtnGroup}>
                 <View style={{ flexDirection: 'row' }} >
-                    <TouchableOpacity style={styles.penaltyAddBtn} onPress={() => {setModalVisible(true); setInputText('')}}>
-                        <Text style={styles.pressBtnText}> 追  加 </Text>
+                    <TouchableOpacity style={styles.penaltyAddBtn} onPress={() => {setModalVisible(true); setInputText(''); setIsCreateModal(true);}}>
+                        <Text style={styles.pressBtnText}> {jpLanguage.addString} </Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -142,42 +137,36 @@ const FirstRoute = () => {
                 >
                 <View style={styles.modalBody}>
 
-                    {isCreateModal ? (
                     <>
-                        <Text style={styles.modalRoomTitleText}>プレイルーム作成</Text>
                         <TextInput
                            style={styles.input}
-                            placeholder="プレイルーム名"
+                            placeholder={jpLanguage.penaltyTitleString}
                             autoCapitalize="none"
                             placeholderTextColor={customColors.blackGrey}
                             value={inputText}
                             onChangeText={(text) => {
-                                // Allow only English letters (both lowercase and uppercase) and numbers
                                 setInputText(text);
                             }}
                         />
                     </>
-                    ) : 
-                    <Text style={styles.modalRoomTitleText}>プレイルームに参加</Text>
-                    }
-                
+                 
                     <View style={styles.roomModalBtns}>
                         <TouchableOpacity
                             style={styles.modalCancelBtn}
                             onPress={() => setModalVisible(false)}
                         >
-                            <Text style={styles.roomModalButtonText}> キャンセル </Text>
+                            <Text style={styles.roomModalButtonText}> {jpLanguage.cancelString} </Text>
                         </TouchableOpacity>
                         {isCreateModal ? (
                             <TouchableOpacity style={styles.modalOkBtn} onPress={addPenaltyHandle}>
-                                <Text style={styles.roomModalButtonText}>　 作成 　</Text>
+                                <Text style={styles.roomModalButtonText}>{jpLanguage.addString}</Text>
                             </TouchableOpacity>
                         ) : (
                             <TouchableOpacity
                             style={styles.modalOkBtn}
                             onPress={updatePenaltyHandle}
                             >
-                                <Text style={styles.roomModalButtonText}> 参加 </Text>
+                                <Text style={styles.roomModalButtonText}> {jpLanguage.editString} </Text>
                             </TouchableOpacity>
                         )}
                     </View>
@@ -191,7 +180,7 @@ const PenaltyEditList = () => {
     return (
         <View style={styles.container}>
             <View style={styles.topHeader}>
-                <Text style={styles.title}>罰ゲーム一覧</Text>
+                <Text style={styles.title}>{jpLanguage.penaltyListTitleString}</Text>
             </View>
         
             <FirstRoute />
@@ -228,6 +217,7 @@ const styles = StyleSheet.create({
         fontFamily: 'serif',
         fontWeight: '700',
         textAlign: 'center',
+        letterSpacing: 5
     },
 
     topHeader: {
@@ -331,6 +321,7 @@ const styles = StyleSheet.create({
         fontFamily: "serif",
         fontWeight: "700",
         textAlign: "center",
+        letterSpacing: 5
       },
 
       input: {

@@ -38,7 +38,7 @@ import {
 import { Player } from "../utils/Types";
 import { useNavigation } from "@react-navigation/native";
 import { customColors } from "../utils/Color";
-import { AnimatedCell } from "./AnimatedCell";
+// import { AnimatedCell } from "./AnimatedCell";
 
 const { width: viewportWidth, height: viewportHeight } =
   Dimensions.get("window");
@@ -46,7 +46,6 @@ const { width: viewportWidth, height: viewportHeight } =
 const PlayBoard: React.FC = () => {
   const screenWidth = Dimensions.get("window").width;
   const cellSize = (screenWidth * 0.9) / 5;
-  const navigator = useNavigation();
 
   const [modalSortVisible, setModalSortVisible] = useState(false);
   const [modalCompletedVisible, setModalCompletedVisible] = useState(false);
@@ -406,7 +405,8 @@ const PlayBoard: React.FC = () => {
           handleCellClick(rowNum, columnNum, cellValue, cellStatusValue)
         }
       >
-        {animatedCell(dynamicStyle, cellValue)}
+        {/* {animatedCell(dynamicStyle, cellValue)} */}
+        {renderCell(dynamicStyle, cellValue)}
       </TouchableWithoutFeedback>
     );
   };
@@ -421,13 +421,13 @@ const PlayBoard: React.FC = () => {
     );
   };
 
-  const animatedCell = (dynamicStyle: any, cellValue: number): JSX.Element => {
-    return (
-      <View>
-         <AnimatedCell cellSize={cellSize} cellValue={cellValue} dynamicStyle={dynamicStyle} />
-      </View>
-    );
-  };
+  // const animatedCell = (dynamicStyle: any, cellValue: number): JSX.Element => {
+  //   return (
+  //     <View>
+  //        <AnimatedCell cellSize={cellSize} cellValue={cellValue} dynamicStyle={dynamicStyle} />
+  //     </View>
+  //   );
+  // };
 
   const bingoCardLayout = createBingoCard(
     bingoCellValue,
@@ -516,7 +516,6 @@ const PlayBoard: React.FC = () => {
               <Text style={styles.completedText}>位</Text>
             </View>
 
-
             <TouchableOpacity style={styles.closeTouchableButton} onPress={() => setModalCompletedVisible(false)}>
               <View style={styles.buttonContainer}>
                 <Icon name="times" size={20} color="white" />
@@ -544,11 +543,11 @@ const PlayBoard: React.FC = () => {
             </View>
           ) : (
             <View style={styles.randomContainer}>
-              <ActivityIndicator
+              {/* <ActivityIndicator
                 size="large"
                 style={styles.selected}
                 color="#007AFF"
-              />
+              /> */}
             </View>
           )}
         </View>

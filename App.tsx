@@ -5,7 +5,7 @@ import { store } from './store/';
 import RootNavigator from './routes';
 
 import { DefaultTheme, Provider as PaperProvider } from 'react-native-paper';
-
+import { Platform, StatusBar } from 'react-native';
 const theme = {
   ...DefaultTheme,
   roundness: 2,
@@ -19,6 +19,12 @@ const theme = {
   },
 };
 
+StatusBar.setBarStyle('light-content');
+
+if (Platform.OS === 'android') {
+  StatusBar.setTranslucent(true);
+  StatusBar.setBackgroundColor('transparent');
+}
 function App(): JSX.Element {
   return (
     <Provider store={store}>

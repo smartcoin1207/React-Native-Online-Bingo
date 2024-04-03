@@ -146,7 +146,7 @@ const BingoBoard: React.FC = () => {
             dynamicStyle = styles.selectedCell;
         } else {
             dynamicStyle = styles.normal;
-        } 
+        }
 
         if (cellStatusValue === -1) {
             return (
@@ -157,9 +157,9 @@ const BingoBoard: React.FC = () => {
         }
         
         return (
-            <TouchableWithoutFeedback key={cellValue} onPress={() => handleCellClick(rowNum, columnNum, cellValue, cellStatusValue)}>
+            <TouchableOpacity key={cellValue} onPress={() => handleCellClick(rowNum, columnNum, cellValue, cellStatusValue)}>
                 {renderCell(dynamicStyle, cellValue)}
-            </TouchableWithoutFeedback>
+            </TouchableOpacity>
         );
     };
     
