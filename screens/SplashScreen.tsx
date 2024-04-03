@@ -75,7 +75,6 @@ const styles = StyleSheet.create({
         color: 'black',
         fontFamily: 'serif',
         fontWeight: '700',
-
     }
 });
 

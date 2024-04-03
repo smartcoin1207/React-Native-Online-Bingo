@@ -9,6 +9,8 @@ import Home from '../screens/HomeScreen';
 import GameList from '../screens/GameListScreen';
 import GameRoom from '../screens/GameRoomListScreen';
 import GameWaitingScreen  from '../screens/GameWaitingScreen';
+import PenaltyScreen from '../screens/penaltyScreen';
+import PenaltyEditList from '../screens/penaltyEditList';
 
 const Stack = createNativeStackNavigator();
 
@@ -23,6 +25,8 @@ const AppNavigator = () => {
       <Stack.Screen name="GameList" component={GameList} options={{ headerShown: false }}/>
       <Stack.Screen name="gameRoomList" component={GameRoom} options={{ headerShown: false }}/>
       <Stack.Screen name="currentRoom" component={GameWaitingScreen} options={{ headerShown: false }}/>
+      <Stack.Screen name="penalty" component={PenaltyScreen} options={{ headerShown: false }}/>
+      <Stack.Screen name="penaltyEdit" component={PenaltyEditList} options={{ headerShown: false }}/>
     </Stack.Navigator>
   );
 };

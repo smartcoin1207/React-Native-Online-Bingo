@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from 'react-redux';
 
-import { View, Text, StyleSheet, Pressable, Dimensions } from "react-native";
+import { View, Text, StyleSheet,  Dimensions, TouchableOpacity } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { RootState } from "../store";
 import { SignOut } from "../store/reducers/bingo/userSlice";
@@ -35,28 +35,40 @@ const GameRoom: React.FC<GameListScreen> = () => {
         await deleteGameCollection()
     }
 
+    const handleMovePenalty = () => {
+        navigation.navigate("penalty");
+    }
+
     return (
         <View style={styles.container}>
-                <Pressable 
+                <TouchableOpacity 
                     style={styles.gameBtn}
                     onPress={() => navigation.navigate("gameRoomList")}
                 >
                     <Text style={styles.textTitle}>ゲームルーム</Text>
-                </Pressable>
+                </TouchableOpacity>
 
-                <Pressable style={styles.signBtn} onPress={handleSignOut}>
+                <TouchableOpacity style={styles.signBtn} onPress={handleSignOut}>
                     <Text style={styles.textTitle}>サインアウト</Text>
-                </Pressable>
+                </TouchableOpacity>
                 {
                     authUser.email == 'hayate@gmail.com' && (
                     <>
-                        <Pressable style={styles.signBtn} onPress={handleDeleteGame}>
+                        <TouchableOpacity style={styles.signBtn} onPress={handleDeleteGame}>
                             <Text style={styles.textTitle}>delete Game</Text>
-                        </Pressable>
+                        </TouchableOpacity>
 
-                        <Pressable style={styles.signBtn} onPress={handleDeleteBingo}>
+                        <TouchableOpacity style={styles.signBtn} onPress={handleDeleteBingo}>
                             <Text style={styles.textTitle}>delete Bingo</Text>
-                        </Pressable>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={styles.signBtn} onPress={handleMovePenalty}>
+                            <Text style={styles.textTitle}>tab example</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={styles.signBtn} onPress={() => {navigation.navigate('penaltyEdit')}}>
+                            <Text style={styles.textTitle}>super admin penalty</Text>
+                        </TouchableOpacity>
                     </>
                     )
                 }

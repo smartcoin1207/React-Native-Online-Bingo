@@ -31,7 +31,7 @@ const Login: React.FC<LoginScreenProps> = () => {
 
   useEffect(() => {
     if (isLoggedIn) {
-      navigation.replace("GameList");
+      navigation.navigate("GameList");
     }
   }, [isLoggedIn]);
 

@@ -5,7 +5,6 @@ import {
   View,
   BackHandler,
   Modal,
-  Pressable,
   ActivityIndicator,
   TouchableWithoutFeedback,
   Dimensions,
@@ -479,9 +478,9 @@ const PlayBoard: React.FC = () => {
             <Text style={styles.modalText}>{modalAlertText}</Text>
             {isHost ? (
               <View style={styles.roomModalBtns}>
-                <Pressable style={styles.modalOkBtn} onPress={handleRandomSort}>
+                <TouchableOpacity style={styles.modalOkBtn} onPress={handleRandomSort}>
                   <Text style={styles.modalOkText}> ランダム </Text>
-                </Pressable>
+                </TouchableOpacity>
               </View>
             ) : (
               <ActivityIndicator size="large" color="#007AFF" />
@@ -523,12 +522,12 @@ const PlayBoard: React.FC = () => {
                 <Icon name="times" size={20} color="white" />
               </View>
             </TouchableOpacity>
-            {/* <Pressable
+            {/* <TouchableOpacity
               style={styles.modalOkBtn}
               onPress={() => setModalCompletedVisible(false)}
             >
               <Text style={styles.modalOkText}> X </Text>
-            </Pressable> */}
+            </TouchableOpacity> */}
           </View>
         </View>
       </Modal>
@@ -557,9 +556,9 @@ const PlayBoard: React.FC = () => {
         <Text style={styles.turnText}>{turnText}</Text>
         <View style={styles.numberBtnContainer}>
           {bingoMyTurn && selectedCellValue ? (
-            <Pressable style={styles.passBtn} onPress={handleSetNumberClick}>
+            <TouchableOpacity style={styles.passBtn} onPress={handleSetNumberClick}>
               <Text style={styles.passBtnText}> 決定 </Text>
-            </Pressable>
+            </TouchableOpacity>
           ) : (
             ""
           )}
@@ -761,7 +760,7 @@ const styles = StyleSheet.create({
     borderColor: customColors.white,
     textAlignVertical: "center",
   },
-  pressable: {
+  TouchableOpacity: {
     padding: 8,
     borderWidth: 1,
     borderRadius: 5,

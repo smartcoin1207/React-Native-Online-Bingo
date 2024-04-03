@@ -4,9 +4,8 @@ import {
   View,
   Text,
   StyleSheet,
-  Pressable,
-  Dimensions,
   TouchableOpacity,
+  Dimensions,
   Button,
   FlatList,
   BackHandler,
@@ -150,7 +149,7 @@ const GameWaitingScreen = () => {
   };
 
   const renderPlayerItem = ({ item }: { item: Player }) => (
-    <View style={styles.playerItem}>
+    <TouchableOpacity style={styles.playerItem} activeOpacity={0.5}>
       <Avatar
         rounded
         size="medium"
@@ -166,14 +165,14 @@ const GameWaitingScreen = () => {
       {/* <Text style={styles.nameTitle}>{item.age}</Text> */}
 
       {isHost && item.uid != authUser.uid && (
-        <Pressable
+        <TouchableOpacity
           style={styles.joinBtn}
           onPress={() => removeUserModal(item.uid)}
         >
           <Text style={styles.joinBtnText}>　退出　</Text>
-        </Pressable>
+        </TouchableOpacity>
       )}
-    </View>
+    </TouchableOpacity>
   );
 
   const ProfileAvatar = (
@@ -220,23 +219,23 @@ const GameWaitingScreen = () => {
             <Text style={styles.modalText}>{modalAlertText}</Text>
 
             <View style={styles.roomModalBtns}>
-              <Pressable
+              <TouchableOpacity
                 style={styles.modalCancelBtn}
                 onPress={() => setExitModalVisible(false)}
               >
                 <Text style={styles.modalOkText}> キャンセル </Text>
-              </Pressable>
+              </TouchableOpacity>
               {isExitModal ? (
-                <Pressable style={styles.modalOkBtn} onPress={exitRoom}>
+                <TouchableOpacity style={styles.modalOkBtn} onPress={exitRoom}>
                   <Text style={styles.modalOkText}> は い </Text>
-                </Pressable>
+                </TouchableOpacity>
               ) : (
-                <Pressable
+                <TouchableOpacity
                   style={styles.modalOkBtn}
                   onPress={() => removeUser(currentRemoveUserId)}
                 >
                   <Text style={styles.modalOkText}> は い </Text>
-                </Pressable>
+                </TouchableOpacity>
               )}
             </View>
           </View>
@@ -260,34 +259,34 @@ const GameWaitingScreen = () => {
           }}
         >
           <View style={styles.modalBody}>
-            {/* <Pressable style={styles.modalCloseButton}>
+            {/* <TouchableOpacity style={styles.modalCloseButton}>
                                 <Icon
                                     name="fontawesome|facebook-square"
                                     
                                 >
                                 </Icon>
-                            </Pressable> */}
+                            </TouchableOpacity> */}
             <Text style={styles.modalText}>ゲームを選択してください。</Text>
 
             <View style={styles.modalGameListContainer}>
-              <Pressable
+              <TouchableOpacity
                 style={styles.modalGameListButton}
                 onPress={() => startBingo()}
               >
                 <Text style={styles.textTitle}>ビンゴ</Text>
-              </Pressable>
-              <Pressable style={styles.modalGameListButton}>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalGameListButton}>
                 <Text style={styles.textTitle}>ゲーム1</Text>
-              </Pressable>
-              <Pressable style={styles.modalGameListButton}>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalGameListButton}>
                 <Text style={styles.textTitle}>ゲーム2</Text>
-              </Pressable>
-              <Pressable style={styles.modalGameListButton}>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalGameListButton}>
                 <Text style={styles.textTitle}>ゲーム3</Text>
-              </Pressable>
-              <Pressable style={styles.modalGameListButton}>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalGameListButton}>
                 <Text style={styles.textTitle}>ゲーム4</Text>
-              </Pressable>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -296,19 +295,19 @@ const GameWaitingScreen = () => {
 
       <View style={styles.btnList}>
         {isHost && (
-          <Pressable
+          <TouchableOpacity
             style={styles.successButton}
             onPress={() => {
               setGameListModalVisible(true);
             }}
           >
             <Text style={styles.textTitle}>ゲーム開始</Text>
-          </Pressable>
+          </TouchableOpacity>
         )}
 
-        <Pressable style={styles.button} onPress={() => exitRoomModal()}>
+        <TouchableOpacity style={styles.button} onPress={() => exitRoomModal()}>
           <Text style={styles.textTitle}>退出する</Text>
-        </Pressable>
+        </TouchableOpacity>
       </View>
 
       <Text style={styles.listTitle}>ゲームメンバー</Text>

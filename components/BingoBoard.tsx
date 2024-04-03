@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useEffect, useState } from 'react';
 
 import { useSelector, useDispatch } from 'react-redux';
-import { StyleSheet, Text, View, Dimensions, TouchableWithoutFeedback, Modal, Button, Pressable, Image } from 'react-native';
+import { StyleSheet, Text, View, Dimensions, TouchableWithoutFeedback, Modal, Button, TouchableOpacity, Image } from 'react-native';
 import { createBingoCard, bingoCellStatusInit, bingoCellValues, bingoCheck } from './BingoEngine';
 import 'firebase/firestore';
 import { RootState } from '../store';
@@ -192,12 +192,12 @@ const BingoBoard: React.FC = () => {
                             /> */}
                             <Text style={styles.completedText}>BINGO！ おめでとう！</Text>
 
-                            <Pressable 
+                            <TouchableOpacity 
                                     style={styles.modalOkBtn}
                                     onPress={() => setModalVisible(false)}
                                 >
                                 <Text style={styles.modalOkText}>   閉じる   </Text>
-                            </Pressable>
+                            </TouchableOpacity>
                        </View>
                 </View>
             </Modal>

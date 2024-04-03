@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import { useSelector, useDispatch } from 'react-redux';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import {
   StyleSheet,
@@ -88,12 +89,16 @@ const Register: React.FC<LoginScreenProps> = () => {
             <View style={styles.subContainer}>
                 <Text style={styles.title}>会員登録</Text>
 
-                {selectedImage ? <Image source={{ uri: selectedImage }} style={{ width: viewportWidth*0.3, height: viewportWidth*0.3, borderRadius: viewportWidth*0.15 }} /> :
-                <Image source={defaultAvatar} style={{ width: viewportWidth*0.3, height: viewportWidth*0.3, borderRadius: viewportWidth*0.15 }} />
-                }
-                <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
-                    <Text style={styles.buttonText}>画像のアップロード</Text>
-                </TouchableOpacity>
+                {/* <View> */}
+                  {selectedImage ? <Image source={{ uri: selectedImage }} style={{ width: viewportWidth*0.3, height: viewportWidth*0.3, borderRadius: viewportWidth*0.15 }} /> :
+                  <Image source={defaultAvatar} style={{ width: viewportWidth*0.3, height: viewportWidth*0.3, borderRadius: viewportWidth*0.15 }} />
+                  }
+    
+                  <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
+                      <MaterialCommunityIcons name="image-plus" size={24} color="white" />
+                  </TouchableOpacity>
+                {/* </View> */}
+
                 <TextInput
                     style={styles.input}
                     placeholder="メールアドレス"
@@ -168,9 +173,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   imageButton: {
-    backgroundColor: customColors.blackGreen,
     padding: 10,
-    borderRadius: 20,
+    borderRadius: 40,
+    borderWidth: 1,
+    borderColor: customColors.blackGrey,
     marginTop: 10,
     justifyContent: "center",
     alignItems: "center",

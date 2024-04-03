@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Pressable, Dimensions, Linking, Animated, Easing  } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Linking, Animated, Easing  } from 'react-native';
 import { UseSelector, useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useEffect } from 'react';
@@ -28,15 +28,15 @@ const HomeScreen: React.FC = () => {
 
     return (
         <View style={styles.container}>
-            <Pressable style={styles.button1} onPress={() => openWebsite()}>
+            <TouchableOpacity style={styles.button1} onPress={() => openWebsite()}>
                 <Text style={styles.textTitle}>アカウント登録</Text>
-            </Pressable>
-            <Pressable style={styles.button2} onPress={() => navigation.navigate('register')}>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.button2} onPress={() => navigation.navigate('register')}>
                 <Text style={styles.textTitle}>    登録    </Text>
-            </Pressable>
-            <Pressable style={styles.button2} onPress={() => navigation.navigate('login')}>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.button2} onPress={() => navigation.navigate('login')}>
                 <Text style={styles.textTitle}>  　ログイン　  </Text>
-            </Pressable>
+            </TouchableOpacity>
         </View>
     );
 }

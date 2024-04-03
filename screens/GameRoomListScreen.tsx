@@ -4,9 +4,8 @@ import {
   View,
   Text,
   StyleSheet,
-  Pressable,
-  Dimensions,
   TouchableOpacity,
+  Dimensions,
   Button,
   FlatList,
   ActivityIndicator,
@@ -131,9 +130,9 @@ const GameRoomScreen = () => {
       />
       <Text style={styles.nameTitle}>{item.displayRoomName}</Text>
       <Text style={styles.nameTitle}>{item.subscriberNum}</Text>
-      <Pressable style={styles.joinBtn} onPress={() => joinRoomModal(item)}>
+      <TouchableOpacity style={styles.joinBtn} onPress={() => joinRoomModal(item)}>
         <Text style={styles.joinBtnText}>参加する</Text>
-      </Pressable>
+      </TouchableOpacity>
     </View>
   );
 
@@ -213,32 +212,32 @@ const GameRoomScreen = () => {
               ""
             )}
             <View style={styles.roomModalBtns}>
-              <Pressable
+              <TouchableOpacity
                 style={styles.modalCancelBtn}
                 onPress={() => setRoomModalVisible(false)}
               >
                 <Text style={styles.roomModalButtonText}> キャンセル </Text>
-              </Pressable>
+              </TouchableOpacity>
               {isCreateModal ? (
-                <Pressable style={styles.modalOkBtn} onPress={createRoom}>
+                <TouchableOpacity style={styles.modalOkBtn} onPress={createRoom}>
                   <Text style={styles.roomModalButtonText}>　 作成 　</Text>
-                </Pressable>
+                </TouchableOpacity>
               ) : (
-                <Pressable
+                <TouchableOpacity
                   style={styles.modalOkBtn}
                   onPress={joinRoom}
                 >
                   <Text style={styles.roomModalButtonText}> 参加 </Text>
-                </Pressable>
+                </TouchableOpacity>
               )}
             </View>
           </View>
         </View>
       </Modal>
       <View style={styles.btnList}>
-        <Pressable style={styles.button} onPress={createRoomModal}>
+        <TouchableOpacity style={styles.button} onPress={createRoomModal}>
           <Text style={styles.textTitle}>プレイルームを作成</Text>
-        </Pressable>
+        </TouchableOpacity>
       </View>
       <View style={styles.divider} />
       <Text style={styles.listTitle}>プレイルーム一覧</Text>

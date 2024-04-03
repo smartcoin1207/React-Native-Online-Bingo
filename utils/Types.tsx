@@ -50,3 +50,12 @@ export interface GameRoomState {
 export interface BingoPlayState {
     bingoBoard: any[]
 }
+
+export interface Penalty {
+    id: string,
+    title: string
+}
+
+export interface PenaltySliceType {
+    penaltyList:  Penalty[]
+}

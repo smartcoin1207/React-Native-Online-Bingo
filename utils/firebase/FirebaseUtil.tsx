@@ -30,6 +30,7 @@ import { isArray } from "lodash";
 const userTable = "users";
 const gameTable = "games";
 const bingoTable = "bingos";
+const penaltyTable = "penalty";
 
 //SignIn to Firebase
 export const signInAuthUser = (email:string, password:string) =>  {
@@ -199,7 +200,6 @@ export const exitGameRoom = async (uid: string, gameRoomId:string, isHost: boole
         });
     }
 }
-
 
 //
 export const getGameRoom = (gameRoomId: string, callback: any ) => {
@@ -394,4 +394,36 @@ export const uploadToFirebase = async (uri: string, name: string, onProgress: ((
   
     console.log('Collection "game" deleted successfully');
   };
-  
+
+// Penalty Firebase API
+
+export const getAllPenalty = async () => {
+    const querySnapshot = await getDocs(collection(db, penaltyTable));
+    const documents: any[] = [];
+    querySnapshot.forEach((doc) => {
+      documents.push({ id: doc.id, ...doc.data() });
+    });
+    return documents;
+  };
+
+export const addPenalty = async (penaltyTitle: string) => {
+    const docRef = await addDoc(collection(db, penaltyTable), {
+        title: penaltyTitle,
+    });
+
+    return docRef.id;
+}
+
+export const updatePenalty = async (id: string, penaltyTitle: string) => {
+    const docRef = doc(collection(db, penaltyTable), id);
+    
+    await updateDoc(docRef, {
+        title: penaltyTitle
+    });
+}
+
+export const deletePenalty = async (id: string) => {
+    const docRef = doc(collection(db, penaltyTable), id);
+
+    await deleteDoc(docRef);
+}

@@ -7,7 +7,7 @@ const INITIAL_STATE: GameRoomState = {
 };
 
 export const gameRoomSlice = createSlice({
-    name: 'user',
+    name: 'gameRoom',
     initialState: INITIAL_STATE,
     reducers: {
         setGameRooms: (state, action) => {
