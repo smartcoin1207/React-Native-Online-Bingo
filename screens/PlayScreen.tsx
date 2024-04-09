@@ -9,9 +9,10 @@ import {
   TouchableWithoutFeedback,
   Dimensions,
   TouchableOpacity,
-  Image
+  Image,
 } from "react-native";
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from "react-native-vector-icons/FontAwesome";
+import { Platform } from 'react-native';
 
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -58,10 +59,12 @@ const PlayBoard: React.FC = () => {
   const [completed, setCompleted] = useState<boolean>(false);
   const [turnPlayerId, setTurnPlayerId] = useState<string>("");
   const [bingoCompleted, setBingoCompleted] = useState<string[]>([]);
-  const [bingoCompletedNumber, setBingoCompletedNumber] = useState<string>('');
+  const [bingoCompletedNumber, setBingoCompletedNumber] = useState<string>("");
   const [bingoNewCompleted, setBingoNewCompleted] = useState<string[]>([]);
-  const [bingoCompletedMessages, setBingoCompletedMessages] = useState<string[]>([]);
-  
+  const [bingoCompletedMessages, setBingoCompletedMessages] = useState<
+    string[]
+  >([]);
+
   //bingo selected
   const [selectedCellRow, setSelectedCellRow] = useState<number>(0);
   const [selectedCellColumn, setSelectedCellColumn] = useState<number>(0);
@@ -131,30 +134,32 @@ const PlayBoard: React.FC = () => {
   }, [bingoNextNumber]);
 
   useEffect(() => {
-    console.log(bingoCompleted);
-    if(bingoCompleted.length != bingoNewCompleted.length) {
+    if (bingoCompleted.length != bingoNewCompleted.length) {
       setBingoNewCompleted(bingoCompleted);
-      const completedPlayerId = bingoCompleted[bingoCompleted.length-1];
-      console.log("bingocompleted last new: ", bingoCompleted[bingoCompleted.length-1]);
-      
-      if(authUser.uid != completedPlayerId) {
+      const completedPlayerId = bingoCompleted[bingoCompleted.length - 1];
+      console.log(
+        "bingocompleted last new: ",
+        bingoCompleted[bingoCompleted.length - 1]
+      );
+
+      if (authUser.uid != completedPlayerId) {
         const subscribersPlayers: Player[] | undefined =
-        currentGameRoom?.subscribersPlayers;
-        
-        if(subscribersPlayers) {
+          currentGameRoom?.subscribersPlayers;
+
+        if (subscribersPlayers) {
           const completedPlayer = subscribersPlayers.find(
             (player) => player.uid === completedPlayerId
           );
-  
-          if(completedPlayer) {
-            const newBiongoMessage =  completedPlayer['displayName']  + "さんがビンゴしました。";
+
+          if (completedPlayer) {
+            const newBiongoMessage =
+              completedPlayer["displayName"] + "さんがビンゴしました。";
             const messages = bingoCompletedMessages;
             messages.push(newBiongoMessage);
             setBingoCompletedMessages(messages);
           }
-          
         }
-      }      
+      }
     }
   }, [bingoCompleted]);
 
@@ -207,7 +212,11 @@ const PlayBoard: React.FC = () => {
     onPress: () => void;
   }
 
-  const CustomNotifier: React.FC<CustomNotifierProps> = ({ title, description, onPress }) => {
+  const CustomNotifier: React.FC<CustomNotifierProps> = ({
+    title,
+    description,
+    onPress,
+  }) => {
     return (
       <View style={styles.notifierContainer}>
         <Text style={styles.notifierDescription}>{description}</Text>
@@ -220,10 +229,10 @@ const PlayBoard: React.FC = () => {
 
   const closeNotification = (text: string) => {
     const messages = bingoCompletedMessages;
-    const updatedItems = messages.filter(item => item !== text);
+    const updatedItems = messages.filter((item) => item !== text);
     setBingoCompletedMessages(updatedItems);
-  }
-  
+  };
+
   const setNextTurnPlayerId = (
     sort: string[],
     turnPlayerId: string,
@@ -271,7 +280,7 @@ const PlayBoard: React.FC = () => {
     setSelectedCellValue(cellValue);
     dispatch(setBingoNextNumber(cellValue));
   };
-  
+
   const clickCellByOther = (bingoNextNumber: string) => {
     let isValueIncluded = false;
     const value: any[][] = bingoCellValue;
@@ -327,7 +336,7 @@ const PlayBoard: React.FC = () => {
 
       const myBingoCompletedLength = bingoCompleted.length + 1;
       setBingoCompletedNumber(myBingoCompletedLength.toString());
-      
+
       setModalCompletedVisible(true);
     }
   };
@@ -365,7 +374,6 @@ const PlayBoard: React.FC = () => {
         setBingoCompletedPlayer(authUser.uid, gameRoomId);
       }
 
-      
       const myBingoCompletedLength = bingoCompleted.length + 1;
       setBingoCompletedNumber(myBingoCompletedLength.toString());
 
@@ -398,8 +406,13 @@ const PlayBoard: React.FC = () => {
       return <View key={cellValue}>{renderCell(dynamicStyle, cellValue)}</View>;
     }
 
-    return (
-      <TouchableWithoutFeedback
+    let canClick = true;
+    if (cellStatusValue == 1 || completed || !bingoMyTurn) {
+      canClick = false;
+    }
+
+    return canClick ? (
+      <TouchableOpacity
         key={cellValue}
         onPress={() =>
           handleCellClick(rowNum, columnNum, cellValue, cellStatusValue)
@@ -407,7 +420,15 @@ const PlayBoard: React.FC = () => {
       >
         {/* {animatedCell(dynamicStyle, cellValue)} */}
         {renderCell(dynamicStyle, cellValue)}
-      </TouchableWithoutFeedback>
+      </TouchableOpacity>
+    ) : (
+      <View
+        // style={{opacity: 0.5}}
+        key={cellValue}
+      >
+        {/* {animatedCell(dynamicStyle, cellValue)} */}
+        {renderCell(dynamicStyle, cellValue)}
+      </View>
     );
   };
 
@@ -440,23 +461,28 @@ const PlayBoard: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
-
-    <View style={{ padding: 0, margin: 0, alignItems: 'center', width: '100%', position: 'absolute', top: 0, zIndex: 100 }}>
-      {
-        bingoCompletedMessages.map((item, index) => (
+    <View style={[styles.container, {paddingTop: '5%'}]}>
+      <View
+        style={{
+          padding: 0,
+          margin: 0,
+          alignItems: "center",
+          width: "100%",
+          position: "absolute",
+          top: 0,
+          zIndex: 100,
+        }}
+      >
+        {bingoCompletedMessages.map((item, index) => (
           <>
-          <CustomNotifier
-            title=""
-            description={item}
-            onPress={() => closeNotification(item)}
-          />
-      
+            <CustomNotifier
+              title=""
+              description={item}
+              onPress={() => closeNotification(item)}
+            />
           </>
-    
-        ))
-      }
-    </View>
+        ))}
+      </View>
 
       <Modal
         animationType="fade"
@@ -478,7 +504,10 @@ const PlayBoard: React.FC = () => {
             <Text style={styles.modalText}>{modalAlertText}</Text>
             {isHost ? (
               <View style={styles.roomModalBtns}>
-                <TouchableOpacity style={styles.modalOkBtn} onPress={handleRandomSort}>
+                <TouchableOpacity
+                  style={styles.modalOkBtn}
+                  onPress={handleRandomSort}
+                >
                   <Text style={styles.modalOkText}> ランダム </Text>
                 </TouchableOpacity>
               </View>
@@ -507,16 +536,28 @@ const PlayBoard: React.FC = () => {
         >
           <View style={styles.modalBody}>
             <Image
-                source={require('../assets/images/bingo-win.gif')}
-                style={styles.backgroundImage}
+              source={require("../assets/images/bingo-win.gif")}
+              style={styles.backgroundImage}
             />
 
-            <View style={{flexDirection: 'row', alignSelf: 'center', alignContent: 'center', alignItems: 'center' }}>
-              <Text style={styles.completedTextNumber}>{bingoCompletedNumber}</Text>
+            <View
+              style={{
+                flexDirection: "row",
+                alignSelf: "center",
+                alignContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Text style={styles.completedTextNumber}>
+                {bingoCompletedNumber}
+              </Text>
               <Text style={styles.completedText}>位</Text>
             </View>
 
-            <TouchableOpacity style={styles.closeTouchableButton} onPress={() => setModalCompletedVisible(false)}>
+            <TouchableOpacity
+              style={styles.closeTouchableButton}
+              onPress={() => setModalCompletedVisible(false)}
+            >
               <View style={styles.buttonContainer}>
                 <Icon name="times" size={20} color="white" />
               </View>
@@ -555,15 +596,19 @@ const PlayBoard: React.FC = () => {
         <Text style={styles.turnText}>{turnText}</Text>
         <View style={styles.numberBtnContainer}>
           {bingoMyTurn && selectedCellValue ? (
-            <TouchableOpacity style={styles.passBtn} onPress={handleSetNumberClick}>
+            <TouchableOpacity
+              style={styles.passBtn}
+              onPress={handleSetNumberClick}
+            >
               <Text style={styles.passBtnText}> 決定 </Text>
             </TouchableOpacity>
           ) : (
             ""
           )}
         </View>
-
-        <View style={styles.boardContainer}>{BingoBoard()}</View>
+        <View style={styles.boardContainerOut}>
+          <View style={styles.boardContainer}>{BingoBoard()}</View>
+        </View>
       </View>
     </View>
   );
@@ -572,11 +617,10 @@ const PlayBoard: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: "5%",
     flexDirection: "column",
     backgroundColor: "black",
     alignItems: "center",
-    // position: 'relative'
+    position: "relative",
   },
   title: {
     color: customColors.white,
@@ -648,11 +692,11 @@ const styles = StyleSheet.create({
     borderColor: "grey",
     borderRadius: 20,
     width: "80%",
-    height: '60%'
+    height: "60%",
   },
   modalOkBtn: {
     backgroundColor: customColors.blackGreen,
- 
+
     paddingVertical: 8,
     paddingHorizontal: 6,
     padding: 4,
@@ -681,14 +725,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   completedText: {
-    fontSize: viewportWidth*0.15,
+    fontSize: viewportWidth * 0.15,
     color: customColors.white,
     fontFamily: "serif",
     fontWeight: "900",
     textAlign: "center",
   },
   completedTextNumber: {
-    fontSize: viewportWidth*0.25,
+    fontSize: viewportWidth * 0.25,
     color: customColors.white,
     fontFamily: "serif",
     fontWeight: "900",
@@ -728,14 +772,26 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   boardContainer: {
-    position: "absolute",
-    bottom: viewportHeight * 0.05,
-    borderColor: "grey",
-    flexDirection: "row",
-    flexWrap: "wrap",
+    borderColor: customColors.white,
+    borderWidth:2,
+    borderRadius: 10,
+    padding: viewportWidth * 0.02,
+  
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: '#09271b82',
   },
+
+  boardContainerOut: {
+    position: "absolute",
+    bottom: viewportHeight * 0.01,
+    borderRadius: 10,
+    padding: viewportWidth * 0.015,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: '#09271b82',
+  },
+  
   pressed: {
     padding: 8,
     borderWidth: 1,
@@ -794,14 +850,14 @@ const styles = StyleSheet.create({
     width: "100%",
     position: "absolute",
     borderRadius: 10,
-    borderWidth:  1,
-    borderColor: 'white',
+    borderWidth: 1,
+    borderColor: "white",
     opacity: 0.9,
   },
 
   notifiersContainer: {
     flex: 1,
-    position: 'absolute'
+    position: "absolute",
   },
 
   notifierContainer: {
@@ -809,21 +865,21 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 10,
     elevation: 5,
-    width: '90%',
-    alignItems: 'center',
+    width: "90%",
+    alignItems: "center",
     marginBottom: 5,
     borderWidth: 1,
-    borderColor: customColors.blackGrey
+    borderColor: customColors.blackGrey,
   },
   notifierTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
   },
   notifierDescription: {
     fontSize: 20,
     marginBottom: 20,
-    color: customColors.white
+    color: customColors.white,
   },
   notifierButton: {
     // backgroundColor: customColors.blackGreen,
@@ -831,14 +887,14 @@ const styles = StyleSheet.create({
     // borderRadius: 20,
     // borderWidth: 1,
     borderColor: customColors.white,
-    alignItems: 'center',
-    position: 'absolute',
+    alignItems: "center",
+    position: "absolute",
     top: 0,
-    right: 0
+    right: 0,
   },
   notifierButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: "white",
+    fontWeight: "bold",
   },
 
   buttonContainer: {
@@ -846,17 +902,17 @@ const styles = StyleSheet.create({
     height: 30,
     borderRadius: 15,
     // backgroundColor: 'white',
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: 'white',
+    borderColor: "white",
   },
 
   closeTouchableButton: {
-    position: 'absolute',
+    position: "absolute",
     top: -12,
-    right: -12
-  }
+    right: -12,
+  },
 });
 
 export default PlayBoard;

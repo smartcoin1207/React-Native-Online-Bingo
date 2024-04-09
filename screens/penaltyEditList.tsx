@@ -80,7 +80,7 @@ const FirstRoute = () => {
 
         return (
             <TouchableOpacity style={[styles.penaltyItemRow, selectedItem === index && styles.pressedStyle]} 
-            activeOpacity={0.4}
+            activeOpacity={0.5}
             onPressIn={() => handlePressIn(index)}
             onPressOut={handlePressOut}
             >

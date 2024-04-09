@@ -83,6 +83,7 @@ export const signUpAuthUser = (email:string, password:string, displayName: strin
     });
 }
 
+
 //Signout from Firebase
 export const signOutAuthUser = () => {
     return signOut(auth).then(() => {
@@ -96,8 +97,8 @@ export const signOutAuthUser = () => {
  * get all waiting bingorooms
  */
 export const getWaitingGameRooms = (callback: GameRoomsCallBackFunction) => {
-    const q = query(collection(db, gameTable));
-    
+    const q = query(collection(db, gameTable), where('gameStarted', '==', 'flase'));
+        
     return onSnapshot(q, async (snapshot) => {
         const promises = snapshot.docs.map(async (document) => {
             // document id of bingo collection
@@ -136,6 +137,7 @@ export const createGameRoom = async (uid: string, displayRoomName: string,  pass
     const subscribers = [uid];
     const subscriberPromises = subscribers.map(subscriberId => doc(collection(db, userTable), subscriberId));
     const subscribersRef = await Promise.all(subscriberPromises);
+
     //Add a new bingo room document with uid and subscribers
     const docRef = await addDoc(collection(db, gameTable), {
         uid: uid,
@@ -145,7 +147,7 @@ export const createGameRoom = async (uid: string, displayRoomName: string,  pass
         gameStarted: false,
         gameStopped: false
     });
-
+    
     return docRef.id;
 }
 
@@ -179,6 +181,8 @@ export const joinGameRoom = async (uid: string, gameRoomId: string) => {
 }
 
 export const exitGameRoom = async (uid: string, gameRoomId:string, isHost: boolean) => {
+    if(!gameRoomId) return false;
+
     const docRef = doc(collection(db, gameTable), gameRoomId);
 
     if(!isHost) {
@@ -203,6 +207,8 @@ export const exitGameRoom = async (uid: string, gameRoomId:string, isHost: boole
 
 //
 export const getGameRoom = (gameRoomId: string, callback: any ) => {
+    if(!gameRoomId) return false;
+
     const docRef = doc(db, gameTable, gameRoomId);
 
     return  onSnapshot(docRef, async (document) => {
@@ -242,6 +248,10 @@ export const getGameRoom = (gameRoomId: string, callback: any ) => {
 
 //
 export const startGameRoom = async (gameRoomId: string) => {
+
+    if(!gameRoomId) return false;
+    console.log("startGame");
+    
     const docRef = doc(db, gameTable, gameRoomId);
     try {
         await updateDoc(docRef, {
@@ -261,6 +271,11 @@ export const startGameRoom = async (gameRoomId: string) => {
 }
 
 export const setPlayerGameSort  = async (gameRoomId: string, uids: string[]) => {
+    console.log("setPlayerGameSort");
+    if(!gameRoomId) {
+        return false;
+    }
+
     const turnPlayerId = uids[0];
     try {
         const docRef = doc(collection(db, bingoTable), gameRoomId);
@@ -276,20 +291,30 @@ export const setPlayerGameSort  = async (gameRoomId: string, uids: string[]) => 
 }
 
 export const getBingo = (gameRoomId: string, callback : any ) => {
+    if(!gameRoomId) {
+        return false;
+    }
     const docRef = doc(db, bingoTable, gameRoomId);
 
-    return  onSnapshot(docRef, async (document) => {
-        if(document.exists()) {
-            const bingo = document.data();
-            callback(bingo)
-        } else {
-            console.log('error');
-            callback(false);
+    return onSnapshot(docRef, {
+        next: (document) => {
+            if (document.exists()) {
+                const bingo = document.data();
+                callback(bingo);
+            } else {
+                console.log('in getBingo Function() Document does not exist');
+                callback(false);
+            }
+        },
+        error: (error) => {
+            console.error('In getBingo() Function, Error fetching bingo:', error);
+            callback(null, error); // Pass the error to the callback function
         }
     });
 }
 
 export const setBingoNextNumberUpdate = async (uid: string, gameRoomId: string, bingoNextNumber: string) => {
+    console.log("setBingoNextNumberUpdate")
     const docRef = doc(db, bingoTable, gameRoomId);
     
     try {
@@ -302,6 +327,8 @@ export const setBingoNextNumberUpdate = async (uid: string, gameRoomId: string, 
 }
 
 export const setNextTurnPlayer = async (newTurnPlayerId:string, gameRoomId: string, newTurnNumber: number) => {
+    
+    console.log("setNextTurnPlayer")
     const docRef = doc(db, bingoTable, gameRoomId);
     try {
         await updateDoc(docRef, {
@@ -310,11 +337,12 @@ export const setNextTurnPlayer = async (newTurnPlayerId:string, gameRoomId: stri
             bingoNextNumber: ''
         })
     } catch (error) {
-        console.log("bingo error")
+        console.log("bingo error");
     }
 }
 
 export const setBingoCompletedPlayer = async (uid: string, gameRoomId: string) => {
+    console.log("setBingoCompletedPlayer")
     const docRef = doc(db, bingoTable, gameRoomId);
     
     try {
@@ -323,7 +351,7 @@ export const setBingoCompletedPlayer = async (uid: string, gameRoomId: string) =
             sort: arrayRemove(uid)
         })
     } catch (error) {
-        console.log("bingo error")
+        console.log("bingo error");
     }
 }
 // upload image to firebase storage /images1 directory
@@ -371,6 +399,7 @@ export const uploadToFirebase = async (uri: string, name: string, onProgress: ((
   }
 
   export const deleteBingoCollection = async () => {
+    console.log("deleteBingoCollection")
     const collectionRef = collection(db, bingoTable); // Replace 'bingo' with the name of the collection to delete
   
     const querySnapshot = await getDocs(collectionRef);

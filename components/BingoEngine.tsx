@@ -74,7 +74,6 @@ const bingoCellValuesUS = (): BingoCellValues => {
     return cellValues;
 };
 
-
 const bingoCheck = (cellValues: BingoCellValues, cellStatus: number[][], rowNum: number, columnNum: number): boolean => {
     const rowCount: number = cellValues.length;
     let completed = false;
@@ -84,7 +83,6 @@ const bingoCheck = (cellValues: BingoCellValues, cellStatus: number[][], rowNum:
         }
     }
     
-
     let verticalCount: number = 0;
     for (let row = 0; row < rowCount; row++) {
       if (cellStatus[row][columnNum] === 1) verticalCount++;
@@ -92,7 +90,7 @@ const bingoCheck = (cellValues: BingoCellValues, cellStatus: number[][], rowNum:
 
     if (verticalCount === cellValues[rowNum].length) {
         completed = true;
-    } 
+    }
 
     let diagonalUpDownCounter: number = 0;
     let diagonalDownUpCounter: number = 0;
@@ -106,7 +104,7 @@ const bingoCheck = (cellValues: BingoCellValues, cellStatus: number[][], rowNum:
 
     if ((diagonalUpDownCounter === rowCount) || (diagonalDownUpCounter === rowCount)) {
         completed = true;
-    } 
+    }
     return completed;
 };
 

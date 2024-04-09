@@ -46,7 +46,6 @@ const GameWaitingScreen = () => {
   const [gameListModalVisible, setGameListModalVisible] =
     useState<boolean>(false);
 
-
   const [modalAlertText, setModalAlertText] = useState("");
   const [isExitModal, setIsExitModal] = useState(true);
   const [currentRemoveUserId, setCurrentRemoveUserId] = useState("");

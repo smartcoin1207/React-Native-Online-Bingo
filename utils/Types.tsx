@@ -15,6 +15,10 @@ export interface GameRoom {
     subscriberNum: string,
 }
 
+export interface GameRoomId {
+    gameRoomId: string
+}
+
 export interface GameWaitingRouteParams {
     isHost: boolean,
     gameRoomId: string 

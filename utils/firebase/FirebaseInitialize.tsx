@@ -4,6 +4,7 @@ import { initializeApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth'; // Import Firebase Authentication module
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from 'firebase/storage';
+import { ReactNativeAsyncStorage } from 'firebase/auth';
 
 const firebaseConfig = {
     apiKey: "AIzaSyDed59tOofXTdNWbrJQ1luN25Ik-JZ69Ak",
@@ -37,7 +38,7 @@ const firebaseConfig = {
   const db = getFirestore();
   const storage = getStorage(app);
 
-
+  export {ReactNativeAsyncStorage};
   export default app;
   export {auth};
   export {db};
