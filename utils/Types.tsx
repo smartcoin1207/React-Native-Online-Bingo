@@ -15,13 +15,35 @@ export interface GameRoom {
     subscriberNum: string,
 }
 
-export interface GameRoomId {
-    gameRoomId: string
+export interface Player {
+    uid: string,
+    displayName: string,
+    photoURL: string
 }
 
+// --------------------- Function Params -----------------------
+
+/**
+ * Represents the parameters for the bingoCheck function. 
+ */
+export interface BingoCheck {
+    isCompleted: boolean,
+    newCellStatus: any
+}
+
+/**
+ * Represents the route params from other screen to GameWaitingScreen
+ */
 export interface GameWaitingRouteParams {
     isHost: boolean,
     gameRoomId: string 
+}
+
+/**
+ * Represents the parameters for the setBingoCompletedPlayer function.
+ */
+export type setBingoCompletedPlayerParams =  {
+    uid: string, gameRoomId: string, cellStatus: string, cellValue: string
 }
 
 export type GameRoomsCallBackFunction = (gameRooms: any[]) => void;
@@ -35,11 +57,7 @@ export interface UserState {
     isLoggedIn: boolean
 }
 
-export interface Player {
-    uid: string,
-    displayName: string,
-    photoURL: string
-}
+
 
 export interface CurrentGameRoom {
     gameRoomId: string,
@@ -55,6 +73,7 @@ export interface BingoPlayState {
     bingoBoard: any[]
 }
 
+//penalty
 export interface Penalty {
     id: string,
     title: string
@@ -63,3 +82,6 @@ export interface Penalty {
 export interface PenaltySliceType {
     penaltyList:  Penalty[]
 }
+
+//Firebase Util Functions Parameters type
+

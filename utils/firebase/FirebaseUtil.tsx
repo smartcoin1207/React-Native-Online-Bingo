@@ -23,7 +23,7 @@ import {
     deleteObject
   } from "firebase/storage";
 import { db, auth, storage } from "./FirebaseInitialize";
-import { GameRoomsCallBackFunction, Player, User } from "../Types";
+import { GameRoomsCallBackFunction, Player, User, setBingoCompletedPlayerParams } from "../Types";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, signOut } from "firebase/auth";
 import { isArray } from "lodash";
 
@@ -83,7 +83,6 @@ export const signUpAuthUser = (email:string, password:string, displayName: strin
     });
 }
 
-
 //Signout from Firebase
 export const signOutAuthUser = () => {
     return signOut(auth).then(() => {
@@ -94,65 +93,94 @@ export const signOutAuthUser = () => {
 }
 
 /**
- * get all waiting bingorooms
+ * This is function that gets all the created game rooms that can be entered.
+ * 
+ * @param {GameRoomsCallBackFunction} callback - callback function to handle data from firestore
+ * @returns {void}
  */
 export const getWaitingGameRooms = (callback: GameRoomsCallBackFunction) => {
-    const q = query(collection(db, gameTable), where('gameStarted', '==', 'flase'));
+    try {
+        const q = query(collection(db, gameTable), where('gameStarted', '==', false));
         
-    return onSnapshot(q, async (snapshot) => {
-        const promises = snapshot.docs.map(async (document) => {
-            // document id of bingo collection
-            const gameRoomId = document.id;
+        return onSnapshot(q, async (snapshot) => {
+            const promises = snapshot.docs.map(async (document) => {
+                // document id of bingo collection
+                const gameRoomId = document.id;
 
-            // user id of the bingo game host
-            const uid = document.data().uid;
+                // user id of the bingo game host
+                const uid = document.data().uid;
 
-            const hostRef = doc(collection(db, userTable), uid);
-            const hostUser = await getDoc(hostRef);
-            const hostUserInfo = hostUser.data();
-            const displayRoomName = document.data().displayRoomName;
-            const roomPassword = document.data().password;
+                const hostRef = doc(collection(db, userTable), uid);
+                const hostUser = await getDoc(hostRef);
+                const hostUserInfo = hostUser.data();
+                const displayRoomName = document.data().displayRoomName;
+                const roomPassword = document.data().password;
 
-            // subscribers of created bingo game
-            const subscriberRefs = document.data()?.subscribers;
-            const subscriberNum = isArray(subscriberRefs)? subscriberRefs.length: '0'; 
-            
-            return {
-                gameRoomId: gameRoomId,
-                displayRoomName: displayRoomName,
-                password: roomPassword,
-                uid: uid,
-                displayName: hostUserInfo?.displayName,
-                photoURL: hostUserInfo?.photoURL,
-                subscriberNum: subscriberNum
-            };            
+                // subscribers of created bingo game
+                const subscriberRefs = document.data()?.subscribers;
+                const subscriberNum = isArray(subscriberRefs)? subscriberRefs.length: '0'; 
+                
+                return {
+                    gameRoomId: gameRoomId,
+                    displayRoomName: displayRoomName,
+                    password: roomPassword,
+                    uid: uid,
+                    displayName: hostUserInfo?.displayName,
+                    photoURL: hostUserInfo?.photoURL,
+                    subscriberNum: subscriberNum
+                };            
+            });
+
+            const gameRooms : any[] = await Promise.all(promises);
+            callback(gameRooms);
         });
-
-        const gameRooms : any[] = await Promise.all(promises);
-        callback(gameRooms);
-    });
+    } catch (error) {
+        console.log("waiting gamerooms error: " , error);
+        throw error;
+    }
 };
 
+/**
+ * This function creates a new playroom.
+ * 
+ * @param uid user id of playing room host
+ * @param displayRoomName display name of playing room
+ * @param password password of playing room
+ * @returns {Promise<void>}
+ */
 export const createGameRoom = async (uid: string, displayRoomName: string,  password: string) => {
-    const subscribers = [uid];
-    const subscriberPromises = subscribers.map(subscriberId => doc(collection(db, userTable), subscriberId));
-    const subscribersRef = await Promise.all(subscriberPromises);
+    try {
+        const subscribers = [uid];
+        const subscriberPromises = subscribers.map(subscriberId => doc(collection(db, userTable), subscriberId));
+        const subscribersRef = await Promise.all(subscriberPromises);
 
-    //Add a new bingo room document with uid and subscribers
-    const docRef = await addDoc(collection(db, gameTable), {
-        uid: uid,
-        displayRoomName: displayRoomName,
-        password: password,
-        subscribers: subscribersRef,
-        gameStarted: false,
-        gameStopped: false
-    });
-    
-    return docRef.id;
+        // Add a new bingo room document with uid and subscribers
+        const docRef = await addDoc(collection(db, gameTable), {
+            uid: uid,
+            displayRoomName: displayRoomName,
+            password: password,
+            subscribers: subscribersRef,
+            gameStarted: false,
+            gameStopped: false
+        });
+
+        return docRef.id;
+    } catch (error) {
+        // Handle the error here
+        console.error("An error occurred:", error);
+        // You can also throw the error to propagate it to the calling function
+        throw error;
+    }
 }
 
+/**
+ * Enter a playroom created by another player
+ * 
+ * @param uid player user id
+ * @param gameRoomId gameRoomId where bingo game is being played
+ * @returns {Promise<void>}
+ */
 export const joinGameRoom = async (uid: string, gameRoomId: string) => {
-
     const userReference = doc(collection(db, userTable), uid);
     const docRef = doc(collection(db, gameTable), gameRoomId);
 
@@ -180,6 +208,14 @@ export const joinGameRoom = async (uid: string, gameRoomId: string) => {
     }
 }
 
+/**
+ * this function causes the player to out from the playroom
+ * 
+ * @param uid player user id
+ * @param gameRoomId game room id 
+ * @param isHost if host or player
+ * @returns {Promise<void>}
+ */
 export const exitGameRoom = async (uid: string, gameRoomId:string, isHost: boolean) => {
     if(!gameRoomId) return false;
 
@@ -313,6 +349,14 @@ export const getBingo = (gameRoomId: string, callback : any ) => {
     });
 }
 
+/**
+ * The number chosen by the player on that turn is displayed to all players.
+ * @param uid - user id
+ * @param gameRoomId  - gameRoomId where bingo game is being played
+ * @param bingoNextNumber - Number chosen by player
+ * 
+ * @returns {Promise<void>}
+ */
 export const setBingoNextNumberUpdate = async (uid: string, gameRoomId: string, bingoNextNumber: string) => {
     console.log("setBingoNextNumberUpdate")
     const docRef = doc(db, bingoTable, gameRoomId);
@@ -326,6 +370,14 @@ export const setBingoNextNumberUpdate = async (uid: string, gameRoomId: string, 
     }
 }
 
+/**
+ * Desicde who the next player will be
+ * @param newTurnPlayerId - next player user id
+ * @param gameRoomId - gameRooomId where bingo game is being played
+ * @param newTurnNumber - next turn number
+ * 
+ * @returns {Promise<void>}
+ */
 export const setNextTurnPlayer = async (newTurnPlayerId:string, gameRoomId: string, newTurnNumber: number) => {
     
     console.log("setNextTurnPlayer")
@@ -341,20 +393,38 @@ export const setNextTurnPlayer = async (newTurnPlayerId:string, gameRoomId: stri
     }
 }
 
-export const setBingoCompletedPlayer = async (uid: string, gameRoomId: string) => {
-    console.log("setBingoCompletedPlayer")
+/**
+ * Sets to firestore the bingo completion status for a player in a bingo game.
+ * @param {setBingoCompletedPlayerParams} params - The parameters for setting bingo completion status.
+ * @returns {Promise<void>} A promise that resolves when the firestore operation was successed
+ */
+export const setBingoCompletedPlayer = async ({uid, gameRoomId, cellStatus, cellValue}: setBingoCompletedPlayerParams) => {
+    console.log("setBingoCompletedPlayer");
     const docRef = doc(db, bingoTable, gameRoomId);
-    
+    const newCompletedObj = {
+        uid: uid, 
+        cellstatus: cellStatus,
+        cellValue: cellValue
+    };
+
     try {
         await updateDoc(docRef, {
             bingoCompleted: arrayUnion(uid),
-            sort: arrayRemove(uid)
-        })
+            bingoCompletedObj: arrayUnion(newCompletedObj),
+            sort: arrayRemove(uid),
+        });
     } catch (error) {
         console.log("bingo error");
     }
 }
-// upload image to firebase storage /images1 directory
+
+/**
+ * Image upload function to firestore storage
+ * @param uri - image file uri
+ * @param name - image file name
+ * @param onProgress - represents progress upload to firebase storage 
+ * @returns {Promise<{downloadUrl, metadata}>} - return download url and metadata for uploaded image
+ */
 export const uploadToFirebase = async (uri: string, name: string, onProgress: ((progress: number) => void) | undefined) => {
     const fetchResponse = await fetch(uri);
     const theBlob = await fetchResponse.blob();

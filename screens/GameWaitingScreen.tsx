@@ -146,7 +146,7 @@ const GameWaitingScreen = () => {
     setCurrentRemoveUserId(uid);
     setModalAlertText("このユーザーをエクスポートしますか？");
   };
-
+  
   const renderPlayerItem = ({ item }: { item: Player }) => (
     <TouchableOpacity style={styles.playerItem} activeOpacity={0.5}>
       <Avatar
@@ -161,7 +161,6 @@ const GameWaitingScreen = () => {
         }
       />
       <Text style={styles.nameTitle}>{item.displayName}</Text>
-      {/* <Text style={styles.nameTitle}>{item.age}</Text> */}
 
       {isHost && item.uid != authUser.uid && (
         <TouchableOpacity

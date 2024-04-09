@@ -1,8 +1,9 @@
 import _ from "lodash";
+import { BingoCheck } from "../utils/Types";
 
 type BingoCellValues = Array<Array<any>>;
 type RenderRowFunction = (rowNum: any, columns: Array<any>) => any;
-type RenderColumnFunction = (rowNum: any, columnNum: any) => any;
+type RenderColumnFunction = (rowNum: any, columnNum: any, isModal: boolean) => any;
 
 const usaRules = (): number[][] => [
         [1, 15],
@@ -21,7 +22,7 @@ const bingoCellStatusInit = (): number[][] =>
         [0, 0, 0, 0, 0]
     ];
 
-const createBingoCard = (bingoCellValues: BingoCellValues, renderRow: RenderRowFunction, renderColumn: RenderColumnFunction): any[] => {
+const createBingoCard = (bingoCellValues: BingoCellValues, renderRow: RenderRowFunction, renderColumn: RenderColumnFunction, isModal: boolean): any[] => {
     const rowsCount: number = bingoCellValues.length;
     const columnsCount: number = bingoCellValues[0].length;
     const rows: any[] = [];
@@ -29,10 +30,11 @@ const createBingoCard = (bingoCellValues: BingoCellValues, renderRow: RenderRowF
         const columns: any[] = [];
 
         for (let columnNum = 0; columnNum < columnsCount; columnNum ++) {
-            columns.push(renderColumn(rowNum, columnNum));
+            columns.push(renderColumn(rowNum, columnNum, isModal));
         }
         rows.push(renderRow(rowNum, columns));
     }
+
     
     return rows;
 };
@@ -74,12 +76,14 @@ const bingoCellValuesUS = (): BingoCellValues => {
     return cellValues;
 };
 
-const bingoCheck = (cellValues: BingoCellValues, cellStatus: number[][], rowNum: number, columnNum: number): boolean => {
+const bingoCheck = (cellValues: BingoCellValues, cellStatus: number[][], rowNum: number, columnNum: number): BingoCheck => {
     const rowCount: number = cellValues.length;
     let completed = false;
+    let newCellStatus: number[][] = cellStatus.map(row => [...row]);
     if(cellStatus[rowNum]) {
         if (cellStatus[rowNum].indexOf(0) === -1) {
             completed = true;
+            newCellStatus[rowNum] = [2, 2, 2, 2, 2];
         }
     }
     
@@ -88,8 +92,11 @@ const bingoCheck = (cellValues: BingoCellValues, cellStatus: number[][], rowNum:
       if (cellStatus[row][columnNum] === 1) verticalCount++;
     }
 
-    if (verticalCount === cellValues[rowNum].length) {
+    if (verticalCount === rowCount) {
         completed = true;
+        for (let row1 = 0; row1 < rowCount; row1++) {
+            newCellStatus[row1][columnNum] = 2;
+        }
     }
 
     let diagonalUpDownCounter: number = 0;
@@ -102,10 +109,21 @@ const bingoCheck = (cellValues: BingoCellValues, cellStatus: number[][], rowNum:
         columnUpDown++;
     }
 
-    if ((diagonalUpDownCounter === rowCount) || (diagonalDownUpCounter === rowCount)) {
+    if(diagonalUpDownCounter === rowCount) {
         completed = true;
+        for (let index = 0; index < rowCount; index++) {
+            newCellStatus[index][index] = 2;
+        }
     }
-    return completed;
+
+    if(diagonalDownUpCounter === rowCount) {
+        completed = true;
+        for (let index = 0; index < rowCount; index++) {
+            newCellStatus[rowCount-(index+1)][index] = 2;
+        }
+    }
+
+    return {isCompleted: completed, newCellStatus: newCellStatus};
 };
 
 export { createBingoCard, bingoCellValues, bingoCellStatusInit, bingoCheck };
