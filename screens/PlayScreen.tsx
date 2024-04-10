@@ -6,14 +6,11 @@ import {
     BackHandler,
     Modal,
     ActivityIndicator,
-    TouchableWithoutFeedback,
     Dimensions,
     TouchableOpacity,
     Image,
 } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
-import { Platform } from 'react-native';
-
 import { useDispatch, useSelector } from "react-redux";
 import {
     setBingoCellStatus,
@@ -23,7 +20,6 @@ import {
 } from "../store/reducers/bingo/bingoSlice";
 import {
     bingoCellStatusInit,
-    bingoCellValues,
     bingoCheck,
     createBingoCard,
 } from "../components/BingoEngine";
@@ -37,10 +33,8 @@ import {
     setPlayerGameSort,
     setBingoCompletedPlayer,
 } from "../utils/firebase/FirebaseUtil";
-import { Player } from "../utils/Types";
-import { useNavigation } from "@react-navigation/native";
+import { BingoCellValues, Player } from "../utils/Types";
 import { customColors } from "../utils/Color";
-// import { AnimatedCell } from "./AnimatedCell";
 
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get("window");
 const screenWidth = Dimensions.get("window").width;
@@ -55,16 +49,15 @@ const PlayBoard: React.FC = () => {
     const [cellStatus, setCellStatus] = React.useState<number[][]>(
         bingoCellStatusInit()
     );
+    
     const [completed, setCompleted] = useState<boolean>(false);
     const [turnPlayerId, setTurnPlayerId] = useState<string>("");
     const [bingoCompleted, setBingoCompleted] = useState<string[]>([]);
-    const [bingoCompletedObj, setBingoCompletedObj] = useState<any[]>([]);
-
-    const [bingoCompletedNumber, setBingoCompletedNumber] = useState<string>("");
     const [bingoNewCompleted, setBingoNewCompleted] = useState<string[]>([]);
-    const [bingoCompletedMessages, setBingoCompletedMessages] = useState<
-        string[]
-    >([]);
+
+    const [bingoCompletedObj, setBingoCompletedObj] = useState<any[]>([]);
+    const [bingoCompletedNumber, setBingoCompletedNumber] = useState<string>("");
+    const [bingoCompletedMessagesObj, setBingoCompletedMessagesObj] = useState<any[]>([]);
 
     //bingo selected
     const [selectedCellRow, setSelectedCellRow] = useState<number>(0);
@@ -136,33 +129,51 @@ const PlayBoard: React.FC = () => {
 
     useEffect(() => {
         if (bingoCompleted.length != bingoNewCompleted.length) {
-            setBingoNewCompleted(bingoCompleted);
-            const completedPlayerId = bingoCompleted[bingoCompleted.length - 1];
-            console.log(
-                "bingocompleted last new: ",
-                bingoCompleted[bingoCompleted.length - 1]
-            );
+          setBingoCompleted(bingoNewCompleted);
+          const newCount = bingoNewCompleted.length - bingoCompleted.length;
+          const messages = bingoCompletedMessagesObj;
+
+          for (let index = 0; index < newCount; index++) {
+            const completedPlayerId = bingoNewCompleted[bingoNewCompleted.length - (newCount - index)];
+            const rank = bingoNewCompleted.length - (newCount-index);
+
+            if(authUser.uid == completedPlayerId && completed != true) {
+              setCompleted(true);
+              setBingoCompletedNumber((rank+1).toString());
+              setModalCompletedVisible(true);
+            }
 
             if (authUser.uid != completedPlayerId) {
-                const subscribersPlayers: Player[] | undefined =
-                    currentGameRoom ?.subscribersPlayers;
+              const subscribersPlayers: Player[] | undefined = currentGameRoom ?.subscribersPlayers;
+  
+              if (subscribersPlayers) {
+                const completedPlayer = subscribersPlayers.find(
+                    (player) => player.uid === completedPlayerId
+                );
+  
+                if (completedPlayer) {
+                  const newBingoMessage = completedPlayer["displayName"] + "さんが" + (rank + 1) + "位ビンゴしました。";
+                  const otherPlayerCellstatus = JSON.parse(bingoCompletedObj[rank]?.cellstatus);
+                  const otherPlayerCellValue = JSON.parse(bingoCompletedObj[rank]?.cellValue); ;
 
-                if (subscribersPlayers) {
-                  const completedPlayer = subscribersPlayers.find(
-                      (player) => player.uid === completedPlayerId
-                  );
-
-                  if (completedPlayer) {
-                    const newBiongoMessage =
-                        completedPlayer["displayName"] + "さんがビンゴしました。";
-                    const messages = bingoCompletedMessages;
-                    messages.push(newBiongoMessage);
-                    setBingoCompletedMessages(messages);
-                  }
+                  const newBingoCompletedMessageObj = {
+                    rank: rank,
+                    uid:  completedPlayerId,
+                    message: newBingoMessage,
+                    cellStatus: otherPlayerCellstatus,
+                    cellValue: otherPlayerCellValue
+                  };
+  
+                  messages.push(newBingoCompletedMessageObj);
                 }
+              }
             }
+          }
+
+          setBingoCompletedMessagesObj(messages);
         }
-    }, [bingoCompleted]);
+
+    }, [bingoNewCompleted]);
 
     //リアルタイムfirestoreから該当するビンゴゲームデータを取得する
     useEffect(() => {
@@ -186,11 +197,11 @@ const PlayBoard: React.FC = () => {
                     turnNumber: bingo ?.turnNumber,
                 };
 
-                setBingoCompleted(bingoCompletedFirestore);
                 setBingoCompletedObj(bingoCompletedObj);
+                setBingoNewCompleted(bingoCompletedFirestore);
                 setTurnPlayerId(bingo ?.turnPlayerId);
                 dispatch(setBingoInfo(bingoInfo));
-
+                
                 if (bingoMyTurn) {
                     setTurnText("あなたの番です。");
                 } else {
@@ -210,30 +221,35 @@ const PlayBoard: React.FC = () => {
     }, []);
 
     interface CustomNotifierProps {
-        title: string;
+        item: any;
         description: string;
         onPress: () => void;
     }
 
     const CustomNotifier: React.FC<CustomNotifierProps> = ({
-        title,
+        item,
         description,
         onPress,
     }) => {
+      console.log(item);
         return (
             <View style={styles.notifierContainer}>
                 <Text style={styles.notifierDescription}>{description}</Text>
                 <TouchableOpacity onPress={onPress} style={styles.notifierButton}>
                     <Icon name="times" size={20} color="white" />
                 </TouchableOpacity>
+                
+                <View style={styles.boardContainerOutModal}>
+                    <View style={styles.boardContainerModal}>{BingoBoard(item?.cellStatus, item?.cellValue, true)}</View>
+                </View>
             </View>
         );
     };
 
-    const closeNotification = (text: string) => {
-        const messages = bingoCompletedMessages;
-        const updatedItems = messages.filter((item) => item !== text);
-        setBingoCompletedMessages(updatedItems);
+    const closeNotification = (item: any) => {
+        const messages = bingoCompletedMessagesObj;
+        const updatedItems = messages.filter((item1) => item1.uid !== item.uid);
+        setBingoCompletedMessagesObj(updatedItems);
     };
 
     const setNextTurnPlayerId = (
@@ -334,17 +350,12 @@ const PlayBoard: React.FC = () => {
         //cellStatus, cellValues
 
         if (isCompleted) {
-            setCompleted(true);
 
             const cellValueJson = JSON.stringify(bingoCellValue);
             const cellStatusJson = JSON.stringify(newCellStatus);
             if (authUser.uid) {
                 setBingoCompletedPlayer({ uid: authUser.uid, gameRoomId: gameRoomId, cellStatus: cellStatusJson, cellValue: cellValueJson });
             }
-
-            const myBingoCompletedLength = bingoCompleted.length + 1;
-            setBingoCompletedNumber(myBingoCompletedLength.toString());
-            setModalCompletedVisible(true);
         }
     };
 
@@ -378,18 +389,13 @@ const PlayBoard: React.FC = () => {
         dispatch(setBingoCellStatus(newCellStatus));
 
         if (isCompleted) {
-            setCompleted(true);
-
             const cellValueJson = JSON.stringify(bingoCellValue);
             const cellStatusJson = JSON.stringify(newCellStatus);
             if (authUser.uid) {
                 setBingoCompletedPlayer({ uid: authUser.uid, gameRoomId: gameRoomId, cellStatus: cellStatusJson, cellValue: cellValueJson });
             }
 
-            const myBingoCompletedLength = bingoCompleted.length + 1;
-            setBingoCompletedNumber(myBingoCompletedLength.toString());
 
-            setModalCompletedVisible(true);
         }
     };
 
@@ -401,8 +407,8 @@ const PlayBoard: React.FC = () => {
         );
     };
 
-    const renderColumn = (rowNum: number, columnNum: number, isModal: boolean): JSX.Element => {
-        const cellValue = bingoCellValue[rowNum][columnNum];
+    const renderColumn = (rowNum: number, columnNum: number, cellStatus: number[][], cellValues: BingoCellValues, isModal: boolean): JSX.Element => {
+        const cellValue = cellValues[rowNum][columnNum];
         const cellStatusValue = cellStatus[rowNum][columnNum];
 
         let dynamicStyle = styles.normal;
@@ -421,7 +427,7 @@ const PlayBoard: React.FC = () => {
         }
 
         let canClick = true;
-        if (cellStatusValue == 1 || completed || !bingoMyTurn) {
+        if (cellStatusValue == 1 || completed || !bingoMyTurn || isModal) {
             canClick = false;
         }
 
@@ -465,15 +471,16 @@ const PlayBoard: React.FC = () => {
     //   );
     // };
 
-    const bingoCardLayout = (isModal: boolean) => createBingoCard(
-        bingoCellValue,
+    const bingoCardLayout = (cellStatus:number[][], cellValues: BingoCellValues, isModal: boolean) => createBingoCard(
+        cellStatus,
+        cellValues,
         renderRow,
         renderColumn,
         isModal
     );
 
-    const BingoBoard = (isModal: boolean): JSX.Element => {
-        return <View style={styles.container}>{bingoCardLayout(isModal)}</View>;
+    const BingoBoard = (cellStatus: number[][], cellValues: BingoCellValues, isModal: boolean): JSX.Element => {
+        return <View style={styles.container}>{bingoCardLayout(cellStatus, cellValues, isModal)}</View>;
     };
 
     return (
@@ -489,11 +496,11 @@ const PlayBoard: React.FC = () => {
                     zIndex: 100,
                 }}
             >
-                {bingoCompletedMessages.map((item, index) => (
+                {bingoCompletedMessagesObj.map((item, index) => (
                     <View key={index} style={{ width: '100%', flex: 1, alignItems: "center" }}>
                         <CustomNotifier
-                            title=""
-                            description={item}
+                            item = {item}
+                            description={item?.message}
                             onPress={() => closeNotification(item)}
                         />
                     </View>
@@ -557,7 +564,7 @@ const PlayBoard: React.FC = () => {
                         />
                         {modalCompletedVisible && (
                             <View style={styles.boardContainerOutModal}>
-                                <View style={styles.boardContainerModal}>{BingoBoard(true)}</View>
+                                <View style={styles.boardContainerModal}>{BingoBoard(cellStatus, bingoCellValue, true)}</View>
                             </View>
                         )}
                         <View
@@ -584,12 +591,6 @@ const PlayBoard: React.FC = () => {
                                 <Icon name="times" size={20} color="white" />
                             </View>
                         </TouchableOpacity>
-                        {/* <TouchableOpacity
-              style={styles.modalOkBtn}
-              onPress={() => setModalCompletedVisible(false)}
-            >
-              <Text style={styles.modalOkText}> X </Text>
-            </TouchableOpacity> */}
                     </View>
                 </View>
             </Modal>
@@ -629,7 +630,7 @@ const PlayBoard: React.FC = () => {
                         )}
                 </View>
                 <View style={styles.boardContainerOut}>
-                    <View style={styles.boardContainer}>{BingoBoard(false)}</View>
+                    <View style={styles.boardContainer}>{BingoBoard(cellStatus, bingoCellValue, false)}</View>
                 </View>
             </View>
         </View>

@@ -21,7 +21,7 @@ export interface Player {
     photoURL: string
 }
 
-// --------------------- Function Params -----------------------
+// --------------------- Function Params ---------------------------------------------
 
 /**
  * Represents the parameters for the bingoCheck function. 
@@ -48,6 +48,12 @@ export type setBingoCompletedPlayerParams =  {
 
 export type GameRoomsCallBackFunction = (gameRooms: any[]) => void;
 
+export type BingoCellValues = Array<Array<any>>;
+export type RenderRowFunction = (rowNum: any, columns: Array<any>) => any;
+export type RenderColumnFunction = (rowNum: any, columnNum: any, cellStatus: number[][], cellValues: BingoCellValues, isModal: boolean) => any;
+
+
+// ------------------------------------------------------------------------------
 export interface NavigatorType {
     navigate: (screen: string, params: { isHost: boolean; gameRoomId: string }) => void;
 }

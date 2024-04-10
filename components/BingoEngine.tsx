@@ -1,9 +1,6 @@
 import _ from "lodash";
-import { BingoCheck } from "../utils/Types";
+import { BingoCellValues, BingoCheck, RenderColumnFunction, RenderRowFunction } from "../utils/Types";
 
-type BingoCellValues = Array<Array<any>>;
-type RenderRowFunction = (rowNum: any, columns: Array<any>) => any;
-type RenderColumnFunction = (rowNum: any, columnNum: any, isModal: boolean) => any;
 
 const usaRules = (): number[][] => [
         [1, 15],
@@ -22,7 +19,7 @@ const bingoCellStatusInit = (): number[][] =>
         [0, 0, 0, 0, 0]
     ];
 
-const createBingoCard = (bingoCellValues: BingoCellValues, renderRow: RenderRowFunction, renderColumn: RenderColumnFunction, isModal: boolean): any[] => {
+const createBingoCard = ( bingoCellStatus: number[][], bingoCellValues: BingoCellValues, renderRow: RenderRowFunction, renderColumn: RenderColumnFunction, isModal: boolean): any[] => {
     const rowsCount: number = bingoCellValues.length;
     const columnsCount: number = bingoCellValues[0].length;
     const rows: any[] = [];
@@ -30,12 +27,11 @@ const createBingoCard = (bingoCellValues: BingoCellValues, renderRow: RenderRowF
         const columns: any[] = [];
 
         for (let columnNum = 0; columnNum < columnsCount; columnNum ++) {
-            columns.push(renderColumn(rowNum, columnNum, isModal));
+            columns.push(renderColumn(rowNum, columnNum, bingoCellStatus, bingoCellValues, isModal));
         }
         rows.push(renderRow(rowNum, columns));
     }
-
-    
+   
     return rows;
 };
 
