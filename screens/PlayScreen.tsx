@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { ReactNode, useEffect, useRef, useState } from "react";
 import {
     StyleSheet,
     Text,
@@ -9,6 +9,9 @@ import {
     Dimensions,
     TouchableOpacity,
     Image,
+    Animated,
+    PanResponder,
+    ViewStyle,
 } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { useDispatch, useSelector } from "react-redux";
@@ -58,6 +61,9 @@ const PlayBoard: React.FC = () => {
     const [bingoCompletedObj, setBingoCompletedObj] = useState<any[]>([]);
     const [bingoCompletedNumber, setBingoCompletedNumber] = useState<string>("");
     const [bingoCompletedMessagesObj, setBingoCompletedMessagesObj] = useState<any[]>([]);
+    
+    const [notifyExpand, setNotifyExpand] = useState(false);
+    const [notifyExpandKey, setNotifyExpandKey] = useState(0);
 
     //bingo selected
     const [selectedCellRow, setSelectedCellRow] = useState<number>(0);
@@ -159,7 +165,7 @@ const PlayBoard: React.FC = () => {
                   const newBingoCompletedMessageObj = {
                     rank: rank,
                     uid:  completedPlayerId,
-                    message: newBingoMessage,
+                    displayName: completedPlayer["displayName"],
                     cellStatus: otherPlayerCellstatus,
                     cellValue: otherPlayerCellValue
                   };
@@ -222,27 +228,38 @@ const PlayBoard: React.FC = () => {
 
     interface CustomNotifierProps {
         item: any;
-        description: string;
         onPress: () => void;
     }
 
     const CustomNotifier: React.FC<CustomNotifierProps> = ({
         item,
-        description,
         onPress,
     }) => {
       console.log(item);
         return (
-            <View style={styles.notifierContainer}>
-                <Text style={styles.notifierDescription}>{description}</Text>
-                <TouchableOpacity onPress={onPress} style={styles.notifierButton}>
-                    <Icon name="times" size={20} color="white" />
-                </TouchableOpacity>
-                
-                <View style={styles.boardContainerOutModal}>
-                    <View style={styles.boardContainerModal}>{BingoBoard(item?.cellStatus, item?.cellValue, true)}</View>
+            <DraggableComponent>
+                <View style = { styles.notifierContainer }>
+                    <TouchableOpacity style={{display: 'flex', alignItems: 'center'}} onPress = {() => { if(item?.rank == notifyExpandKey) { setNotifyExpand(!notifyExpand); } else { setNotifyExpand(true) } setNotifyExpandKey(item?.rank)}}>
+                        <Text>
+                            <Text style={[styles.notifierDescription, {fontWeight: 'bold', fontSize: 24, textDecorationLine: 'underline'}]}> {item?.displayName} </Text>
+                            <Text style={styles.notifierDescription}> 様が </Text>
+                            <Text style={[styles.notifierDescription, {fontWeight: 'bold', fontSize: 24, textDecorationLine: 'underline'}]}> {item?.rank + 1}位</Text>
+                            <Text style={styles.notifierDescription}> にビンゴしました。</Text>
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={onPress} style={styles.notifierButton}>
+                        <Icon name="times" size={20} color="white" />
+                    </TouchableOpacity>
+
+                    { (notifyExpand && notifyExpandKey == item?.rank) && 
+                        <View style={{ display: 'flex', alignContent: 'center' }}>
+                            <View style={styles.boardContainerOutModalNot}>
+                                <View style={[styles.boardContainerModalNot]}>{ BingoBoard(item?.cellStatus, item?.cellValue, true) }</View>
+                            </View>
+                        </View>
+                    }
                 </View>
-            </View>
+            </DraggableComponent>
         );
     };
 
@@ -416,7 +433,7 @@ const PlayBoard: React.FC = () => {
             dynamicStyle = isModal ? styles.pressedModal : styles.pressed;
         } else if (cellStatusValue == 2) {
             dynamicStyle = isModal ? styles.bingoCellModal : styles.bingoCell;
-        } else if (selectedCellValue == cellValue) {
+        } else if (selectedCellValue == cellValue && !isModal) {
             dynamicStyle = styles.selectedCell;
         } else {
             dynamicStyle = styles.normal;
@@ -453,7 +470,6 @@ const PlayBoard: React.FC = () => {
     };
 
     const renderCell = (dynamicStyle: any, cellValue: number, isModal: boolean): JSX.Element => {
-        console.log(isModal)
         return (
             <View>
                 <Text style={[dynamicStyle, isModal ? styles.boardSizeModal : styles.boardSize]}>
@@ -480,7 +496,7 @@ const PlayBoard: React.FC = () => {
     );
 
     const BingoBoard = (cellStatus: number[][], cellValues: BingoCellValues, isModal: boolean): JSX.Element => {
-        return <View style={styles.container}>{bingoCardLayout(cellStatus, cellValues, isModal)}</View>;
+        return <View style={{ display: 'flex', backgroundColor: customColors.black, alignContent: 'center' }}>{bingoCardLayout(cellStatus, cellValues, isModal)}</View>;
     };
 
     return (
@@ -500,7 +516,6 @@ const PlayBoard: React.FC = () => {
                     <View key={index} style={{ width: '100%', flex: 1, alignItems: "center" }}>
                         <CustomNotifier
                             item = {item}
-                            description={item?.message}
                             onPress={() => closeNotification(item)}
                         />
                     </View>
@@ -820,7 +835,6 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderRadius: 10,
         padding: viewportWidth * 0.02,
-
         alignItems: "center",
         justifyContent: "center",
         backgroundColor: '#09271b82',
@@ -834,6 +848,27 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         backgroundColor: '#09271b82',
+    },
+
+    boardContainerModalNot: {
+        display: 'flex',
+        borderColor: customColors.white,
+        borderWidth: 2,
+        borderRadius: 10,
+        padding: viewportWidth * 0.02,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: '#5d1f1182',
+    },
+
+    boardContainerOutModalNot: {
+        marginTop: 10,
+        borderRadius: 10,
+        opacity: 0.7,
+        padding: viewportWidth * 0.015,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: '#5d1f1182'
     },
 
     pressed: {
@@ -954,11 +989,10 @@ const styles = StyleSheet.create({
     },
 
     notifierContainer: {
-        backgroundColor: customColors.modalBackgroundColor,
+        backgroundColor: '#373a38',
         padding: 20,
         borderRadius: 10,
-        elevation: 5,
-        width: "90%",
+        width: viewportWidth*0.9,
         alignItems: "center",
         marginBottom: 5,
         borderWidth: 1,
@@ -970,10 +1004,11 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     notifierDescription: {
+        display: 'flex',
         fontSize: 20,
-        // marginBottom: 20,
         color: customColors.white,
     },
+
     notifierButton: {
         alignItems: "center",
         position: "absolute",
@@ -1010,3 +1045,36 @@ const styles = StyleSheet.create({
 });
 
 export default PlayBoard;
+
+interface DraggableComponentProps {
+    children: ReactNode;
+  }
+const DraggableComponent: React.FC<DraggableComponentProps> = ({ children }) => {
+    const pan = useRef(new Animated.ValueXY()).current;
+  
+    const panResponder = PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderMove: Animated.event(
+        [null, { dx: pan.x }],
+        { useNativeDriver: false }
+      ),
+      onPanResponderRelease: () => {
+        Animated.spring(pan, {
+          toValue: {x: 0, y: 0},
+          useNativeDriver: true,
+        }).start();
+      },
+    });
+    return (
+      <View style={{flex: 1, alignContent: 'center', alignItems: 'center', width: '100%'}}>
+        <Animated.View
+          style={{ transform: [{ translateX: pan.x }] }}
+          {...panResponder.panHandlers}
+        >
+          {children}
+        </Animated.View>
+      </View>
+    );
+  };
+  
+//   export default DraggableComponent;
