@@ -377,11 +377,15 @@ const PlayBoard: React.FC = () => {
     };
 
     const handleSetNumberClick = () => {
+        if(!selectedCellValue) {
+            return false;
+        }
         dispatch(setBingoNextNumber(selectedCellValue));
 
         const cellStatusValues = cellStatus;
         const rowIndex = selectedCellRow;
         const colIndex = selectedCellColumn;
+
         let newCellStatusValues = cellStatusValues.map((row, i) => {
             if (i === rowIndex) {
                 return row.map((col, j) => (j === colIndex ? 1 : col)); // Change the value at the specific index
@@ -424,23 +428,32 @@ const PlayBoard: React.FC = () => {
         );
     };
 
+    const getCellStyle = (cellType: string) : any => {
+        if(cellType) {
+            return styles[cellType];
+        }
+        return ''
+    }
+
     const renderColumn = (rowNum: number, columnNum: number, cellStatus: number[][], cellValues: BingoCellValues, isModal: boolean): JSX.Element => {
         const cellValue = cellValues[rowNum][columnNum];
         const cellStatusValue = cellStatus[rowNum][columnNum];
 
-        let dynamicStyle = styles.normal;
-        if (cellStatusValue === 1) {
-            dynamicStyle = isModal ? styles.pressedModal : styles.pressed;
-        } else if (cellStatusValue == 2) {
-            dynamicStyle = isModal ? styles.bingoCellModal : styles.bingoCell;
-        } else if (selectedCellValue == cellValue && !isModal) {
-            dynamicStyle = styles.selectedCell;
+        let cellType = "";
+
+        if(cellStatusValue === 1) {
+            cellType = isModal ? 'pressedModal' : 'pressed'
+        } else if(cellStatusValue == 2) {
+            cellType = isModal ? 'bingoCellModal' : 'bingoCell'
+        } else if(selectedCellValue == cellValue && !isModal) {
+            cellType = 'selectedCell'
         } else {
-            dynamicStyle = styles.normal;
+            cellType = 'normal'
         }
 
+
         if (cellStatusValue === -1) {
-            return <View key={cellValue}>{renderCell(dynamicStyle, cellValue, isModal)}</View>;
+            return <View key={cellValue}>{renderCell(cellType, cellValue, isModal)}</View>;
         }
 
         let canClick = true;
@@ -456,7 +469,7 @@ const PlayBoard: React.FC = () => {
                 }
             >
                 {/* {animatedCell(dynamicStyle, cellValue)} */}
-                {renderCell(dynamicStyle, cellValue, isModal)}
+                {renderCell(cellType, cellValue, isModal)}
             </TouchableOpacity>
         ) : (
                 <View
@@ -464,14 +477,20 @@ const PlayBoard: React.FC = () => {
                     key={cellValue}
                 >
                     {/* {animatedCell(dynamicStyle, cellValue)} */}
-                    {renderCell(dynamicStyle, cellValue, isModal)}
+                    {renderCell(cellType, cellValue, isModal)}
                 </View>
             );
     };
 
-    const renderCell = (dynamicStyle: any, cellValue: number, isModal: boolean): JSX.Element => {
+    const renderCell = (cellType: string, cellValue: number, isModal: boolean): JSX.Element => {
+        const dynamicStyle = getCellStyle(cellType);
+
         return (
-            <View style={[isModal ? styles.boardSizeModal : styles.boardSize]}>
+            <View style={[isModal ? styles.boardSizeModal : styles.boardSize, {borderWidth: 1, borderColor: customColors.blackGrey, borderRadius: 10}]}>
+                
+                {/* { <View style={{position: 'absolute', top: '0%'}}>
+                    <Icon name="star" size={60} color="white" />
+                </View>} */}
                 <Text style={[dynamicStyle]}>
                     {cellValue}
                 </Text>
@@ -632,21 +651,25 @@ const PlayBoard: React.FC = () => {
                 </View>
 
                 <Text style={styles.turnText}>{turnText}</Text>
-                <View style={styles.numberBtnContainer}>
-                    {bingoMyTurn && selectedCellValue ? (
-                        <TouchableOpacity
-                            style={styles.passBtn}
-                            onPress={handleSetNumberClick}
-                        >
-                            <Text style={styles.passBtnText}> 決定 </Text>
-                        </TouchableOpacity>
-                    ) : (
-                            ""
-                        )}
+                
+                <View style={{position: 'absolute', bottom: 0 }}>
+                    <View style={{ flex: 1, alignItems: 'center' }}>
+                        {bingoMyTurn ? (
+                            <TouchableOpacity
+                                style={styles.passBtn}
+                                onPress={handleSetNumberClick}
+                            >
+                                <Text style={styles.passBtnText}> 決定 </Text>
+                            </TouchableOpacity>
+                        ) : (
+                                ""
+                            )}
+                    </View>
+                    <View style={styles.boardContainerOut}>
+                        <View style={styles.boardContainer}>{BingoBoard(cellStatus, bingoCellValue, false)}</View>
+                    </View>
                 </View>
-                <View style={styles.boardContainerOut}>
-                    <View style={styles.boardContainer}>{BingoBoard(cellStatus, bingoCellValue, false)}</View>
-                </View>
+                
             </View>
         </View>
     );
@@ -787,10 +810,7 @@ const styles = StyleSheet.create({
         textAlign: "center",
         marginBottom: 20,
     },
-    numberBtnContainer: {
-        height: "10%",
-        width: "20%",
-    },
+
     passBtn: {
         backgroundColor: customColors.blackGreen,
         paddingVertical: 8,
@@ -798,9 +818,10 @@ const styles = StyleSheet.create({
         padding: 4,
         marginHorizontal: 4,
         marginVertical: 4,
-        borderRadius: 6,
+        borderRadius: 30,
         borderWidth: 1,
         borderColor: customColors.white,
+        width: viewportWidth* 0.4
     },
     passBtnText: {
         fontSize: 16,
@@ -820,8 +841,8 @@ const styles = StyleSheet.create({
     },
 
     boardContainerOut: {
-        position: "absolute",
-        bottom: viewportHeight * 0.01,
+        // position: "absolute",
+        // bottom: viewportHeight * 0.01,
         borderRadius: 10,
         padding: viewportWidth * 0.015,
         alignItems: "center",
@@ -871,31 +892,33 @@ const styles = StyleSheet.create({
     },
 
     pressed: {
-        width: '100%',
-        height: '100%',
+        width: '86%',
+        height: '86%',
+        margin: '7%',
         padding: 8,
         borderWidth: 1,
-        borderRadius: 5,
+        borderRadius: 80,
         textAlign: "center",
-        fontSize: viewportWidth * 0.09,
+        fontSize: viewportWidth * 0.07,
         fontWeight: "700",
         color: "#c45600",
-        borderColor: customColors.white,
+        borderColor: '#c45600',
         textAlignVertical: "center",
         backgroundColor: "#d8d2cdeb",
     },
 
     pressedModal: {
-        width: '100%',
-        height: '100%',
+        width: '86%',
+        height: '86%',
+        margin: '7%',
         padding: 8,
         borderWidth: 1,
-        borderRadius: 5,
+        borderRadius: 80,
         textAlign: "center",
-        fontSize: viewportWidth * 0.08,
+        fontSize: viewportWidth * 0.06,
         fontWeight: "700",
         color: "#c45600",
-        borderColor: customColors.white,
+        borderColor: '#c45600',
         textAlignVertical: "center",
         backgroundColor: "#d8d2cdeb",
     },
