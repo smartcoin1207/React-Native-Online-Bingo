@@ -471,8 +471,8 @@ const PlayBoard: React.FC = () => {
 
     const renderCell = (dynamicStyle: any, cellValue: number, isModal: boolean): JSX.Element => {
         return (
-            <View>
-                <Text style={[dynamicStyle, isModal ? styles.boardSizeModal : styles.boardSize]}>
+            <View style={[isModal ? styles.boardSizeModal : styles.boardSize]}>
+                <Text style={[dynamicStyle]}>
                     {cellValue}
                 </Text>
             </View>
@@ -814,7 +814,6 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderRadius: 10,
         padding: viewportWidth * 0.02,
-
         alignItems: "center",
         justifyContent: "center",
         backgroundColor: '#09271b82',
@@ -872,6 +871,8 @@ const styles = StyleSheet.create({
     },
 
     pressed: {
+        width: '100%',
+        height: '100%',
         padding: 8,
         borderWidth: 1,
         borderRadius: 5,
@@ -885,6 +886,8 @@ const styles = StyleSheet.create({
     },
 
     pressedModal: {
+        width: '100%',
+        height: '100%',
         padding: 8,
         borderWidth: 1,
         borderRadius: 5,
@@ -908,6 +911,8 @@ const styles = StyleSheet.create({
     },
 
     normal: {
+        width: '100%',
+        height: '100%',
         padding: 8,
         borderWidth: 1,
         borderRadius: 5,
@@ -916,7 +921,7 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: customColors.white,
         borderColor: customColors.white,
-        textAlignVertical: "center",
+        textAlignVertical: "center"
     },
     TouchableOpacity: {
         padding: 8,
@@ -931,6 +936,10 @@ const styles = StyleSheet.create({
         textAlignVertical: "center",
     },
     selectedCell: {
+        width: '100%',
+        height: '100%',
+        // marginLeft: '0%',
+        // marginTop: '0%',
         padding: 8,
         borderWidth: 2,
         borderRadius: 5,
@@ -942,6 +951,8 @@ const styles = StyleSheet.create({
         textAlignVertical: "center",
     },
     bingoCell: {
+        width: '100%',
+        height: '100%',
         padding: 8,
         borderWidth: 1,
         borderRadius: 5,
