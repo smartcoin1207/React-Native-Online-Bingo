@@ -225,7 +225,8 @@ export const exitGameRoom = async (uid: string, gameRoomId:string, isHost: boole
         const userReference = doc(collection(db, userTable), uid);
         try {
             await updateDoc(docRef, {
-                subscribers: arrayRemove(userReference)
+                subscribers: arrayRemove(userReference),
+                sort: arrayRemove(uid)
             });
         } catch (error) {
             console.error('Error removing user from subscribers:', error);
@@ -283,7 +284,7 @@ export const getGameRoom = (gameRoomId: string, callback: any ) => {
 }
 
 //
-export const startGameRoom = async (gameRoomId: string) => {
+export const startGameBingo = async (gameRoomId: string, turnPlayerId: string) => {
 
     if(!gameRoomId) return false;
     console.log("startGame");
@@ -298,6 +299,9 @@ export const startGameRoom = async (gameRoomId: string) => {
         const bingosCollectionRef = collection(db, bingoTable);
         const newBingoDocRef = doc(bingosCollectionRef, gameRoomId);
         await setDoc(newBingoDocRef, {
+            turnPlayerId: turnPlayerId,
+            turnNumber: 1,
+            bingoCompleted: []
         });
 
         console.log('New document added to "bingos" collection with ID:', newBingoDocRef.id);

@@ -128,6 +128,12 @@ const PlayBoard: React.FC = () => {
         setModalSortVisible(true);
     }, []);
 
+    useEffect(() => {
+        const sort = currentGameRoom?.sort;
+        console.log('sort');
+        console.log(sort);
+    }, [])
+
     //
     useEffect(() => {
         setCellStatus(bingoCellStatus);

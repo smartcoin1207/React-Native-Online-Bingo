@@ -63,11 +63,10 @@ export interface UserState {
     isLoggedIn: boolean
 }
 
-
-
 export interface CurrentGameRoom {
     gameRoomId: string,
-    subscribersPlayers: Player[]
+    subscribersPlayers: Player[],
+    sort: string[]
 }
 
 export interface GameRoomState {

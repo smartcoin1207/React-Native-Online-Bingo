@@ -13,6 +13,7 @@ import {
   Modal,
   TextInput,
 } from "react-native";
+// import DraggableFlatList, {ScaleDecorator} from "react-native-draggable-flatlist";
 import { Avatar, Divider,  Image } from "react-native-elements";
 import { useRoute } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/FontAwesome";
@@ -21,7 +22,7 @@ import {
   exitGameRoom,
   getGameRoom,
   setPlayerGameSort,
-  startGameRoom,
+  startGameBingo,
 } from "../utils/firebase/FirebaseUtil";
 import { GameWaitingRouteParams, Player, User } from "../utils/Types";
 import { useDispatch, useSelector } from "react-redux";
@@ -77,6 +78,18 @@ const GameWaitingScreen = () => {
 
   useEffect(() => {
     console.log(sort)
+    let sortedPlayersTemp: Player[] = [];
+    if(sort) {
+      sort.forEach(sortItem => {
+        const p  = currentGameRoom?.subscribersPlayers.find(player => player.uid === sortItem);
+        if(p) {
+          sortedPlayersTemp.push(p);
+        }
+      });
+  
+      setSortedPlayers(sortedPlayersTemp);
+    }
+
   }, [JSON.stringify(sort)]);
 
   //get bingo room from firebase
@@ -108,7 +121,9 @@ const GameWaitingScreen = () => {
       const currentGameRoom = {
         gameRoomId: gameRoomId,
         subscribersPlayers: gameRoom?.subscribersPlayers,
+        sort: gameRoom?.sort
       };
+
       dispatch(setCurrentGameRoom(currentGameRoom));
       setListLoading(false);
     });
@@ -129,7 +144,10 @@ const GameWaitingScreen = () => {
   }, []);
 
   const startBingo = async () => {
-    await startGameRoom(gameRoomId);
+    const turnPlayerId = sort[0];
+    if(!turnPlayerId) return false;
+    
+    await startGameBingo(gameRoomId, turnPlayerId);
     navigator.navigate("bingo");
   };
 
@@ -337,10 +355,18 @@ const GameWaitingScreen = () => {
         { listLoading ? <ActivityIndicator style={{position: 'absolute', top: '50%'}} size="large" color="#007AFF" /> : "" }
 
         <FlatList
-          data={subscribers}
+          data={ (sortedPlayers.length == subscribers.length) ? sortedPlayers : subscribers}
           renderItem={ renderPlayerItem }
           keyExtractor={(item, index) => index.toString()}
         />
+        
+        {/* <DraggableFlatList 
+          data={subscribers}
+          onDragEnd={({data}) => {}}
+          renderItem={renderPlayerItem}
+          keyExtractor={(item) => item.uid}
+        /> */}
+
       </View>
 
       <View style={styles.btnList}>
