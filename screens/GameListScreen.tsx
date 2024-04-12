@@ -107,7 +107,9 @@ const styles = StyleSheet.create({
     },
     gameBtn: {
         width: '100%',
-        backgroundColor: customColors.blackGreen,
+        backgroundColor: customColors.customDarkBlue,
+        borderWidth: 1,
+        borderColor: customColors.customLightBlue,
         paddingVertical: 8,
         borderRadius: 100,
     },

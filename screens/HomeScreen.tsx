@@ -32,10 +32,10 @@ const HomeScreen: React.FC = () => {
                 <Text style={styles.textTitle}>アカウント登録</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.button2} onPress={() => navigation.navigate('register')}>
-                <Text style={styles.textTitle}>    登録    </Text>
+                <Text style={[styles.textTitle, {letterSpacing: 12}]}>　登録　</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.button2} onPress={() => navigation.navigate('login')}>
-                <Text style={styles.textTitle}>  　ログイン　  </Text>
+                <Text style={styles.textTitle}> 　ログイン　 </Text>
             </TouchableOpacity>
         </View>
     );
@@ -61,18 +61,18 @@ const styles = StyleSheet.create({
         color: customColors.white,
     },
     button1: {
-        backgroundColor: customColors.blackGreen,
+        backgroundColor: customColors.customDarkBlue,
         paddingVertical: 10,
         paddingHorizontal: 25,
-        borderColor: customColors.black,
+        borderColor: customColors.customLightBlue,
         borderWidth: 1,
         borderRadius: 15
     },
     button2: {
-        backgroundColor: customColors.blackGreen,
+        backgroundColor: customColors.customDarkBlue,
         paddingVertical: 10,
         paddingHorizontal: 25,
-        borderColor: 'black',
+        borderColor: customColors.customLightBlue,
         borderWidth: 1,
         borderRadius: 15,
         marginTop: cellSize * 0.65

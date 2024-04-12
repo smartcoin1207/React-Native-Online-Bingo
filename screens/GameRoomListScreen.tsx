@@ -24,6 +24,8 @@ import { RootState } from "../store";
 import { setGameRooms } from "../store/reducers/bingo/gameRoomSlice";
 
 import { customColors } from "../utils/Color";
+import { validateRoomPassword, validateRoomTitle } from "../utils/ValidtionUtils";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 const defaultAvatar = require('../assets/images/default1.png');
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
@@ -37,9 +39,10 @@ const GameRoomScreen = () => {
   const [roomModalVisible, setRoomModalVisible] = useState<boolean>(false);
   
   const [isCreateModal, setIsCreateModal] = useState(true);
-  const [gameRoomDisplayName, setGameRoomDisplayName] = useState<string>("");
-  const [gameRoomPasswordDescription, setGameRoomPasswordDescription] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [gameRoomDisplayName, setGameRoomDisplayName] = useState<string>("");
+  const [passwordError, setPasswordError] = useState<string>("");
+  const [titleError, setTitleError] = useState<string>("");
 
   const authUser = useSelector((state: RootState) => state.auth.authUser);
   const [currentJoinGameRoom, setCurrentJoinGameRoom] = useState<GameRoom>({});
@@ -60,16 +63,23 @@ const GameRoomScreen = () => {
     });
   }, []);
 
-
   const createRoomModal = () => {
     setRoomModalVisible(true);
     setIsCreateModal(true);
-
-    setGameRoomPasswordDescription("パスワードを設定してください。 ");
+    setTitleError("");
+    setPasswordError("");
   };
 
   //新しいゲームルームを創造する。 Create new game room.
   const createRoom = async () => {
+    const titleErr = validateRoomTitle(gameRoomDisplayName);
+    const passwordErr = validateRoomPassword(password);
+
+    setTitleError(titleErr || "");
+    setPasswordError(passwordErr || "");
+
+    if(titleErr || passwordErr) return false;
+
     if (createRoomLoading) return false;
 
     if (authUser.uid) {
@@ -89,14 +99,20 @@ const GameRoomScreen = () => {
 
   const joinRoomModal = (item: GameRoom) => {
     if(item) {
+      setPasswordError("");
       setCurrentJoinGameRoom(item);
-      setGameRoomPasswordDescription("パスワードを入力してください。");
       setIsCreateModal(false);
       setRoomModalVisible(true);
     }
   };
 
   const joinRoom = async () => {
+    const passwordErr = validateRoomPassword(password);
+    setPasswordError(passwordErr || "");
+
+    if(passwordErr) return false;
+
+
     const gameRoomItem: GameRoom = currentJoinGameRoom;
     if (createRoomLoading) return false;
 
@@ -129,14 +145,16 @@ const GameRoomScreen = () => {
         } : defaultAvatar}
       />
       <View>
-        <Text style={[styles.nameTitle, { opacity: 0.5, fontSize: 15} ]}>ユーザー名</Text>
+        <Text style={[styles.nameTitle, { opacity: 0.5, fontSize: 12} ]}>ユーザー名</Text>
         <Text style={styles.nameTitle}>{item.displayName}</Text>
       </View>
       <View>
-        <Text style={[styles.nameTitle, { opacity: 0.5, fontSize: 15} ]}>部屋のタイトル</Text>
+        <Text style={[styles.nameTitle, { opacity: 0.5, fontSize: 12} ]}>タイトル</Text>
         <Text style={styles.nameTitle}>{item.displayRoomName}</Text>
       </View>
+      
       <Text style={{position: 'absolute', top: 5, left: 5, fontSize: 18, fontWeight: '500', color: 'white'}}>{item.subscriberNum}</Text>
+      
       <TouchableOpacity style={styles.joinBtn} onPress={() => joinRoomModal(item)}>
         <Text style={styles.joinBtnText}>参加する</Text>
       </TouchableOpacity>
@@ -148,7 +166,7 @@ const GameRoomScreen = () => {
     displayName: string | null | undefined
   ): JSX.Element => {
     return (
-      <View style={[styles.profile, {flexDirection: 'row'}]}>
+      <View style={[styles.profile]}>
         <Avatar
           rounded
           size="large"
@@ -156,14 +174,13 @@ const GameRoomScreen = () => {
             uri: photoURL,
           }: defaultAvatar}
         />
-        <Text style={[styles.textTitle, {marginLeft: 15}]}>{displayName}</Text>
+        <Text style={[styles.textTitle, {fontSize: 20, marginTop: 5}]}>{displayName}</Text>
       </View>
     );
   };
 
   return (
     <View style={styles.container}>
-      {ProfileAvatar(authUser?.photoURL, authUser?.displayName)}
       <Modal
         animationType="fade"
         transparent={true}
@@ -181,11 +198,12 @@ const GameRoomScreen = () => {
           }}
         >
           <View style={styles.modalBody}>
+            <Text style={[styles.modalRoomTitleText, { position: 'absolute', top: -20, padding: 10, paddingHorizontal: 20, borderWidth: 1, borderColor: customColors.blackGrey, borderRadius: 10, backgroundColor: customColors.modalContainerBackgroundColor }]}>
+              { isCreateModal ? 'プレイルーム作成' : 'プレイルームに参加' }
+            </Text>
 
-            {isCreateModal ? (
-              <>
-                <Text style={styles.modalRoomTitleText}>プレイルーム作成</Text>
-                
+            {isCreateModal && (
+              <View style={{marginBottom: 10, width: '100%', alignItems: 'center'}}>
                 <TextInput
                   style={styles.input}
                   placeholder="プレイルーム名"
@@ -193,32 +211,34 @@ const GameRoomScreen = () => {
                   placeholderTextColor={customColors.blackGrey}
                   value={gameRoomDisplayName}
                   onChangeText={(text) => {
-                    // Allow only English letters (both lowercase and uppercase) and numbers
                     setGameRoomDisplayName(text);
                   }}
                 />
-              </>
-            ) : 
-            <Text style={styles.modalRoomTitleText}>プレイルームに参加</Text>
-            }
+                {titleError !== "" && (
+                    <Text style={styles.errText}>{titleError}</Text>
+                )}
+              </View>
+              
+              )
+            } 
             
-            <Text style={styles.modalText}>{gameRoomPasswordDescription}</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="パスワード"
-              autoCapitalize="none"
-              placeholderTextColor = {customColors.blackGrey}
-              value={password}
-              onChangeText={(text) => {
-                // Allow only English letters (both lowercase and uppercase) and numbers
-                setPassword(text);
-              }}
-            />
-            {createRoomLoading ? (
-              <ActivityIndicator size="large" color="#007AFF" />
-            ) : (
-              ""
-            )}
+            {/* <Text style={styles.modalText}>{gameRoomPasswordDescription}</Text> */}
+            <View style={{marginBottom: 10, width: '100%', alignItems: 'center'}}>
+              <TextInput
+                style={styles.input}
+                placeholder="パスワード"
+                autoCapitalize="none"
+                placeholderTextColor = {customColors.blackGrey}
+                value={password}
+                onChangeText={(text) => {
+                  setPassword(text);
+                }}
+              />
+              {passwordError !== "" && (
+                  <Text style={styles.errText}>{passwordError}</Text>
+              )}
+            </View>
+            
             <View style={styles.roomModalBtns}>
               <TouchableOpacity
                 style={styles.modalCancelBtn}
@@ -235,24 +255,35 @@ const GameRoomScreen = () => {
                   style={styles.modalOkBtn}
                   onPress={joinRoom}
                 >
-                  <Text style={styles.roomModalButtonText}> 参加 </Text>
+                  <Text style={[styles.roomModalButtonText, { letterSpacing: 10, paddingHorizontal: 20 }]}>参加</Text>
                 </TouchableOpacity>
               )}
             </View>
+            {createRoomLoading ? (
+              <ActivityIndicator size="large" color="#007AFF" />
+            ) : (
+              ""
+            )}
           </View>
         </View>
       </Modal>
-      <View style={styles.btnList}>
-        <TouchableOpacity style={styles.button} onPress={createRoomModal}>
-          <Text style={styles.textTitle}>プレイルームを作成</Text>
+
+      <View style={{ display: 'flex', alignItems: 'center', width: '90%', padding: 10, backgroundColor: customColors.customDarkBlueBackground, borderRadius: 20, flexDirection: 'row', justifyContent:'space-between' }}>
+        {ProfileAvatar(authUser?.photoURL, authUser?.displayName)}
+
+        <TouchableOpacity style={[styles.button, {flexDirection: 'row', alignSelf: 'center'}]} onPress={createRoomModal}>
+          <View style={{padding: 5}}><Icon name="plus" size={20} color="white" /></View>
+          <Text style={styles.textTitle}> プレイルームを作成</Text>
         </TouchableOpacity>
       </View>
-      <View style={styles.divider} />
-      <Text style={styles.listTitle}>プレイルーム一覧</Text>
-
-      {listLoading ? <ActivityIndicator size="large" color="#007AFF" /> : ""}
-
+      
       <View style={styles.FlatListStyle}>
+        <View style={{ position: 'absolute', top: -20, borderRadius: 10, borderColor: customColors.blackGrey, borderWidth: 0, backgroundColor: customColors.black, paddingVertical: 5, paddingHorizontal: 15 }}>
+          <Text style={styles.listTitle}>プレイルーム一覧</Text>
+        </View>
+
+        {listLoading ? <ActivityIndicator style={{position: 'absolute', top: '50%'}} size="large" color="#007AFF" /> : ""}
+
         <FlatList
           data={gameRooms}
           renderItem={renderGameRoomItem}
@@ -264,41 +295,45 @@ const GameRoomScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  profile: {
-    justifyContent: "center",
-    width: "100%",
-    textAlign: "center",
-    alignItems: "center",
-  },
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: customColors.black,
-    paddingHorizontal: viewportWidth*0.03,
-    paddingVertical: 50,
+    paddingTop: 50,
     width: "100%",
   },
-  btnList: {
-    flexDirection: "row",
+
+  profile: {
+    justifyContent: "center",
+    textAlign: "center",
+    alignItems: "center",
+    backgroundColor: 'black',
+    borderRadius: 20,
+    padding: 10,
+    paddingHorizontal: 20
   },
+  
   button: {
-    backgroundColor: customColors.blackGreen,
-    paddingVertical: 8,
-    paddingHorizontal: 6,
+    backgroundColor: customColors.customDarkBlue,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
     marginHorizontal: 4,
-    marginVertical: 4,
-    marginTop: 10,
     borderRadius: 6,
+    borderWidth: 2,
+    borderColor: customColors.customLightBlue
   },
+
   textTitle: {
-    fontSize: 20,
+    fontSize: 16,
     color: customColors.white,
     fontFamily: "serif",
     fontWeight: "700",
     textAlign: "center",
   },
+
   playerItem: {
+    display:'flex',
     position: 'relative',
     flexDirection: "row",
     justifyContent: "space-between",
@@ -307,11 +342,12 @@ const styles = StyleSheet.create({
     marginVertical: 5,
     padding: 10,
     paddingHorizontal: 20,
-    backgroundColor: '#2f3835b8',
+    backgroundColor: customColors.customDarkBlue,
     borderWidth: 1,
-    borderColor: customColors.blackGrey,
+    borderColor: customColors.customLightBlue,
     borderRadius: 10,
   },
+
   nameTitle: {
     color: customColors.white,
     fontSize: 20,
@@ -321,13 +357,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: customColors.white,
   },
+
   joinBtn: {
-    backgroundColor: customColors.blackGreen,
-    padding: 4,
-    marginHorizontal: 4,
+    display :'flex',
+    backgroundColor: customColors.customLightBlue,
+    padding: 6,
     marginVertical: 4,
     borderRadius: 6,
   },
+
   joinBtnText: {
     fontSize: 16,
     color: customColors.white,
@@ -335,22 +373,28 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     textAlign: "center",
   },
+
   listTitle: {
-    fontSize: 30,
-    color: customColors.white,
+    fontSize: 25,
+    color: "white",
     fontFamily: "serif",
     fontWeight: "700",
     textAlign: "center",
-    marginTop: 30,
   },
+
   FlatListStyle: {
     flex: 1,
-    // borderWidth: 1,
-    // borderColor: customColors.blackGrey,
-    // borderRadius: 8,
-    margin: 5,
-    width: '95%'
+    borderWidth: 1,
+    borderRadius: 30,
+    backgroundColor: customColors.customDarkBlueBackground,
+    width: '100%',
+    alignItems: 'center',
+    paddingTop: 40,
+    paddingHorizontal: 10,
+    marginTop: 30,
+    marginBottom: 10,
   },
+
   divider: {
     borderBottomColor: customColors.blackGrey,
     borderBottomWidth: 1,
@@ -377,13 +421,13 @@ const styles = StyleSheet.create({
     marginBottom: 20
   },
   modalOkBtn: {
-    backgroundColor: customColors.blackGreen,
+    backgroundColor: customColors.customLightBlue,
     paddingVertical: 8,
     paddingHorizontal: 6,
     padding: 4,
     marginHorizontal: 4,
     marginVertical: 4,
-    borderRadius: 6,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: customColors.white,
   },
@@ -394,7 +438,7 @@ const styles = StyleSheet.create({
     padding: 4,
     marginHorizontal: 4,
     marginVertical: 4,
-    borderRadius: 6,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: customColors.white,
   },
@@ -415,17 +459,20 @@ const styles = StyleSheet.create({
   },
   roomModalBtns: {
     flexDirection: "row",
+    width: '80%',
+    justifyContent: 'space-between'
   },
   input: {
     width: "80%",
     fontSize: 15,
     color: customColors.white,
     padding: 5,
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 7,
     borderRadius: 25,
     borderWidth: 1,
     borderColor: customColors.blackGrey,
-    marginBottom: 20,
+    marginTop: 20,
   },
   modalText: {
     fontSize: 16,
@@ -433,6 +480,10 @@ const styles = StyleSheet.create({
     fontFamily: "serif",
     alignItems: 'flex-start',
     marginBottom: 5,
+  },
+  errText: {
+    color: customColors.blackRed,
+    fontSize: 16,
   },
 });
 

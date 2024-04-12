@@ -14,7 +14,7 @@ import {
   Image
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { validateEmail, validatePassword } from '../utils/ValidtionUtils';
+import { validateEmail, validatePassword, validateUsername } from '../utils/ValidtionUtils';
 import { signUpAuthUser, uploadToFirebase } from "../utils/firebase/FirebaseUtil";
 import { RootState } from "../store";
 import * as ImagePicker from 'expo-image-picker';
@@ -35,6 +35,8 @@ const Register: React.FC<LoginScreenProps> = () => {
     const [selectedImage, setSelectedImage] = useState<string>('');
     const [emailError, setEmailError] = useState<string>("");
     const [passwordError, setPasswordError] = useState<string>("");
+    const [nameError, setNameError] = useState<string>("");
+
     const [listLoading, setListLoading] = useState<boolean>(false);
 
     const navigation = useNavigation();
@@ -59,9 +61,12 @@ const Register: React.FC<LoginScreenProps> = () => {
     const handleRegister = async () => {
         const emailErr = validateEmail(email);
         const passwordErr = validatePassword(password);
+        const nameError = validateUsername(username);
     
         setEmailError(emailErr || "");
         setPasswordError(passwordErr || "");
+        setNameError(nameError || "");
+
         let avatarUrl = "";
         if (!emailErr && !passwordErr) {
             setListLoading(true);
@@ -127,6 +132,9 @@ const Register: React.FC<LoginScreenProps> = () => {
                     value={username}
                     onChangeText={(text) => setUsername(text)}
                 />
+                {nameError !== "" && (
+                    <Text style={styles.errText}>{nameError}</Text>
+                )}
                 <TouchableOpacity style={styles.button} onPress={handleRegister}>
                     <Text style={styles.buttonText}>登      録</Text>
                 </TouchableOpacity>
@@ -182,7 +190,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   button: {
-    backgroundColor: customColors.blackGreen,
+    backgroundColor: customColors.customDarkBlue,
+    borderColor: customColors.customLightBlue,
+    borderWidth: 2,
     width: "100%",
     padding: 10,
     borderRadius: 20,
@@ -198,7 +208,6 @@ const styles = StyleSheet.create({
   },
   errText: {
     color: customColors.blackRed,
-    marginBottom: viewportHeight*0.03,
     fontSize: 16,
   },
 });

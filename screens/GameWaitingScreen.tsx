@@ -13,8 +13,9 @@ import {
   Modal,
   TextInput,
 } from "react-native";
-import { Avatar, Icon, Image } from "react-native-elements";
+import { Avatar, Divider,  Image } from "react-native-elements";
 import { useRoute } from "@react-navigation/native";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 import {
   exitGameRoom,
@@ -31,30 +32,36 @@ import { setBingoInitial } from "../store/reducers/bingo/bingoSlice";
 import { customColors } from "../utils/Color";
 import EffectBorder from "../components/EffectBorder";
 
+const { width: viewportWidth, height: viewportHeight } = Dimensions.get("window");
+
 const screenHeight = Dimensions.get("window").height;
 const cellSize = screenHeight / 5;
 const defaultAvatar = require("../assets/images/default1.png");
 
 const GameWaitingScreen = () => {
   const navigator = useNavigation();
-  const [subscribers, setSubscribers] = useState<Player[]>([]);
-
+  const dispatch = useDispatch();
   const route = useRoute();
-  const { isHost, gameRoomId }: GameWaitingRouteParams =
-    route.params as GameWaitingRouteParams;
-  const authUser = useSelector((state: RootState) => state.auth.authUser);
+  const { isHost, gameRoomId }: GameWaitingRouteParams =  route.params as GameWaitingRouteParams;
+
+  const [gameRoomDisplayName, setGameRoomDisplayName] = useState("");
+
+  const [subscribers, setSubscribers] = useState<Player[]>([]);
+  const [sortedPlayers, setSortedPlayers] = useState<Player[]>([]);
+  const [sort, setSort] = useState<string[]>([]);
+
   const [listLoading, setListLoading] = useState<boolean>(false);
   const [exitModalVisible, setExitModalVisible] = useState<boolean>(false);
-  const [gameListModalVisible, setGameListModalVisible] =
-    useState<boolean>(false);
+  const [gameListModalVisible, setGameListModalVisible] = useState<boolean>(false);
 
   const [modalAlertText, setModalAlertText] = useState("");
   const [isExitModal, setIsExitModal] = useState(true);
   const [currentRemoveUserId, setCurrentRemoveUserId] = useState("");
+
+  const authUser = useSelector((state: RootState) => state.auth.authUser);
   const currentGameRoom = useSelector(
     (state: RootState) => state.gameRoom.currentGameRoom
   );
-  const dispatch = useDispatch();
 
   useEffect(() => {
     dispatch(setBingoInitial({ gameRoomId: gameRoomId, isHost: isHost }));
@@ -67,6 +74,10 @@ const GameWaitingScreen = () => {
       setSubscribers([]);
     }
   }, [currentGameRoom]);
+
+  useEffect(() => {
+    console.log(sort)
+  }, [JSON.stringify(sort)]);
 
   //get bingo room from firebase
   useEffect(() => {
@@ -90,6 +101,9 @@ const GameWaitingScreen = () => {
       if (gameRoom?.gameStarted == true) {
         navigator.navigate("bingo");
       }
+
+      setGameRoomDisplayName(gameRoom?.displayRoomName);
+      setSort(gameRoom?.sort);
 
       const currentGameRoom = {
         gameRoomId: gameRoomId,
@@ -159,7 +173,6 @@ const GameWaitingScreen = () => {
 
     const uids1 = uids ? uids : [];
     await setPlayerGameSort(gameRoomId, uids1);
-    // setModalSortVisible(false);
 };
   
   const renderPlayerItem = ({ item }: { item: Player }) => (
@@ -255,15 +268,10 @@ const GameWaitingScreen = () => {
           }}
         >
           <View style={styles.modalBody}>
-            {/* <TouchableOpacity style={styles.modalCloseButton}>
-                                <Icon
-                                    name="fontawesome|facebook-square"
-                                    
-                                >
-                                </Icon>
-                            </TouchableOpacity> */}
-            <Text style={styles.modalText}>ゲームを選択してください。</Text>
-
+          <Text style={[styles.modalText, { position: 'absolute', top: -20, padding: 10, paddingHorizontal: 20, borderWidth: 2, borderColor: customColors.customLightBlue, borderRadius: 10, backgroundColor: customColors.modalContainerBackgroundColor }]}>
+              ゲームを選択してください
+            </Text>
+            {/* <Text style={styles.modalText}>ゲームを選択してください。</Text> */}
             <View style={styles.modalGameListContainer}>
               
               <EffectBorder style={{width: '80%'}}>
@@ -298,18 +306,48 @@ const GameWaitingScreen = () => {
                   <Text style={styles.textTitle}>ゲーム4</Text>
                 </TouchableOpacity>
               </EffectBorder>
-
-              <EffectBorder style={{width: '80%', marginTop: 10}}>
-                <TouchableOpacity style={styles.modalGameListButton} onPress={() => handleRandomSort()}>
-                  <Text style={styles.textTitle}>random sort</Text>
-                </TouchableOpacity>
-              </EffectBorder>
             </View>
           </View>
         </View>
       </Modal>
 
+      <View style={{width: '90%', padding: 20, borderRadius: 20, backgroundColor: customColors.customDarkBlueBackground, alignItems: 'center', flexDirection: 'row', justifyContent: 'space-evenly'}}>
+        <Text style={{fontSize: 20, color: 'grey'}}>
+          タイトル:
+        </Text>
+        <Text style={{fontSize: 30, color: 'white'}}>
+          { gameRoomDisplayName }
+        </Text>
+      </View>
+
+      <View style={styles.FlatListStyle}>
+        <View style={{ position: 'absolute', top: -20, borderRadius: 10, borderColor: customColors.blackGrey, borderWidth: 0, backgroundColor: customColors.black, padding: 5, paddingHorizontal: 15}}>
+          <Text style={styles.listTitle}>ゲームメンバー</Text>
+        </View>
+        { isHost && 
+          <TouchableOpacity 
+            style={{position: 'absolute', top: -25, right: 10, width: 50, height: 50, borderColor: customColors.customLightBlue, borderWidth:1, borderRadius: 25, alignItems:'center', flexDirection: 'row', justifyContent: 'space-around' }}
+            onPress={ () => handleRandomSort() }
+          >
+            <View style={{ padding:5 }}><Icon name="sort" size={30} color={"white"} /></View>
+            {/* <Text style={[styles.listTitle, {fontSize: 20}]}>ソート</Text> */}
+          </TouchableOpacity>
+        }
+        
+        { listLoading ? <ActivityIndicator style={{position: 'absolute', top: '50%'}} size="large" color="#007AFF" /> : "" }
+
+        <FlatList
+          data={subscribers}
+          renderItem={ renderPlayerItem }
+          keyExtractor={(item, index) => index.toString()}
+        />
+      </View>
+
       <View style={styles.btnList}>
+        <TouchableOpacity style={styles.dangeButton} onPress={() => exitRoomModal()}>
+          <Text style={styles.textTitle}>退出する</Text>
+        </TouchableOpacity>
+        
         {isHost && (
           <TouchableOpacity
             style={styles.successButton}
@@ -320,22 +358,6 @@ const GameWaitingScreen = () => {
             <Text style={styles.textTitle}>ゲーム開始</Text>
           </TouchableOpacity>
         )}
-
-        <TouchableOpacity style={styles.dangeButton} onPress={() => exitRoomModal()}>
-          <Text style={styles.textTitle}>退出する</Text>
-        </TouchableOpacity>
-      </View>
-
-      { listLoading ? <ActivityIndicator size="large" color="#007AFF" /> : "" }
-      
-      <View style={styles.FlatListStyle}>
-        <View style={{ position: 'absolute', top: -20, borderRadius: 20, borderColor: customColors.blackGrey, borderWidth: 1, backgroundColor: '#10151fb3' }}><Text style={styles.listTitle}>ゲームメンバー</Text></View>
-
-        <FlatList
-          data={subscribers}
-          renderItem={ renderPlayerItem }
-          keyExtractor={(item, index) => index.toString()}
-        />
       </View>
     </View>
   );
@@ -360,7 +382,11 @@ const styles = StyleSheet.create({
   },
 
   btnList: {
+    width: '100%',
     flexDirection: "row",
+    display: 'flex',
+    justifyContent: 'space-around',
+    paddingHorizontal: 10
   },
   button: {
     backgroundColor: customColors.blackRed,
@@ -371,13 +397,13 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   successButton: {
-    backgroundColor: customColors.blackGreen,
+    backgroundColor: customColors.customLightBlue,
     paddingVertical: 8,
     paddingHorizontal: 6,
     marginHorizontal: 4,
     marginVertical: 4,
     borderRadius: 30,
-    width: '40%'
+    width: '30%'
   },
 
   dangeButton: {
@@ -387,7 +413,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
     marginVertical: 4,
     borderRadius: 30,
-    width: '40%'
+    width: '30%'
   },
   
   textTitle: {
@@ -397,20 +423,18 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     textAlign: "center",
   },
+
   playerItem: {
     flexDirection: "row",
-    justifyContent: "flex-start",
-    alignItems: "center",
     padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-    width: "100%",
-    backgroundColor: '#2f3835b8',
+    width: viewportWidth * 0.96,
+    backgroundColor: customColors.customOpacityDarkBlack,
     borderWidth: 1,
-    borderColor: customColors.blackGrey,
+    borderColor: customColors.customLightBlue,
     borderRadius: 10,
-    marginVertical: 5,
+    marginVertical: 3,
   },
+
   nameTitle: {
     color: "#ffffff",
     fontSize: 20,
@@ -421,13 +445,17 @@ const styles = StyleSheet.create({
   },
   joinBtn: {
     backgroundColor: customColors.blackRed,
-    // paddingVertical: 8,
-    // paddingHorizontal: 6,
-    padding: 4,
+    paddingVertical: 6,
+    paddingHorizontal: 6,
     marginHorizontal: 4,
     marginVertical: 4,
     borderRadius: 6,
+    alignItems: 'center',
+    alignSelf: 'center',
+    right: 5,
+    position: 'absolute'
   },
+
   joinBtnText: {
     fontSize: 16,
     color: "white",
@@ -436,22 +464,29 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   listTitle: {
-    fontSize: 30,
+    fontSize: 25,
     color: "white",
     fontFamily: "serif",
     fontWeight: "700",
     textAlign: "center",
   },
+
   FlatListStyle: {
     flex: 1,
     borderWidth: 1,
-    // borderColor: "gray",
-    borderRadius: 50,
-    backgroundColor: '#10151fb3',
+    borderTopRightRadius: 30,
+    borderTopLeftRadius: 30,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+
+    backgroundColor: customColors.customDarkBlueBackground,
     width: '100%',
     alignItems: 'center',
-    
+    paddingTop: 40,
+    marginTop: 30,
+    marginBottom: 10,
   },
+
   modalBody: {
     justifyContent: "center",
     alignItems: "center",
@@ -521,13 +556,10 @@ const styles = StyleSheet.create({
     width: "90%",
   },
   modalGameListButton: {
-    backgroundColor: customColors.blackGreen,
+    backgroundColor: customColors.customLightBlue,
     paddingVertical: 8,
     paddingHorizontal: 6,
-    // marginHorizontal: 4,
-    // marginVertical: 8,
     borderRadius: 30,
-    // width: "80%",
   },
   modalCloseButton: {
     position: "absolute",
