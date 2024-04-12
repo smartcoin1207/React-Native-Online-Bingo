@@ -12,6 +12,8 @@ import {
     Animated,
     PanResponder,
     ViewStyle,
+    Pressable,
+    ScrollView,
 } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { useDispatch, useSelector } from "react-redux";
@@ -49,7 +51,7 @@ const PlayBoard: React.FC = () => {
     const [modalCompletedVisible, setModalCompletedVisible] = useState(false);
 
     const [modalAlertText, setModalAlertText] = useState("");
-    const [turnText, setTurnText] = useState<string>("");
+    const [turnText, setTurnText] = useState <string>("");
     const [cellStatus, setCellStatus] = React.useState<number[][]>(
         bingoCellStatusInit()
     );
@@ -58,7 +60,7 @@ const PlayBoard: React.FC = () => {
     const [turnPlayerId, setTurnPlayerId] = useState<string>("");
     const [bingoCompleted, setBingoCompleted] = useState<string[]>([]);
     const [bingoNewCompleted, setBingoNewCompleted] = useState<string[]>([]);
-
+    
     const [bingoCompletedObj, setBingoCompletedObj] = useState<any[]>([]);
     const [bingoCompletedNumber, setBingoCompletedNumber] = useState<string>("");
     const [bingoCompletedMessagesObj, setBingoCompletedMessagesObj] = useState<any[]>([]);
@@ -70,6 +72,9 @@ const PlayBoard: React.FC = () => {
     const [selectedCellRow, setSelectedCellRow] = useState<number>(0);
     const [selectedCellColumn, setSelectedCellColumn] = useState<number>(0);
     const [selectedCellValue, setSelectedCellValue] = useState<string>("");
+
+    const [playersOrder, setPlayersOrder] = useState<string[]>([]);
+    const [playerOrderList, setPlayerOrderList] = useState<Player[]>([]);
 
     const authUser = useSelector((state: RootState) => state.auth.authUser);
     const gameRoomId = useSelector((state: RootState) => state.bingo.gameRoomId);
@@ -146,7 +151,7 @@ const PlayBoard: React.FC = () => {
 
             if(authUser.uid == completedPlayerId && completed != true) {
               setCompleted(true);
-              setBingoCompletedNumber((rank+1).toString());
+              setBingoCompletedNumber((rank + 1).toString());
               setModalCompletedVisible(true);
             }
 
@@ -159,7 +164,6 @@ const PlayBoard: React.FC = () => {
                 );
   
                 if (completedPlayer) {
-                  const newBingoMessage = completedPlayer["displayName"] + "さんが" + (rank + 1) + "位ビンゴしました。";
                   const otherPlayerCellstatus = JSON.parse(bingoCompletedObj[rank]?.cellstatus);
                   const otherPlayerCellValue = JSON.parse(bingoCompletedObj[rank]?.cellValue); ;
 
@@ -182,27 +186,48 @@ const PlayBoard: React.FC = () => {
 
     }, [bingoNewCompleted]);
 
+    useEffect(() => {
+        const subscribersPlayers: Player[] = currentGameRoom ?.subscribersPlayers || [];
+        const sorts: string[] = playersOrder;
+        let sortedPlayers: Player[] | any[] = []; // Declare sortedPlayers outside of the if block
+
+        if (subscribersPlayers && subscribersPlayers.length > 0) {
+            sortedPlayers  = sorts.map(uid => subscribersPlayers.find(player => player.uid === uid)).filter(Boolean);
+            setPlayerOrderList(sortedPlayers);
+
+            console.log(sortedPlayers);
+        }
+
+        console.log("playesrOrder effect");
+        console.log(playersOrder)
+    }, [JSON.stringify(playersOrder)]);
+
     //リアルタイムfirestoreから該当するビンゴゲームデータを取得する
     useEffect(() => {
         getBingo(gameRoomId, (bingo: any) => {
-            const sort: string[] = bingo ?.sort;
-
+            console.log(gameRoomId);
             if (bingo ?.sort) {
                 setModalSortVisible(false);
 
                 const sort: string[] = bingo ?.sort;
                 const turnPlayerId: string = bingo ?.turnPlayerId;
                 const bingoMyTurn: boolean = turnPlayerId == authUser.uid;
-                const subscribersPlayers: Player[] | undefined =
-                    currentGameRoom ?.subscribersPlayers;
+                const subscribersPlayers: Player[] | undefined = currentGameRoom ?.subscribersPlayers;
                 const bingoCompletedFirestore: string[] = bingo ?.bingoCompleted;
                 const bingoCompletedObj: any[] = bingo?.bingoCompletedObj;
+
                 const bingoInfo = {
                     bingoMyTurn: bingoMyTurn,
                     sort: sort,
                     bingoNextNumber: bingo ?.bingoNextNumber || "",
                     turnNumber: bingo ?.turnNumber,
                 };
+
+                if(playersOrder.length === 0 && sort.length  > 0 ) {
+                    console.log("playersorder")
+                    console.log(playersOrder);
+                    setPlayersOrder(sort);
+                }
 
                 setBingoCompletedObj(bingoCompletedObj);
                 setBingoNewCompleted(bingoCompletedFirestore);
@@ -289,19 +314,19 @@ const PlayBoard: React.FC = () => {
         }
     };
 
-    const handleRandomSort = async () => {
-        const subscribersPlayers = currentGameRoom ?.subscribersPlayers;
-        const uids = subscribersPlayers ?.map((player) => {
-            return player.uid;
-        });
+    // const handleRandomSort = async () => {
+    //     const subscribersPlayers = currentGameRoom ?.subscribersPlayers;
+    //     const uids = subscribersPlayers ?.map((player) => {
+    //         return player.uid;
+    //     });
 
-        const randomSort = () => Math.random() - 0.5;
-        uids ?.sort(randomSort);
+    //     const randomSort = () => Math.random() - 0.5;
+    //     uids ?.sort(randomSort);
 
-        const uids1 = uids ? uids : [];
-        await setPlayerGameSort(gameRoomId, uids1);
-        setModalSortVisible(false);
-    };
+    //     const uids1 = uids ? uids : [];
+    //     await setPlayerGameSort(gameRoomId, uids1);
+    //     setModalSortVisible(false);
+    // };
 
     const handleCellClick = (
         rowNum: number,
@@ -416,8 +441,6 @@ const PlayBoard: React.FC = () => {
             if (authUser.uid) {
                 setBingoCompletedPlayer({ uid: authUser.uid, gameRoomId: gameRoomId, cellStatus: cellStatusJson, cellValue: cellValueJson });
             }
-
-
         }
     };
 
@@ -433,6 +456,7 @@ const PlayBoard: React.FC = () => {
         if(cellType) {
             return styles[cellType];
         }
+
         return ''
     }
 
@@ -518,6 +542,24 @@ const PlayBoard: React.FC = () => {
         return <View style={{ display: 'flex', backgroundColor: customColors.black, alignContent: 'center' }}>{bingoCardLayout(cellStatus, cellValues, isModal)}</View>;
     };
 
+    const ShowOrder = () => {
+
+        return (
+            <View style={{ position: 'absolute', left: 5, top: viewportWidth * 0.2 + viewportHeight* 0.05 + 10 , width: '25%', height: (viewportHeight - viewportWidth * 1.2 - viewportHeight * 0.05-10),  borderWidth: 1, borderColor: customColors.blackGrey, borderRadius: 10}}>
+                <ScrollView >
+                    <View style={{alignItems: 'center', padding: 5}}>
+                        {playerOrderList.map((player, index) => (
+                            <View style={{ flexDirection: 'row', marginBottom: 5 }}>
+                                <View style={{ borderWidth: 1, borderRadius: 20,  borderColor: turnPlayerId == player.uid ?  customColors.blackGreen : customColors.blackGrey, padding: 5, paddingVertical: 5, marginRight: 5 }}><Text style={{color: 'white', fontSize: 10}}>{index + 1}</Text></View>
+                                <View style={{ padding: 2, borderRadius: 2, borderWidth: 1, borderColor: turnPlayerId == player.uid ?  customColors.blackGreen : customColors.blackGrey }}><Text style={{ color: 'white' }}>{player.displayName}</Text></View>
+                            </View>
+                        ))}
+                    </View>
+                </ScrollView>
+            </View>
+        )
+    }
+
     return (
         <View style={[styles.container, { paddingTop: '5%' }]}>
             <View
@@ -541,7 +583,7 @@ const PlayBoard: React.FC = () => {
                 ))}
             </View>
 
-            <Modal
+            {/* <Modal
                 animationType="fade"
                 transparent={true}
                 visible={modalSortVisible}
@@ -561,7 +603,7 @@ const PlayBoard: React.FC = () => {
                         <Text style={styles.modalText}>{modalAlertText}</Text>
                         {isHost ? (
                             <View style={styles.roomModalBtns}>
-                                <EffectBorder style={{width: '40%'}}>
+                                <EffectBorder style={{width: '50%'}}>
                                     <TouchableOpacity
                                         style={styles.modalOkBtn}
                                         onPress={handleRandomSort}
@@ -576,7 +618,7 @@ const PlayBoard: React.FC = () => {
                             )}
                     </View>
                 </View>
-            </Modal>
+            </Modal> */}
 
             <Modal
                 animationType="fade"
@@ -633,7 +675,10 @@ const PlayBoard: React.FC = () => {
             </Modal>
 
             <Text style={styles.title}>BINGO</Text>
+            <ShowOrder />
+
             <View style={styles.container}>
+
                 <View style={styles.row}>
                     <View style={styles.randomContainer}>
                         <Text style={styles.selected}>{bingoPrevNumber}</Text>
@@ -675,7 +720,6 @@ const PlayBoard: React.FC = () => {
                         <View style={styles.boardContainer}>{BingoBoard(cellStatus, bingoCellValue, false)}</View>
                     </View>
                 </View>
-                
             </View>
         </View>
     );

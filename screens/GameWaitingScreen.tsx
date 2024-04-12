@@ -19,6 +19,7 @@ import { useRoute } from "@react-navigation/native";
 import {
   exitGameRoom,
   getGameRoom,
+  setPlayerGameSort,
   startGameRoom,
 } from "../utils/firebase/FirebaseUtil";
 import { GameWaitingRouteParams, Player, User } from "../utils/Types";
@@ -146,6 +147,20 @@ const GameWaitingScreen = () => {
     setCurrentRemoveUserId(uid);
     setModalAlertText("このユーザーをエクスポートしますか？");
   };
+
+  const handleRandomSort = async () => {
+    const subscribersPlayers = currentGameRoom ?.subscribersPlayers;
+    const uids = subscribersPlayers ?.map((player) => {
+        return player.uid;
+    });
+
+    const randomSort = () => Math.random() - 0.5;
+    uids ?.sort(randomSort);
+
+    const uids1 = uids ? uids : [];
+    await setPlayerGameSort(gameRoomId, uids1);
+    // setModalSortVisible(false);
+};
   
   const renderPlayerItem = ({ item }: { item: Player }) => (
     <TouchableOpacity style={styles.playerItem} activeOpacity={0.5}>
@@ -177,30 +192,9 @@ const GameWaitingScreen = () => {
     </TouchableOpacity>
   );
 
-  const ProfileAvatar = (
-    imageUrl: string,
-    displayName: string | null | undefined
-  ): JSX.Element => {
-    return (
-      <View style={styles.profile}>
-        <Avatar
-          rounded
-          size="large"
-          source={
-            imageUrl
-              ? {
-                  uri: imageUrl,
-                }
-              : defaultAvatar
-          }
-        />
-        {/* <Text style={styles.textTitle}>{displayName}</Text> */}
-      </View>
-    );
-  };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container]}>
       <Modal
         animationType="fade"
         transparent={true}
@@ -304,11 +298,16 @@ const GameWaitingScreen = () => {
                   <Text style={styles.textTitle}>ゲーム4</Text>
                 </TouchableOpacity>
               </EffectBorder>
+
+              <EffectBorder style={{width: '80%', marginTop: 10}}>
+                <TouchableOpacity style={styles.modalGameListButton} onPress={() => handleRandomSort()}>
+                  <Text style={styles.textTitle}>random sort</Text>
+                </TouchableOpacity>
+              </EffectBorder>
             </View>
           </View>
         </View>
       </Modal>
-      {ProfileAvatar(authUser?.photoURL || '', authUser?.displayName)}
 
       <View style={styles.btnList}>
         {isHost && (
@@ -327,14 +326,14 @@ const GameWaitingScreen = () => {
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.listTitle}>ゲームメンバー</Text>
-
-      {listLoading ? <ActivityIndicator size="large" color="#007AFF" /> : ""}
-
+      { listLoading ? <ActivityIndicator size="large" color="#007AFF" /> : "" }
+      
       <View style={styles.FlatListStyle}>
+        <View style={{ position: 'absolute', top: -20, borderRadius: 20, borderColor: customColors.blackGrey, borderWidth: 1, backgroundColor: '#10151fb3' }}><Text style={styles.listTitle}>ゲームメンバー</Text></View>
+
         <FlatList
           data={subscribers}
-          renderItem={renderPlayerItem}
+          renderItem={ renderPlayerItem }
           keyExtractor={(item, index) => index.toString()}
         />
       </View>
@@ -343,6 +342,15 @@ const GameWaitingScreen = () => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "black",
+    paddingTop: 50,
+    width: "100%",
+  },
+
   profile: {
     flexDirection: "row",
     justifyContent: "center",
@@ -350,15 +358,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     alignItems: "center",
   },
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "black",
-    paddingHorizontal: 15,
-    paddingVertical: 50,
-    width: "100%",
-  },
+
   btnList: {
     flexDirection: "row",
   },
@@ -410,7 +410,6 @@ const styles = StyleSheet.create({
     borderColor: customColors.blackGrey,
     borderRadius: 10,
     marginVertical: 5,
-
   },
   nameTitle: {
     color: "#ffffff",
@@ -442,15 +441,16 @@ const styles = StyleSheet.create({
     fontFamily: "serif",
     fontWeight: "700",
     textAlign: "center",
-    marginTop: 30,
   },
   FlatListStyle: {
     flex: 1,
-    // borderWidth: 1,
+    borderWidth: 1,
     // borderColor: "gray",
-    // borderRadius: 8,
-    width: '95%',
-    margin: 5,
+    borderRadius: 50,
+    backgroundColor: '#10151fb3',
+    width: '100%',
+    alignItems: 'center',
+    
   },
   modalBody: {
     justifyContent: "center",
