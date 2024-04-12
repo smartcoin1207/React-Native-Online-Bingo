@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import {
   View,
@@ -28,6 +28,7 @@ import { setCurrentGameRoom } from "../store/reducers/bingo/gameRoomSlice";
 import { remove } from "lodash";
 import { setBingoInitial } from "../store/reducers/bingo/bingoSlice";
 import { customColors } from "../utils/Color";
+import EffectBorder from "../components/EffectBorder";
 
 const screenHeight = Dimensions.get("window").height;
 const cellSize = screenHeight / 5;
@@ -118,7 +119,6 @@ const GameWaitingScreen = () => {
   };
 
   const exitRoom = () => {
-    console.log("xxxx");
     if (authUser.uid) {
       navigator.navigate("gameRoomList");
       setExitModalVisible(false);
@@ -160,7 +160,11 @@ const GameWaitingScreen = () => {
             : defaultAvatar
         }
       />
-      <Text style={styles.nameTitle}>{item.displayName}</Text>
+
+      <View style={{ marginLeft: '20%' }}>
+        <Text style={[styles.nameTitle, { opacity: 0.5, fontSize: 15} ]}>ユーザー名</Text>
+        <Text style={styles.nameTitle}>{item.displayName}</Text>
+      </View>
 
       {isHost && item.uid != authUser.uid && (
         <TouchableOpacity
@@ -267,29 +271,44 @@ const GameWaitingScreen = () => {
             <Text style={styles.modalText}>ゲームを選択してください。</Text>
 
             <View style={styles.modalGameListContainer}>
-              <TouchableOpacity
-                style={styles.modalGameListButton}
-                onPress={() => startBingo()}
-              >
-                <Text style={styles.textTitle}>ビンゴ</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalGameListButton}>
-                <Text style={styles.textTitle}>ゲーム1</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalGameListButton}>
-                <Text style={styles.textTitle}>ゲーム2</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalGameListButton}>
-                <Text style={styles.textTitle}>ゲーム3</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalGameListButton}>
-                <Text style={styles.textTitle}>ゲーム4</Text>
-              </TouchableOpacity>
+              
+              <EffectBorder style={{width: '80%'}}>
+                <TouchableOpacity
+                  style={styles.modalGameListButton}
+                  onPress={() => startBingo()}
+                >
+                  <Text style={styles.textTitle}>ビンゴ</Text>
+                </TouchableOpacity>
+              </EffectBorder>
+
+              <EffectBorder style={{width: '80%', marginTop: 10}}>
+                <TouchableOpacity style={styles.modalGameListButton}>
+                  <Text style={styles.textTitle}>ゲーム1</Text>
+                </TouchableOpacity>
+              </EffectBorder>
+                   
+              <EffectBorder style={{width: '80%', marginTop: 10}}>
+                <TouchableOpacity style={styles.modalGameListButton}>
+                  <Text style={styles.textTitle}>ゲーム2</Text>
+                </TouchableOpacity>
+              </EffectBorder>
+              
+              <EffectBorder style={{width: '80%', marginTop: 10}}>
+                <TouchableOpacity style={styles.modalGameListButton}>
+                  <Text style={styles.textTitle}>ゲーム3</Text>
+                </TouchableOpacity>
+              </EffectBorder>
+              
+              <EffectBorder style={{width: '80%', marginTop: 10}}>
+                <TouchableOpacity style={styles.modalGameListButton}>
+                  <Text style={styles.textTitle}>ゲーム4</Text>
+                </TouchableOpacity>
+              </EffectBorder>
             </View>
           </View>
         </View>
       </Modal>
-      {ProfileAvatar(authUser?.photoURL, authUser?.displayName)}
+      {ProfileAvatar(authUser?.photoURL || '', authUser?.displayName)}
 
       <View style={styles.btnList}>
         {isHost && (
@@ -303,7 +322,7 @@ const GameWaitingScreen = () => {
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity style={styles.button} onPress={() => exitRoomModal()}>
+        <TouchableOpacity style={styles.dangeButton} onPress={() => exitRoomModal()}>
           <Text style={styles.textTitle}>退出する</Text>
         </TouchableOpacity>
       </View>
@@ -357,8 +376,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     marginHorizontal: 4,
     marginVertical: 4,
-    borderRadius: 6,
+    borderRadius: 30,
+    width: '40%'
   },
+
+  dangeButton: {
+    backgroundColor: customColors.blackRed,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    marginHorizontal: 4,
+    marginVertical: 4,
+    borderRadius: 30,
+    width: '40%'
+  },
+  
   textTitle: {
     fontSize: 20,
     color: "white",
@@ -368,16 +399,22 @@ const styles = StyleSheet.create({
   },
   playerItem: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     alignItems: "center",
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#ccc",
     width: "100%",
+    backgroundColor: '#2f3835b8',
+    borderWidth: 1,
+    borderColor: customColors.blackGrey,
+    borderRadius: 10,
+    marginVertical: 5,
+
   },
   nameTitle: {
     color: "#ffffff",
-    fontSize: 18,
+    fontSize: 20,
   },
   ItemStatus: {
     fontSize: 15,
@@ -400,7 +437,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   listTitle: {
-    fontSize: 20,
+    fontSize: 30,
     color: "white",
     fontFamily: "serif",
     fontWeight: "700",
@@ -409,9 +446,10 @@ const styles = StyleSheet.create({
   },
   FlatListStyle: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: "gray",
-    borderRadius: 8,
+    // borderWidth: 1,
+    // borderColor: "gray",
+    // borderRadius: 8,
+    width: '95%',
     margin: 5,
   },
   modalBody: {
@@ -467,7 +505,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   modalText: {
-    fontSize: 16,
+    fontSize: 20,
     color: "white",
     fontFamily: "serif",
     fontWeight: "700",
@@ -486,15 +524,22 @@ const styles = StyleSheet.create({
     backgroundColor: customColors.blackGreen,
     paddingVertical: 8,
     paddingHorizontal: 6,
-    marginHorizontal: 4,
-    marginVertical: 8,
-    borderRadius: 10,
-    width: "80%",
+    // marginHorizontal: 4,
+    // marginVertical: 8,
+    borderRadius: 30,
+    // width: "80%",
   },
   modalCloseButton: {
     position: "absolute",
     color: "green",
   },
+
+  outBorder: {
+    borderColor: 'red',
+    borderWidth: 2,
+    
+  }
 });
 
 export default GameWaitingScreen;
+

@@ -44,6 +44,8 @@
     "react-native": {
       "crashlytics_debug_enabled": true
     },
-    "owner": "nikita-popcorn"
-  }
+    "owner": "nikita-popcorn",
+    "sdkVersion": "50.0.0"
+  },
+  "name": "com.minibase.bingo1"
 }

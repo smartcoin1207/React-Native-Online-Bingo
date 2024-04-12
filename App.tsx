@@ -25,6 +25,7 @@ if (Platform.OS === 'android') {
   StatusBar.setTranslucent(true);
   StatusBar.setBackgroundColor('transparent');
 }
+
 function App(): JSX.Element {
   return (
     <Provider store={store}>

@@ -119,21 +119,28 @@ const GameRoomScreen = () => {
   };
 
   const renderGameRoomItem = ({ item }: { item: GameRoom }) => (
-    <View style={styles.playerItem}>
+    <TouchableOpacity activeOpacity={0.7} style={styles.playerItem}>
       <Avatar
         rounded
         size="medium"
-        avatarStyle={{height: '100%', width: '100%'}}
+        avatarStyle={{ height: '100%', width: '100%' }}
         source={ item.photoURL ?  {
           uri: item.photoURL,
         } : defaultAvatar}
       />
-      <Text style={styles.nameTitle}>{item.displayRoomName}</Text>
-      <Text style={styles.nameTitle}>{item.subscriberNum}</Text>
+      <View>
+        <Text style={[styles.nameTitle, { opacity: 0.5, fontSize: 15} ]}>ユーザー名</Text>
+        <Text style={styles.nameTitle}>{item.displayName}</Text>
+      </View>
+      <View>
+        <Text style={[styles.nameTitle, { opacity: 0.5, fontSize: 15} ]}>部屋のタイトル</Text>
+        <Text style={styles.nameTitle}>{item.displayRoomName}</Text>
+      </View>
+      <Text style={{position: 'absolute', top: 5, left: 5, fontSize: 18, fontWeight: '500', color: 'white'}}>{item.subscriberNum}</Text>
       <TouchableOpacity style={styles.joinBtn} onPress={() => joinRoomModal(item)}>
         <Text style={styles.joinBtnText}>参加する</Text>
       </TouchableOpacity>
-    </View>
+    </TouchableOpacity>
   );
 
   const ProfileAvatar = (
@@ -141,7 +148,7 @@ const GameRoomScreen = () => {
     displayName: string | null | undefined
   ): JSX.Element => {
     return (
-      <View style={styles.profile}>
+      <View style={[styles.profile, {flexDirection: 'row'}]}>
         <Avatar
           rounded
           size="large"
@@ -149,7 +156,7 @@ const GameRoomScreen = () => {
             uri: photoURL,
           }: defaultAvatar}
         />
-        <Text style={styles.textTitle}>{displayName}</Text>
+        <Text style={[styles.textTitle, {marginLeft: 15}]}>{displayName}</Text>
       </View>
     );
   };
@@ -178,6 +185,7 @@ const GameRoomScreen = () => {
             {isCreateModal ? (
               <>
                 <Text style={styles.modalRoomTitleText}>プレイルーム作成</Text>
+                
                 <TextInput
                   style={styles.input}
                   placeholder="プレイルーム名"
@@ -291,18 +299,24 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   playerItem: {
+    position: 'relative',
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: customColors.blackGrey,
     width: "100%",
+    marginVertical: 5,
+    padding: 10,
+    paddingHorizontal: 20,
+    backgroundColor: '#2f3835b8',
+    borderWidth: 1,
+    borderColor: customColors.blackGrey,
+    borderRadius: 10,
   },
   nameTitle: {
     color: customColors.white,
-    fontSize: 18,
+    fontSize: 20,
   },
+  
   ItemStatus: {
     fontSize: 15,
     color: customColors.white,
@@ -322,7 +336,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   listTitle: {
-    fontSize: 20,
+    fontSize: 30,
     color: customColors.white,
     fontFamily: "serif",
     fontWeight: "700",
@@ -331,9 +345,9 @@ const styles = StyleSheet.create({
   },
   FlatListStyle: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: customColors.blackGrey,
-    borderRadius: 8,
+    // borderWidth: 1,
+    // borderColor: customColors.blackGrey,
+    // borderRadius: 8,
     margin: 5,
     width: '95%'
   },
@@ -355,7 +369,7 @@ const styles = StyleSheet.create({
     width: "80%",
   },
   modalRoomTitleText: {
-    fontSize: 20,
+    fontSize: 22,
     color: customColors.white,
     fontFamily: "serif",
     fontWeight: "700",
@@ -417,9 +431,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: customColors.white,
     fontFamily: "serif",
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 20,
+    alignItems: 'flex-start',
+    marginBottom: 5,
   },
 });
 

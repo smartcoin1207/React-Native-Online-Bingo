@@ -38,6 +38,7 @@ import {
 } from "../utils/firebase/FirebaseUtil";
 import { BingoCellValues, Player } from "../utils/Types";
 import { customColors } from "../utils/Color";
+import EffectBorder from "../components/EffectBorder";
 
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get("window");
 const screenWidth = Dimensions.get("window").width;
@@ -451,7 +452,6 @@ const PlayBoard: React.FC = () => {
             cellType = 'normal'
         }
 
-
         if (cellStatusValue === -1) {
             return <View key={cellValue}>{renderCell(cellType, cellValue, isModal)}</View>;
         }
@@ -486,7 +486,7 @@ const PlayBoard: React.FC = () => {
         const dynamicStyle = getCellStyle(cellType);
 
         return (
-            <View style={[isModal ? styles.boardSizeModal : styles.boardSize, {borderWidth: 1, borderColor: customColors.blackGrey, borderRadius: 10}]}>
+            <View style={[isModal ? styles.boardSizeModal : styles.boardSize, {borderWidth: 1, borderColor: customColors.white, borderRadius: 10}]}>
                 
                 {/* { <View style={{position: 'absolute', top: '0%'}}>
                     <Icon name="star" size={60} color="white" />
@@ -561,12 +561,15 @@ const PlayBoard: React.FC = () => {
                         <Text style={styles.modalText}>{modalAlertText}</Text>
                         {isHost ? (
                             <View style={styles.roomModalBtns}>
-                                <TouchableOpacity
-                                    style={styles.modalOkBtn}
-                                    onPress={handleRandomSort}
-                                >
-                                    <Text style={styles.modalOkText}> ランダム </Text>
-                                </TouchableOpacity>
+                                <EffectBorder style={{width: '40%'}}>
+                                    <TouchableOpacity
+                                        style={styles.modalOkBtn}
+                                        onPress={handleRandomSort}
+                                    >
+                                        <Text style={styles.modalOkText}> ランダム </Text>
+                                    </TouchableOpacity>
+                                </EffectBorder>
+                                
                             </View>
                         ) : (
                                 <ActivityIndicator size="large" color="#007AFF" />
@@ -655,12 +658,15 @@ const PlayBoard: React.FC = () => {
                 <View style={{position: 'absolute', bottom: 0 }}>
                     <View style={{ flex: 1, alignItems: 'center' }}>
                         {bingoMyTurn ? (
-                            <TouchableOpacity
-                                style={styles.passBtn}
-                                onPress={handleSetNumberClick}
-                            >
-                                <Text style={styles.passBtnText}> 決定 </Text>
-                            </TouchableOpacity>
+                            <EffectBorder style={{width: '40%', marginBottom: 10}}>
+                                <TouchableOpacity
+                                    style={styles.passBtn}
+                                    onPress={handleSetNumberClick}
+                                >
+                                    <Text style={styles.passBtnText}> 決定 </Text>
+                                </TouchableOpacity>
+                            </EffectBorder>
+                            
                         ) : (
                                 ""
                             )}
@@ -757,13 +763,12 @@ const styles = StyleSheet.create({
     },
     modalOkBtn: {
         backgroundColor: customColors.blackGreen,
-
         paddingVertical: 8,
         paddingHorizontal: 6,
         padding: 4,
         marginHorizontal: 4,
         marginVertical: 4,
-        borderRadius: 6,
+        borderRadius: 40,
         borderWidth: 1,
         borderColor: customColors.white,
     },
@@ -779,7 +784,7 @@ const styles = StyleSheet.create({
         borderColor: customColors.white,
     },
     modalOkText: {
-        fontSize: 16,
+        fontSize: 20,
         color: customColors.white,
         fontFamily: "serif",
         fontWeight: "700",
@@ -803,7 +808,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
     },
     modalText: {
-        fontSize: 16,
+        fontSize: 20,
         color: customColors.white,
         fontFamily: "serif",
         fontWeight: "700",
@@ -821,14 +826,15 @@ const styles = StyleSheet.create({
         borderRadius: 30,
         borderWidth: 1,
         borderColor: customColors.white,
-        width: viewportWidth* 0.4
+        // width: viewportWidth* 0.4
     },
     passBtnText: {
-        fontSize: 16,
+        fontSize: 20,
         color: customColors.white,
         fontFamily: "serif",
         fontWeight: "700",
         textAlign: "center",
+        letterSpacing: 20
     },
     boardContainer: {
         borderColor: customColors.white,
@@ -938,7 +944,7 @@ const styles = StyleSheet.create({
         height: '100%',
         padding: 8,
         borderWidth: 1,
-        borderRadius: 5,
+        borderRadius: 10,
         textAlign: "center",
         fontSize: viewportWidth * 0.06,
         fontWeight: "700",
@@ -965,7 +971,7 @@ const styles = StyleSheet.create({
         // marginTop: '0%',
         padding: 8,
         borderWidth: 2,
-        borderRadius: 5,
+        borderRadius: 10,
         textAlign: "center",
         fontSize: viewportWidth * 0.09,
         fontWeight: "700",
@@ -978,7 +984,7 @@ const styles = StyleSheet.create({
         height: '100%',
         padding: 8,
         borderWidth: 1,
-        borderRadius: 5,
+        borderRadius: 10,
         borderColor: customColors.blackGreen,
         textAlign: "center",
         fontSize: viewportWidth * 0.1,
@@ -991,7 +997,7 @@ const styles = StyleSheet.create({
     bingoCellModal: {
         padding: 8,
         borderWidth: 1,
-        borderRadius: 5,
+        borderRadius: 10,
         borderColor: customColors.blackGreen,
         textAlign: "center",
         fontSize: viewportWidth * 0.08,

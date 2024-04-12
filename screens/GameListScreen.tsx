@@ -8,6 +8,7 @@ import { SignOut } from "../store/reducers/bingo/userSlice";
 import { customColors } from "../utils/Color";
 import { deleteBingoCollection, deleteGameCollection } from "../utils/firebase/FirebaseUtil";
 import Language from "../utils/Variables";
+import EffectBorder from "../components/EffectBorder";
 
 const jpLanguage = Language.jp;
 
@@ -45,12 +46,15 @@ const GameRoom: React.FC<GameListScreen> = () => {
 
     return (
         <View style={styles.container}>
-                <TouchableOpacity 
-                    style={styles.gameBtn}
-                    onPress={() => navigation.navigate("gameRoomList")}
-                >
-                    <Text style={styles.textTitle}>ゲームルーム</Text>
-                </TouchableOpacity>
+                <EffectBorder style={{width: '80%', marginVertical: 10}}>
+                    <TouchableOpacity 
+                        style={styles.gameBtn}
+                        onPress={() => navigation.navigate("gameRoomList")}
+                    >
+                        <Text style={styles.textTitle}>ゲームルーム</Text>
+                    </TouchableOpacity>
+                </EffectBorder>
+                
                 {
                     authUser.email == 'hayate@gmail.com' && (
                     <>
@@ -61,21 +65,26 @@ const GameRoom: React.FC<GameListScreen> = () => {
                         <TouchableOpacity style={styles.signBtn} onPress={handleDeleteBingo}>
                             <Text style={styles.textTitle}>delete Bingo</Text>
                         </TouchableOpacity> */}
-
-                        <TouchableOpacity style={styles.gameBtn} onPress={handleMovePenalty}>
-                            <Text style={styles.textTitle}>{jpLanguage.penaltyGameEditString}</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.gameBtn} onPress={() => {navigation.navigate('penaltyEdit')}}>
-                            <Text style={styles.textTitle}>{jpLanguage.penaltyListTitleString}</Text>
-                        </TouchableOpacity>
+                        <EffectBorder style={{ width: '80%', marginVertical: 10}}>
+                            <TouchableOpacity style={styles.gameBtn} onPress={handleMovePenalty}>
+                                <Text style={styles.textTitle}>{jpLanguage.penaltyGameEditString}</Text>
+                            </TouchableOpacity>
+                        </EffectBorder>
+                        
+                        <EffectBorder style={{width: '80%', marginVertical: 10}}>
+                            <TouchableOpacity style={styles.gameBtn} onPress={() => {navigation.navigate('penaltyEdit')}}>
+                                <Text style={styles.textTitle}>{jpLanguage.penaltyListTitleString}</Text>
+                            </TouchableOpacity>
+                        </EffectBorder>
+                        
                     </>
                     )
                 }
-                <TouchableOpacity style={styles.signBtn} onPress={handleSignOut}>
-                    <Text style={styles.textTitle}>サインアウト</Text>
-                </TouchableOpacity>
-
+                <EffectBorder style={{width : '80%', marginVertical: 10}}>
+                    <TouchableOpacity style={styles.signBtn} onPress={handleSignOut}>
+                        <Text style={styles.textTitle}>サインアウト</Text>
+                    </TouchableOpacity>
+                </EffectBorder>
             </View>
     )
 }
@@ -100,17 +109,13 @@ const styles = StyleSheet.create({
         width: '100%',
         backgroundColor: customColors.blackGreen,
         paddingVertical: 8,
-        marginVertical: 4,
-        marginTop: viewportHeight*0.05,
-        borderRadius: 6,
+        borderRadius: 100,
     },
     signBtn: {
         width: '100%',
         backgroundColor: customColors.blackRed,
         paddingVertical: 8,
-        marginVertical: 4,
-        marginTop: viewportHeight*0.05,
-        borderRadius: 6,
+        borderRadius: 100,
     },
     textTitle: {
         fontSize: 20,
