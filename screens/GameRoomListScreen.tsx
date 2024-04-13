@@ -58,7 +58,7 @@ const GameRoomScreen = () => {
     setListLoading(true);
     getWaitingGameRooms((gameRooms: GameRoom[]) => {
       
-      dispatch(setGameRooms(gameRooms));
+      dispatch(setGameRooms(gameRooms || []));
       setListLoading(false);
     });
   }, []);
@@ -111,7 +111,6 @@ const GameRoomScreen = () => {
     setPasswordError(passwordErr || "");
 
     if(passwordErr) return false;
-
 
     const gameRoomItem: GameRoom = currentJoinGameRoom;
     if (createRoomLoading) return false;

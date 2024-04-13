@@ -70,14 +70,13 @@ const GameWaitingScreen = () => {
 
   useEffect(() => {
     if (currentGameRoom) {
-      setSubscribers(currentGameRoom?.subscribersPlayers);
+      setSubscribers(currentGameRoom?.subscribersPlayers || []);
     } else {
       setSubscribers([]);
     }
   }, [currentGameRoom]);
 
   useEffect(() => {
-    console.log(sort)
     let sortedPlayersTemp: Player[] = [];
     if(sort) {
       sort.forEach(sortItem => {
@@ -87,9 +86,8 @@ const GameWaitingScreen = () => {
         }
       });
   
-      setSortedPlayers(sortedPlayersTemp);
+      setSortedPlayers(sortedPlayersTemp || []);
     }
-
   }, [JSON.stringify(sort)]);
 
   //get bingo room from firebase
@@ -116,12 +114,12 @@ const GameWaitingScreen = () => {
       }
 
       setGameRoomDisplayName(gameRoom?.displayRoomName);
-      setSort(gameRoom?.sort);
+      setSort(gameRoom?.sort || []);
 
       const currentGameRoom = {
         gameRoomId: gameRoomId,
-        subscribersPlayers: gameRoom?.subscribersPlayers,
-        sort: gameRoom?.sort
+        subscribersPlayers: gameRoom?.subscribersPlayers || [],
+        sort: gameRoom?.sort || []
       };
 
       dispatch(setCurrentGameRoom(currentGameRoom));
@@ -158,7 +156,7 @@ const GameWaitingScreen = () => {
       exitGameRoom(authUser?.uid, gameRoomId, isHost);
     }
   };
-
+ 
   const exitRoomModal = () => {
     setExitModalVisible(true);
     setIsExitModal(true);
@@ -354,19 +352,11 @@ const GameWaitingScreen = () => {
         
         { listLoading ? <ActivityIndicator style={{position: 'absolute', top: '50%'}} size="large" color="#007AFF" /> : "" }
 
-        <FlatList
-          data={ (sortedPlayers.length == subscribers.length) ? sortedPlayers : subscribers}
-          renderItem={ renderPlayerItem }
-          keyExtractor={(item, index) => index.toString()}
-        />
-        
-        {/* <DraggableFlatList 
-          data={subscribers}
-          onDragEnd={({data}) => {}}
-          renderItem={renderPlayerItem}
-          keyExtractor={(item) => item.uid}
-        /> */}
-
+          <FlatList
+            data={ (sortedPlayers && sortedPlayers.length == subscribers.length) ? sortedPlayers : subscribers }
+            renderItem={renderPlayerItem}
+            keyExtractor={(item, index) => index.toString()}
+          />
       </View>
 
       <View style={styles.btnList}>

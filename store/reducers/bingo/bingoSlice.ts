@@ -12,7 +12,6 @@ const INITIAL_STATE = {
     bingoMyTurn: false,
     isHost: false,
     gameRoomId: '',
-    sort: [],
     canBorardCellClick: false,
     turnNumber: 0
 };
@@ -54,7 +53,6 @@ export const bingoSlice = createSlice({
         },
         setBingoInfo: (state, action) => {
             state.bingoMyTurn = action.payload.bingoMyTurn;
-            state.sort = action.payload.sort;
             state.bingoPrevNumber = state.bingoNextNumber;
             state.bingoNextNumber = action.payload.bingoNextNumber;
 

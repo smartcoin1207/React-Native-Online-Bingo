@@ -5,14 +5,11 @@ import {
     View,
     BackHandler,
     Modal,
-    ActivityIndicator,
     Dimensions,
     TouchableOpacity,
     Image,
     Animated,
     PanResponder,
-    ViewStyle,
-    Pressable,
     ScrollView,
 } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
@@ -35,7 +32,6 @@ import {
     getBingo,
     setNextTurnPlayer,
     setBingoNextNumberUpdate,
-    setPlayerGameSort,
     setBingoCompletedPlayer,
 } from "../utils/firebase/FirebaseUtil";
 import { BingoCellValues, Player } from "../utils/Types";
@@ -47,15 +43,13 @@ const screenWidth = Dimensions.get("window").width;
 const cellSize = (screenWidth * 0.9) / 5;
 
 const PlayBoard: React.FC = () => {
-    const [modalSortVisible, setModalSortVisible] = useState(false);
     const [modalCompletedVisible, setModalCompletedVisible] = useState(false);
-
-    const [modalAlertText, setModalAlertText] = useState("");
     const [turnText, setTurnText] = useState <string>("");
     const [cellStatus, setCellStatus] = React.useState<number[][]>(
         bingoCellStatusInit()
     );
-    
+
+    const [sort, setSort] = useState<string[]>([]);
     const [completed, setCompleted] = useState<boolean>(false);
     const [turnPlayerId, setTurnPlayerId] = useState<string>("");
     const [bingoCompleted, setBingoCompleted] = useState<string[]>([]);
@@ -85,7 +79,6 @@ const PlayBoard: React.FC = () => {
     const bingoCellStatus = useSelector(
         (state: RootState) => state.bingo.bingoCellStatus
     );
-    const sort = useSelector((state: RootState) => state.bingo.sort);
 
     const bingoNextNumber = useSelector(
         (state: RootState) => state.bingo.bingoNextNumber
@@ -118,23 +111,19 @@ const PlayBoard: React.FC = () => {
         return () => backHandler.remove(); // Clean up the event listener
     }, []);
 
-    //ゲーム開始時にプレイヤーの順番を決める...
     useEffect(() => {
-        if (isHost) {
-            setModalAlertText("順番を決めてください。");
-        } else {
-            setModalAlertText("順番を決めています。");
+        const sort:string[] = currentGameRoom?.sort || [];
+        setSort(sort);
+        
+        let sortedPlayers: Player[] | any[] = [];
+        const subscribersPlayers: Player[] = currentGameRoom?.subscribersPlayers || [];
+        if (subscribersPlayers && subscribersPlayers.length > 0) {
+            sortedPlayers  = sort.map(uid => subscribersPlayers.find(player => player.uid === uid)).filter(Boolean);
+            setPlayerOrderList(sortedPlayers);
         }
-        setModalSortVisible(true);
-    }, []);
+        
+    }, [currentGameRoom]);
 
-    useEffect(() => {
-        const sort = currentGameRoom?.sort;
-        console.log('sort');
-        console.log(sort);
-    }, [])
-
-    //
     useEffect(() => {
         setCellStatus(bingoCellStatus);
     }, [bingoCellStatus]);
@@ -189,69 +178,42 @@ const PlayBoard: React.FC = () => {
 
           setBingoCompletedMessagesObj(messages);
         }
-
     }, [bingoNewCompleted]);
 
-    useEffect(() => {
-        const subscribersPlayers: Player[] = currentGameRoom ?.subscribersPlayers || [];
-        const sorts: string[] = playersOrder;
-        let sortedPlayers: Player[] | any[] = []; // Declare sortedPlayers outside of the if block
 
-        if (subscribersPlayers && subscribersPlayers.length > 0) {
-            sortedPlayers  = sorts.map(uid => subscribersPlayers.find(player => player.uid === uid)).filter(Boolean);
-            setPlayerOrderList(sortedPlayers);
-
-            console.log(sortedPlayers);
-        }
-
-        console.log("playesrOrder effect");
-        console.log(playersOrder)
-    }, [JSON.stringify(playersOrder)]);
 
     //リアルタイムfirestoreから該当するビンゴゲームデータを取得する
     useEffect(() => {
         getBingo(gameRoomId, (bingo: any) => {
-            console.log(gameRoomId);
-            if (bingo ?.sort) {
-                setModalSortVisible(false);
 
-                const sort: string[] = bingo ?.sort;
-                const turnPlayerId: string = bingo ?.turnPlayerId;
-                const bingoMyTurn: boolean = turnPlayerId == authUser.uid;
-                const subscribersPlayers: Player[] | undefined = currentGameRoom ?.subscribersPlayers;
-                const bingoCompletedFirestore: string[] = bingo ?.bingoCompleted;
-                const bingoCompletedObj: any[] = bingo?.bingoCompletedObj;
+            const turnPlayerId: string = bingo ?.turnPlayerId;
+            const bingoMyTurn: boolean = turnPlayerId == authUser.uid;
+            const subscribersPlayers: Player[] | undefined = currentGameRoom ?.subscribersPlayers;
+            const bingoCompletedFirestore: string[] = bingo ?.bingoCompleted;
+            const bingoCompletedObj: any[] = bingo?.bingoCompletedObj;
 
-                const bingoInfo = {
-                    bingoMyTurn: bingoMyTurn,
-                    sort: sort,
-                    bingoNextNumber: bingo ?.bingoNextNumber || "",
-                    turnNumber: bingo ?.turnNumber,
-                };
+            const bingoInfo = {
+                bingoMyTurn: bingoMyTurn,
+                bingoNextNumber: bingo ?.bingoNextNumber || "",
+                turnNumber: bingo ?.turnNumber,
+            };
 
-                if(playersOrder.length === 0 && sort.length  > 0 ) {
-                    console.log("playersorder")
-                    console.log(playersOrder);
-                    setPlayersOrder(sort);
-                }
-
-                setBingoCompletedObj(bingoCompletedObj);
-                setBingoNewCompleted(bingoCompletedFirestore);
-                setTurnPlayerId(bingo ?.turnPlayerId);
-                dispatch(setBingoInfo(bingoInfo));
-                
-                if (bingoMyTurn) {
-                    setTurnText("あなたの番です。");
-                } else {
-                    if (subscribersPlayers) {
-                        const turnPlayer = subscribersPlayers.find(
-                            (player) => player.uid === turnPlayerId
-                        );
-                        if (turnPlayer) {
-                            setTurnText(turnPlayer ?.displayName + " さんの番です。");
-                        } else {
-                            setTurnText("");
-                        }
+            setBingoCompletedObj(bingoCompletedObj);
+            setBingoNewCompleted(bingoCompletedFirestore);
+            setTurnPlayerId(bingo ?.turnPlayerId);
+            dispatch(setBingoInfo(bingoInfo));
+            
+            if (bingoMyTurn) {
+                setTurnText("あなたの番です。");
+            } else {
+                if (subscribersPlayers) {
+                    const turnPlayer = subscribersPlayers.find(
+                        (player) => player.uid === turnPlayerId
+                    );
+                    if (turnPlayer) {
+                        setTurnText(turnPlayer ?.displayName + " さんの番です。");
+                    } else {
+                        setTurnText("");
                     }
                 }
             }
@@ -319,20 +281,6 @@ const PlayBoard: React.FC = () => {
             console.log("xxxx");
         }
     };
-
-    // const handleRandomSort = async () => {
-    //     const subscribersPlayers = currentGameRoom ?.subscribersPlayers;
-    //     const uids = subscribersPlayers ?.map((player) => {
-    //         return player.uid;
-    //     });
-
-    //     const randomSort = () => Math.random() - 0.5;
-    //     uids ?.sort(randomSort);
-
-    //     const uids1 = uids ? uids : [];
-    //     await setPlayerGameSort(gameRoomId, uids1);
-    //     setModalSortVisible(false);
-    // };
 
     const handleCellClick = (
         rowNum: number,
@@ -528,14 +476,6 @@ const PlayBoard: React.FC = () => {
         );
     };
 
-    // const animatedCell = (dynamicStyle: any, cellValue: number): JSX.Element => {
-    //   return (
-    //     <View>
-    //        <AnimatedCell cellSize={cellSize} cellValue={cellValue} dynamicStyle={dynamicStyle} />
-    //     </View>
-    //   );
-    // };
-
     const bingoCardLayout = (cellStatus:number[][], cellValues: BingoCellValues, isModal: boolean) => createBingoCard(
         cellStatus,
         cellValues,
@@ -588,43 +528,6 @@ const PlayBoard: React.FC = () => {
                     </View>
                 ))}
             </View>
-
-            {/* <Modal
-                animationType="fade"
-                transparent={true}
-                visible={modalSortVisible}
-                onRequestClose={() => {
-                    setModalSortVisible(false);
-                }}
-            >
-                <View
-                    style={{
-                        flex: 1,
-                        justifyContent: "center",
-                        alignItems: "center",
-                        backgroundColor: customColors.modalBackgroundColor,
-                    }}
-                >
-                    <View style={styles.modalBody}>
-                        <Text style={styles.modalText}>{modalAlertText}</Text>
-                        {isHost ? (
-                            <View style={styles.roomModalBtns}>
-                                <EffectBorder style={{width: '50%'}}>
-                                    <TouchableOpacity
-                                        style={styles.modalOkBtn}
-                                        onPress={handleRandomSort}
-                                    >
-                                        <Text style={styles.modalOkText}> ランダム </Text>
-                                    </TouchableOpacity>
-                                </EffectBorder>
-                                
-                            </View>
-                        ) : (
-                                <ActivityIndicator size="large" color="#007AFF" />
-                            )}
-                    </View>
-                </View>
-            </Modal> */}
 
             <Modal
                 animationType="fade"
@@ -681,7 +584,7 @@ const PlayBoard: React.FC = () => {
             </Modal>
 
             <Text style={styles.title}>BINGO</Text>
-            <ShowOrder />
+            {/* <ShowOrder /> */}
 
             <View style={styles.container}>
 
@@ -695,11 +598,6 @@ const PlayBoard: React.FC = () => {
                         </View>
                     ) : (
                             <View style={styles.randomContainer}>
-                                {/* <ActivityIndicator
-                size="large"
-                style={styles.selected}
-                color="#007AFF"
-              /> */}
                             </View>
                         )}
                 </View>

@@ -322,7 +322,7 @@ export const setPlayerGameSort  = async (gameRoomId: string, uids: string[]) => 
             sort: uids,
         });
     } catch (error) {
-        console.log("bingo error")
+        console.log("game error")
     }
 }
 
