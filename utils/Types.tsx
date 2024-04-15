@@ -52,7 +52,6 @@ export type BingoCellValues = Array<Array<any>>;
 export type RenderRowFunction = (rowNum: any, columns: Array<any>) => any;
 export type RenderColumnFunction = (rowNum: any, columnNum: any, cellStatus: number[][], cellValues: BingoCellValues, isModal: boolean) => any;
 
-
 // ------------------------------------------------------------------------------
 export interface NavigatorType {
     navigate: (screen: string, params: { isHost: boolean; gameRoomId: string }) => void;
@@ -66,12 +65,15 @@ export interface UserState {
 export interface CurrentGameRoom {
     gameRoomId: string,
     subscribersPlayers: Player[],
-    sort: string[]
+    sort: string[],
+    isHost: boolean
 }
 
 export interface GameRoomState {
     gameRooms: GameRoom[],
-    currentGameRoom: CurrentGameRoom | null
+    currentGameRoom: CurrentGameRoom | null,
+    gameRoomId: string,
+    isHost: boolean
 }
 
 export interface BingoPlayState {

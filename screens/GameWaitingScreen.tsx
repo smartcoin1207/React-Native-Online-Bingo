@@ -27,11 +27,10 @@ import {
 import { GameWaitingRouteParams, Player, User } from "../utils/Types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store";
-import { setCurrentGameRoom } from "../store/reducers/bingo/gameRoomSlice";
-import { remove } from "lodash";
-import { setBingoInitial } from "../store/reducers/bingo/bingoSlice";
+import { setCurrentGameRoom, setGameRoomId } from "../store/reducers/bingo/gameRoomSlice";
 import { customColors } from "../utils/Color";
 import EffectBorder from "../components/EffectBorder";
+import { setBingoInitial } from "../store/reducers/bingo/bingoSlice";
 
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get("window");
 
@@ -65,7 +64,7 @@ const GameWaitingScreen = () => {
   );
 
   useEffect(() => {
-    dispatch(setBingoInitial({ gameRoomId: gameRoomId, isHost: isHost }));
+    dispatch(setGameRoomId({ gameRoomId: gameRoomId, isHost: isHost }))
   }, []);
 
   useEffect(() => {
@@ -110,6 +109,7 @@ const GameWaitingScreen = () => {
       }
 
       if (gameRoom?.gameStarted == true) {
+        dispatch(setBingoInitial({}));
         navigator.navigate("bingo");
       }
 
@@ -127,24 +127,25 @@ const GameWaitingScreen = () => {
     });
   }, []);
 
-  useEffect(() => {
-    const backAction = () => {
-      setModalAlertText("プレイルームから脱退しますか？");
-      setExitModalVisible(true);
-      return true;
-    };
+  // useEffect(() => {
+  //   const backAction = () => {
+  //     setModalAlertText("プレイルームから脱退しますか？");
+  //     setExitModalVisible(true);
+  //     return true;
+  //   };
 
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      backAction
-    );
-    return () => backHandler.remove(); // Clean up the event listener
-  }, []);
+  //   const backHandler = BackHandler.addEventListener(
+  //     "hardwareBackPress",
+  //     backAction
+  //   );
+  //   return () => backHandler.remove(); // Clean up the event listener
+  // }, []);
 
   const startBingo = async () => {
     const turnPlayerId = sort[0];
     if(!turnPlayerId) return false;
     
+    dispatch(setBingoInitial({}));
     await startGameBingo(gameRoomId, turnPlayerId);
     navigator.navigate("bingo");
   };

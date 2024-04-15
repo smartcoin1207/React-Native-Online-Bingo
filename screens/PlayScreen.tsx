@@ -67,12 +67,11 @@ const PlayBoard: React.FC = () => {
     const [selectedCellColumn, setSelectedCellColumn] = useState<number>(0);
     const [selectedCellValue, setSelectedCellValue] = useState<string>("");
 
-    const [playersOrder, setPlayersOrder] = useState<string[]>([]);
     const [playerOrderList, setPlayerOrderList] = useState<Player[]>([]);
 
     const authUser = useSelector((state: RootState) => state.auth.authUser);
-    const gameRoomId = useSelector((state: RootState) => state.bingo.gameRoomId);
-    const isHost = useSelector((state: RootState) => state.bingo.isHost);
+    const gameRoomId = useSelector((state: RootState) => state.gameRoom.gameRoomId);
+    const isHost = useSelector((state: RootState) => state.gameRoom.isHost);
     const bingoCellValue = useSelector(
         (state: RootState) => state.bingo.bingoCellValue
     );
@@ -178,9 +177,7 @@ const PlayBoard: React.FC = () => {
 
           setBingoCompletedMessagesObj(messages);
         }
-    }, [bingoNewCompleted]);
-
-
+    }, [ JSON.stringify(bingoNewCompleted)]);
 
     //リアルタイムfirestoreから該当するビンゴゲームデータを取得する
     useEffect(() => {
@@ -188,7 +185,7 @@ const PlayBoard: React.FC = () => {
 
             const turnPlayerId: string = bingo ?.turnPlayerId;
             const bingoMyTurn: boolean = turnPlayerId == authUser.uid;
-            const subscribersPlayers: Player[] | undefined = currentGameRoom ?.subscribersPlayers;
+            const subscribersPlayers: Player[] = currentGameRoom ?.subscribersPlayers || [];
             const bingoCompletedFirestore: string[] = bingo ?.bingoCompleted;
             const bingoCompletedObj: any[] = bingo?.bingoCompletedObj;
 
@@ -198,8 +195,8 @@ const PlayBoard: React.FC = () => {
                 turnNumber: bingo ?.turnNumber,
             };
 
-            setBingoCompletedObj(bingoCompletedObj);
-            setBingoNewCompleted(bingoCompletedFirestore);
+            setBingoCompletedObj(bingoCompletedObj || []);
+            setBingoNewCompleted(bingoCompletedFirestore || []);
             setTurnPlayerId(bingo ?.turnPlayerId);
             dispatch(setBingoInfo(bingoInfo));
             
@@ -264,21 +261,22 @@ const PlayBoard: React.FC = () => {
     };
 
     const setNextTurnPlayerId = (
-        sort: string[],
         turnPlayerId: string,
         turnNumber: number
     ) => {
         try {
             if (sort) {
-                const currentIndex = sort.indexOf(turnPlayerId);
-                const nextIndex = (currentIndex + 1) % sort.length;
-                const nextValue = sort[nextIndex];
+                const remainedPlayers = sort.filter(item => !bingoCompleted.includes(item));
+
+                const currentIndex = remainedPlayers.indexOf(turnPlayerId);
+                const nextIndex = (currentIndex + 1) % remainedPlayers.length;
+                const nextValue = remainedPlayers[nextIndex];
                 const newTurnPlayerId = nextValue;
                 const newTurnNumber = turnNumber + 1;
                 setNextTurnPlayer(newTurnPlayerId, gameRoomId, newTurnNumber);
             }
         } catch (error) {
-            console.log("xxxx");
+            console.log("sort error was occoured");
         }
     };
 
@@ -377,7 +375,7 @@ const PlayBoard: React.FC = () => {
         setSelectedCellValue("");
         if (authUser.uid) {
             setBingoNextNumberUpdate(authUser.uid, gameRoomId, selectedCellValue);
-            setNextTurnPlayerId(sort, turnPlayerId, turnNumber);
+            setNextTurnPlayerId(turnPlayerId, turnNumber);
         }
 
         const { isCompleted, newCellStatus } = bingoCheck(
@@ -451,10 +449,8 @@ const PlayBoard: React.FC = () => {
             </TouchableOpacity>
         ) : (
                 <View
-                    // style={{opacity: 0.5}}
                     key={cellValue}
                 >
-                    {/* {animatedCell(dynamicStyle, cellValue)} */}
                     {renderCell(cellType, cellValue, isModal)}
                 </View>
             );
@@ -465,10 +461,6 @@ const PlayBoard: React.FC = () => {
 
         return (
             <View style={[isModal ? styles.boardSizeModal : styles.boardSize, {borderWidth: 1, borderColor: customColors.white, borderRadius: 10}]}>
-                
-                {/* { <View style={{position: 'absolute', top: '0%'}}>
-                    <Icon name="star" size={60} color="white" />
-                </View>} */}
                 <Text style={[dynamicStyle]}>
                     {cellValue}
                 </Text>
@@ -495,7 +487,7 @@ const PlayBoard: React.FC = () => {
                 <ScrollView >
                     <View style={{alignItems: 'center', padding: 5}}>
                         {playerOrderList.map((player, index) => (
-                            <View style={{ flexDirection: 'row', marginBottom: 5 }}>
+                            <View style={{ flexDirection: 'row', marginBottom: 5 }} key={player.uid + "order"}>
                                 <View style={{ borderWidth: 1, borderRadius: 20,  borderColor: turnPlayerId == player.uid ?  customColors.blackGreen : customColors.blackGrey, padding: 5, paddingVertical: 5, marginRight: 5 }}><Text style={{color: 'white', fontSize: 10}}>{index + 1}</Text></View>
                                 <View style={{ padding: 2, borderRadius: 2, borderWidth: 1, borderColor: turnPlayerId == player.uid ?  customColors.blackGreen : customColors.blackGrey }}><Text style={{ color: 'white' }}>{player.displayName}</Text></View>
                             </View>
@@ -615,7 +607,6 @@ const PlayBoard: React.FC = () => {
                                     <Text style={styles.passBtnText}> 決定 </Text>
                                 </TouchableOpacity>
                             </EffectBorder>
-                            
                         ) : (
                                 ""
                             )}

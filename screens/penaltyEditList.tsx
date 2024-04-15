@@ -249,14 +249,14 @@ const styles = StyleSheet.create({
     },
 
     penaltyAddBtn: {
-        backgroundColor: customColors.blackGreen,
+        backgroundColor: customColors.customLightBlue,
         paddingVertical: 8,
         paddingHorizontal: 20,
         marginVertical: 4,
         borderRadius: 6,
         borderWidth: 1,
         marginHorizontal: 5,
-        borderColor: customColors.white
+        borderColor: customColors.customDarkBlue
     },
 
     orderBtnGroup: {
