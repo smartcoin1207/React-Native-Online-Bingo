@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { createNativeStackNavigator  } from '@react-navigation/native-stack';
 
-import PlayBoard from '../screens/PlayScreen';
+import PlayBoard from '../screens/BingoScreen';
 import Register from '../screens/RegisterScreen';
 import Login from '../screens/LoginScreen';
 import SplashScreen from '../screens/SplashScreen';

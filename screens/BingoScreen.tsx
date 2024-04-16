@@ -1056,4 +1056,3 @@ const DraggableComponent: React.FC<DraggableComponentProps> = ({ children }) => 
     );
   };
   
-//   export default DraggableComponent;

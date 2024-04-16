@@ -9,7 +9,8 @@ import {
   TextInput,
   Modal,
   FlatList,
-  // Switch
+  Keyboard,
+  Platform
 } from "react-native";
 import { customColors } from "../utils/Color";
 import SwitchToggle from "react-native-switch-toggle";
@@ -17,6 +18,9 @@ import { List } from "react-native-paper";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { getAllPenalty } from "../utils/firebase/FirebaseUtil";
 import { Penalty } from "../utils/Types";
+import { useNavigation } from "@react-navigation/native";
+import { useSelector } from "react-redux";
+import { RootState } from "../store";
 
 enum PatternType {
   PatternA = "PatternA",
@@ -24,6 +28,10 @@ enum PatternType {
 }
 
 const PenaltyScreen = () => {
+  const navigation = useNavigation();
+  const isHost = useSelector((state: RootState) => state.gameRoom.isHost);
+  const gameRoomId = useSelector((state: RootState) => state.gameRoom.gameRoomId);
+
   const [isLightBlueEnabled, setIsLightBlueEnabled] = React.useState(false);
   const [isLightCyanEnabled, setIsLightCyanEnabled] = React.useState(false);
   const [isLightGreenEnabled, setIsLightGreenEnabled] = React.useState(false);
@@ -34,15 +42,18 @@ const PenaltyScreen = () => {
   const [allPenalties, setAllPenalties] = useState<Penalty[]>([]);
   const [penaltyAId, setPenaltyAId] = useState<string>("");
   const [penaltyBId, setPenaltyBId] = useState<string>("");
+  const [penaltyA, setPenaltyA] = useState<Penalty>();
+  const [penaltyB, setPenaltyB] = useState<Penalty>();
   const [patternType, setPatternType] = useState<PatternType>(
     PatternType.PatternA
   );
+  const [keyboardShow, setKeyBoardShow] = useState<boolean>(false);
+  const [patternASetAvailable, setPatternASetAvailable] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchPenalties = async () => {
       try {
         const penalties = await getAllPenalty();
-        console.log(penalties);
         setAllPenalties(penalties);
       } catch (error) {}
     };
@@ -50,12 +61,64 @@ const PenaltyScreen = () => {
     fetchPenalties();
   }, []);
 
+  useEffect(() => {
+    if (penaltyAId) {
+      const penalty = allPenalties.find((penalty) => penalty.id == penaltyAId);
+      setPenaltyA(penalty);
+    }
+  }, [penaltyAId]);
+
+  useEffect(() => {
+    if (penaltyBId) {
+      const penalty = allPenalties.find((penalty) => penalty.id == penaltyBId);
+      setPenaltyB(penalty);
+    }
+  }, [penaltyBId]);
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      _keyboardDidShow,
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      _keyboardDidHide,
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
+
+  const startGame = (isPenalty: boolean) => {
+    if(isPenalty) {
+      console.log(isPenalty);
+    } else {
+      console.log(isPenalty);
+    }
+  }
+
+  const _keyboardDidShow = () => {
+    console.log('Keyboard shown');
+    setKeyBoardShow(true)
+  };
+
+  const _keyboardDidHide = () => {
+    console.log('Keyboard hidden');
+    setKeyBoardShow(false);
+  };
+
   const toggleLightBlueSwitch = () => {
     setIsLightBlueEnabled((previousState) => !previousState);
+    setPenaltyAId('');
+    setPenaltyA(undefined);
   };
 
   const toggleLightCyanSwitch = () => {
     setIsLightCyanEnabled((previousState) => !previousState);
+    setPenaltyBId('');
+    setPenaltyB(undefined);
   };
 
   const toggleLightGreenSwitch = () => {
@@ -68,17 +131,20 @@ const PenaltyScreen = () => {
   const handlePatternAPlusBtnClick = () => {
     setPatternType(PatternType.PatternA);
     setPenaltyListModalVisible(true);
+    console.log(PatternType.PatternA)
   };
 
   const handlePatternBPlusBtnClick = () => {
     setPatternType(PatternType.PatternB);
     setPenaltyListModalVisible(true);
+    console.log(PatternType.PatternB)
+
   };
 
   const handlePenaltyListItemClick = (penaltyId: string) => {
-    if (PatternType.PatternA) {
+    if (patternType ==  PatternType.PatternA) {
       setPenaltyAId(penaltyId);
-    } else if (PatternType.PatternB) {
+    } else if (patternType ==  PatternType.PatternB) {
       setPenaltyBId(penaltyId);
     }
 
@@ -116,323 +182,372 @@ const PenaltyScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.topHeader}>
+        <TouchableOpacity
+          style={{ width: 44, height: 44, padding:10, borderWidth:1, borderColor: customColors.blackGrey, borderRadius: 25, alignItems:'center',justifyContent: 'center'}}
+          onPress={() => navigation.goBack()}
+        >
+          <Icon name="arrow-left" size={18} color={'white'} style={{opacity: 0.8}} />
+        </TouchableOpacity>
         <Text style={styles.title}>罰ゲーム</Text>
       </View>
-      <View
-        style={{
-          flex: 1,
-          display: "flex",
-          justifyContent: "center",
-          marginVertical: "auto",
-          zIndex: 2,
-        }}
-      >
-        <View style={styles.lightBlueComponent}>
-          <View style={styles.lightBlueToggle}>
-            <View style={{ maxWidth: "80%", flexDirection: "row" }}>
-              <Text style={{ fontSize: 18, color: customColors.white }}>
-                パターンA
-              </Text>
-              <Text
-                style={{
-                  fontSize: 16,
-                  color: customColors.white,
-                  opacity: 0.7,
-                }}
-              >
-                (すべてのプレイヤー)
-              </Text>
-            </View>
-            <SwitchToggle
-              switchOn={isLightBlueEnabled}
-              onPress={toggleLightBlueSwitch}
-              circleColorOff="grey"
-              circleColorOn="white"
-              backgroundColorOn="#5a6fff"
-              backgroundColorOff="#5971ff5e"
-              containerStyle={{
-                marginTop: 16,
-                width: 50,
-                height: 24,
-                borderRadius: 25,
-                padding: 3,
-                borderWidth: 1,
-                borderColor: "#556ff499",
-              }}
-              circleStyle={{
-                width: 18,
-                height: 18,
-                borderRadius: 18,
-              }}
-              duration={200}
-            />
-          </View>
-
-          <View
-            style={{
-              opacity: isLightBlueEnabled ? 1 : 0.3,
-              justifyContent: "center",
-              alignItems: "center",
-              padding: 15,
-            }}
-          >
-            <View
-              style={{
-                display: isLightBlueEnabled ? "none" : "flex",
-                position: "absolute",
-                top: 0,
-                bottom: 0,
-                left: 0,
-                right: 0,
-                zIndex: 10,
-              }}
-            ></View>
-            <TouchableOpacity
-              style={{
-                width: 50,
-                height: 50,
-                borderRadius: 50,
-                borderWidth: 1,
-                borderColor: "#5a6fff",
-                padding: 10,
-                margin: 10,
-                paddingHorizontal: 12,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-              onPress={() => {
-                handlePatternAPlusBtnClick();
-              }}
-            >
-              <Icon name="plus" size={25} color={"#5a6fff"} />
-            </TouchableOpacity>
-
-            <View
-              style={{
-                margin: 10,
-                justifyContent: "center",
-                borderWidth: 1,
-                borderColor: "white",
-                borderRadius: 20,
-                width: "90%",
-                padding: 10,
-                backgroundColor: "#0f203e",
-              }}
-            >
-              <TouchableOpacity
-                style={[styles.penaltyItemRow]}
-                onPress={() => handlePatternBPlusBtnClick}
-              >
-                <View style={styles.penaltyItemTitle}>
-                  <Text
-                    style={{ fontSize: 20, color: "white", display: "flex" }}
-                  >
-                    {"item.title"}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.lightCyanComponent}>
-          <View style={styles.lightCyanToggle}>
-            <View style={{ maxWidth: "80%", flexDirection: "row" }}>
-              <Text style={{ fontSize: 18, color: customColors.white }}>
-                パターンB
-              </Text>
-              <Text
-                style={{
-                  fontSize: 16,
-                  color: customColors.white,
-                  opacity: 0.7,
-                }}
-              >
-                (共通罰ゲームの設定)
-              </Text>
-            </View>
-            <SwitchToggle
-              switchOn={isLightCyanEnabled}
-              onPress={toggleLightCyanSwitch}
-              circleColorOff="grey"
-              circleColorOn="white"
-              backgroundColorOn="#29ccdc"
-              backgroundColorOff="#1c6c74a3"
-              containerStyle={{
-                marginTop: 16,
-                width: 50,
-                height: 24,
-                borderRadius: 25,
-                padding: 3,
-                borderWidth: 1,
-                borderColor: "#556ff499",
-              }}
-              circleStyle={{
-                width: 18,
-                height: 18,
-                borderRadius: 18,
-              }}
-              duration={200}
-            />
-          </View>
-
-          <View
-            style={{
-              opacity: isLightCyanEnabled ? 1 : 0.3,
-              justifyContent: "center",
-              alignItems: "center",
-              padding: 15,
-            }}
-          >
-            <View
-              style={{
-                display: isLightCyanEnabled ? "none" : "flex",
-                position: "absolute",
-                top: 0,
-                bottom: 0,
-                left: 0,
-                right: 0,
-                zIndex: 10,
-              }}
-            ></View>
-            <TouchableOpacity
-              style={{
-                width: 50,
-                height: 50,
-                borderRadius: 50,
-                borderWidth: 1,
-                borderColor: "#29ccdc",
-                padding: 10,
-                margin: 10,
-                paddingHorizontal: 12,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-              onPress={() => {
-                handlePatternBPlusBtnClick();
-              }}
-            >
-              <Icon name="plus" size={25} color={"#29ccdc"} />
-            </TouchableOpacity>
-
-            <View
-              style={{
-                margin: 10,
-                justifyContent: "center",
-                borderWidth: 1,
-                borderColor: "white",
-                borderRadius: 20,
-                width: "90%",
-                padding: 10,
-                backgroundColor: "#0f203e",
-              }}
-            >
-              <TouchableOpacity
-                style={[styles.penaltyItemRow]}
-                onPress={() => handlePatternBPlusBtnClick}
-              >
-                <View style={styles.penaltyItemTitle}>
-                  <Text
-                    style={{ fontSize: 20, color: "white", display: "flex" }}
-                  >
-                    {"item.title"}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.lightGreenComponent}>
-          <View style={styles.lightGreenToggle}>
-            <View style={{ maxWidth: "80%", flexDirection: "row" }}>
-              <Text style={{ fontSize: 18, color: customColors.white }}>
-                パターンC
-              </Text>
-              <Text
-                style={{
-                  fontSize: 16,
-                  color: customColors.white,
-                  opacity: 0.7,
-                }}
-              >
-                (罰ゲームの回収設定)
-              </Text>
-            </View>
-            <SwitchToggle
-              switchOn={isLightGreenEnabled}
-              onPress={toggleLightGreenSwitch}
-              circleColorOff="grey"
-              circleColorOn="white"
-              backgroundColorOn="#6ebf40"
-              backgroundColorOff="#6ebf4069"
-              containerStyle={{
-                marginTop: 16,
-                width: 50,
-                height: 24,
-                borderRadius: 25,
-                padding: 3,
-                borderWidth: 1,
-                borderColor: "#556ff499",
-              }}
-              circleStyle={{
-                width: 18,
-                height: 18,
-                borderRadius: 18,
-              }}
-              duration={200}
-            />
-          </View>
-          <View style={{ opacity: isLightGreenEnabled ? 1 : 0.3 }}>
-            <View
-              style={{
-                display: isLightGreenEnabled ? "none" : "flex",
-                position: "absolute",
-                top: 0,
-                bottom: 0,
-                left: 0,
-                right: 0,
-                zIndex: 10,
-              }}
-            ></View>
-            <TextInput
-              value={number}
-              onChangeText={handleNumberChange}
-              keyboardType="numeric"
-              placeholder="罰ゲームの回転数"
-              placeholderTextColor={customColors.blackGrey}
-              style={{ padding: 10, color: "white", fontSize: 20 }}
-            />
-          </View>
-        </View>
-      </View>
-
-      <View
-        style={{
-          // position: 'absolute',
-          bottom: 0,
-          width: "100%",
-          flexDirection: "row",
-          display: "flex",
-          justifyContent: "space-around",
-          paddingHorizontal: 10,
-        }}
-      >
-        <TouchableOpacity
+      {isHost &&
+        <View
           style={{
-            width: "50%",
-            padding: 10,
-            backgroundColor: "#250e44",
-            borderWidth: 1,
-            borderColor: "#8e44ad",
-            borderRadius: 30,
-            alignItems: "center",
+            flex: 1,
+            display: "flex",
             justifyContent: "center",
+            marginVertical: "auto",
+            zIndex: 2,
           }}
         >
-          <Text style={{ color: "white", fontSize: 18 }}>スキップ</Text>
-        </TouchableOpacity>
-      </View>
+          <View style={styles.lightBlueComponent}>
+            <View style={styles.lightBlueToggle}>
+              <View style={{ maxWidth: "80%", flexDirection: "row" }}>
+                <Text style={{ fontSize: 18, color: customColors.white }}>
+                  パターンA
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    color: customColors.white,
+                    opacity: 0.7,
+                  }}
+                >
+                  (すべてのプレイヤー)
+                </Text>
+              </View>
+              <SwitchToggle
+                switchOn={isLightBlueEnabled}
+                onPress={()=>{ if(!isLightBlueEnabled) toggleLightBlueSwitch()}}
+                circleColorOff="grey"
+                circleColorOn="white"
+                backgroundColorOn="#5a6fff"
+                backgroundColorOff="#5971ff5e"
+                containerStyle={{
+                  marginTop: 16,
+                  width: 50,
+                  height: 24,
+                  borderRadius: 25,
+                  padding: 3,
+                  borderWidth: 1,
+                  borderColor: "#556ff499",
+                }}
+                circleStyle={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: 18,
+                }}
+                duration={200}
+              />
+            </View>
+
+            <View
+              style={{
+                opacity: isLightBlueEnabled ? 1 : 0.3,
+                justifyContent: "center",
+                alignItems: "center",
+                padding: 15,
+              }}
+            >
+              <View
+                style={{
+                  display: isLightBlueEnabled ? "none" : "flex",
+                  position: "absolute",
+                  top: 0,
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  zIndex: 10,
+                }}
+              ></View>
+
+              {!penaltyAId ? (
+                <TouchableOpacity
+                  style={{
+                    width: 50,
+                    height: 50,
+                    borderRadius: 50,
+                    borderWidth: 1,
+                    borderColor: "#5a6fff",
+                    padding: 10,
+                    margin: 10,
+                    paddingHorizontal: 12,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  onPress={() => {
+                    handlePatternAPlusBtnClick();
+                  }}
+                >
+                  <Icon name="plus" size={25} color={"#5a6fff"} />
+                </TouchableOpacity>
+              ) : (
+                <View
+                  style={{
+                    margin: 10,
+                    justifyContent: "center",
+                    borderWidth: 1,
+                    borderColor: "#5a6fff",
+                    borderRadius: 20,
+                    width: "90%",
+                    padding: 10,
+                    backgroundColor: "#0f203e",
+                  }}
+                >
+                  <TouchableOpacity
+                    style={[styles.penaltyItemRow]}
+                    onPress={() => handlePatternAPlusBtnClick()}
+                  >
+                    <View style={styles.penaltyItemTitle}>
+                      <Text
+                        style={{ fontSize: 20, color: "white", display: "flex" }}
+                      >
+                        {penaltyA?.title}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </View>
+
+          <View style={styles.lightCyanComponent}>
+            <View style={styles.lightCyanToggle}>
+              <View style={{ maxWidth: "80%", flexDirection: "row" }}>
+                <Text style={{ fontSize: 18, color: customColors.white }}>
+                  パターンB
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    color: customColors.white,
+                    opacity: 0.7,
+                  }}
+                >
+                  (共通罰ゲームの設定)
+                </Text>
+              </View>
+              <SwitchToggle
+                switchOn={isLightCyanEnabled}
+                onPress={toggleLightCyanSwitch}
+                circleColorOff="grey"
+                circleColorOn="white"
+                backgroundColorOn="#29ccdc"
+                backgroundColorOff="#1c6c74a3"
+                containerStyle={{
+                  marginTop: 16,
+                  width: 50,
+                  height: 24,
+                  borderRadius: 25,
+                  padding: 3,
+                  borderWidth: 1,
+                  borderColor: "#556ff499",
+                }}
+                circleStyle={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: 18,
+                }}
+                duration={200}
+              />
+            </View>
+
+            <View
+              style={{
+                opacity: isLightCyanEnabled ? 1 : 0.3,
+                justifyContent: "center",
+                alignItems: "center",
+                padding: 15,
+              }}
+            >
+              <View
+                style={{
+                  display: isLightCyanEnabled ? "none" : "flex",
+                  position: "absolute",
+                  top: 0,
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  zIndex: 10,
+                }}
+              ></View>
+
+              {!penaltyBId ? (
+                <TouchableOpacity
+                  style={{
+                    width: 50,
+                    height: 50,
+                    borderRadius: 50,
+                    borderWidth: 1,
+                    borderColor: "#29ccdc",
+                    padding: 10,
+                    margin: 10,
+                    paddingHorizontal: 12,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  onPress={() => {
+                    handlePatternBPlusBtnClick();
+                  }}
+                >
+                  <Icon name="plus" size={25} color={"#29ccdc"} />
+                </TouchableOpacity>
+              ) : (
+                <View
+                  style={{
+                    margin: 10,
+                    justifyContent: "center",
+                    borderWidth: 1,
+                    borderColor: "#29ccdc",
+                    borderRadius: 20,
+                    width: "90%",
+                    padding: 10,
+                    backgroundColor: "#0f203e",
+                  }}
+                >
+                  <TouchableOpacity
+                    style={[styles.penaltyItemRow]}
+                    onPress={() => handlePatternBPlusBtnClick()}
+                  >
+                    <View style={styles.penaltyItemTitle}>
+                      <Text
+                        style={{ fontSize: 20, color: "white", display: "flex" }}
+                      >
+                        {penaltyB?.title}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </View>
+
+          <View style={styles.lightGreenComponent}>
+            <View style={styles.lightGreenToggle}>
+              <View style={{ maxWidth: "80%", flexDirection: "row" }}>
+                <Text style={{ fontSize: 18, color: customColors.white }}>
+                  パターンC
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    color: customColors.white,
+                    opacity: 0.7,
+                  }}
+                >
+                  (罰ゲームの回収設定)
+                </Text>
+              </View>
+              <SwitchToggle
+                switchOn={isLightGreenEnabled}
+                onPress={toggleLightGreenSwitch}
+                circleColorOff="grey"
+                circleColorOn="white"
+                backgroundColorOn="#6ebf40"
+                backgroundColorOff="#6ebf4069"
+                containerStyle={{
+                  marginTop: 16,
+                  width: 50,
+                  height: 24,
+                  borderRadius: 25,
+                  padding: 3,
+                  borderWidth: 1,
+                  borderColor: "#556ff499",
+                }}
+                circleStyle={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: 18,
+                }}
+                duration={200}
+              />
+            </View>
+            <View style={{ opacity: isLightGreenEnabled ? 1 : 0.3 }}>
+              <View
+                style={{
+                  display: isLightGreenEnabled ? "none" : "flex",
+                  position: "absolute",
+                  top: 0,
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  zIndex: 10,
+                }}
+              ></View>
+              <TextInput
+                value={number}
+                onChangeText={handleNumberChange}
+                keyboardType="numeric"
+                placeholder="罰ゲームの回転数"
+                placeholderTextColor={customColors.blackGrey}
+                style={{ padding: 10, color: "white", fontSize: 20 }}
+              />
+            </View>
+          </View>
+        </View>
+      }
+
+      {isHost && 
+        <View
+          style={{
+            bottom: 0,
+            width: "100%",
+            flexDirection: "row",
+            display: keyboardShow ?  "none" : "flex",
+            justifyContent: "space-around",
+            paddingHorizontal: 10,
+          }}
+        >
+          <TouchableOpacity
+            style={{
+              width: "45%",
+              padding: 10,
+              backgroundColor: "#250e44",
+              borderWidth: 1,
+              borderColor: "#8e44ad",
+              borderRadius: 30,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            onPress={() => startGame(false)}
+          >
+            <Text style={{ color: "white", fontSize: 18 }}>スキップ</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={{
+              width: "45%",
+              padding: 10,
+              backgroundColor: "#0f203e",
+              borderWidth: 1,
+              borderColor: "#29ccdc",
+              borderRadius: 30,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            onPress={() => startGame(true)}
+          >
+            <Text style={{ color: "white", fontSize: 18 }}>ゲーム開始</Text>
+          </TouchableOpacity>
+        </View>
+      }
+
+      {!isHost && (
+        <View style={{
+          flex:1,
+          alignItems:'center',
+          justifyContent: 'center'
+        }}>
+          {!patternASetAvailable && (
+            <View>
+              <View>
+
+              </View>
+              <Text style={{ color: 'white', fontSize: 15}}>ホストが罰ゲームを設定しています。111</Text>
+            </View>
+          )}
+        </View>
+      )}
 
       <Modal
         animationType="fade"
@@ -517,6 +632,7 @@ const styles = StyleSheet.create({
     color: customColors.white,
     fontSize: 30,
     fontWeight: "700",
+    marginLeft: 20
   },
 
   pressBtn: {
@@ -538,10 +654,11 @@ const styles = StyleSheet.create({
 
   topHeader: {
     flexDirection: "row",
-    justifyContent: "center",
+    justifyContent: 'flex-start',
     alignItems: "center",
     marginBottom: 8,
     marginTop: 10,
+    marginLeft: 10
   },
 
   penaltyItemRow: {

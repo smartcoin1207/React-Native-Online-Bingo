@@ -32,8 +32,6 @@ import { customColors } from "../utils/Color";
 import EffectBorder from "../components/EffectBorder";
 import { setBingoInitial } from "../store/reducers/bingo/bingoSlice";
 
-const { width: viewportWidth, height: viewportHeight } = Dimensions.get("window");
-
 const screenHeight = Dimensions.get("window").height;
 const cellSize = screenHeight / 5;
 const defaultAvatar = require("../assets/images/default1.png");
