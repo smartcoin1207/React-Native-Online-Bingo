@@ -5,15 +5,11 @@ import {
   Dimensions,
   FlatList,
   Modal,
-  Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
-  useWindowDimensions,
 } from "react-native";
 import { customColors } from "../utils/Color";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -104,7 +100,7 @@ const PenaltyEditList = () => {
     setConfirmDeleteModalVisible(false);
   }
 
-  const renderGameRoomItem = ({
+  const renderPenaltyItem = ({
     item,
     index,
   }: {
@@ -183,7 +179,7 @@ const PenaltyEditList = () => {
       >
         <FlatList
           data={penaltyList}
-          renderItem={renderGameRoomItem}
+          renderItem={renderPenaltyItem}
           keyExtractor={(item, index) => index.toString()}
         />
       </View>
@@ -344,9 +340,9 @@ const styles = StyleSheet.create({
     marginVertical: 20,
     marginBottom: 5,
     borderRadius: 20,
-    borderWidth:1,
+    // borderWidth:1,
     borderColor: customColors.customLightBlue,
-    backgroundColor: '#090828d4',
+    // backgroundColor: '#090828d4',
     padding: 15
   },
 

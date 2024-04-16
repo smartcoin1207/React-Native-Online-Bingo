@@ -328,7 +328,7 @@ const GameWaitingScreen = () => {
         </View>
       </Modal>
 
-      <View style={{width: '90%', padding: 20, borderRadius: 20, backgroundColor: customColors.customDarkBlueBackground, alignItems: 'center', flexDirection: 'row', justifyContent: 'space-evenly'}}>
+      <View style={{width: '97%', padding: 20, borderRadius: 20, backgroundColor: customColors.customDarkBlueBackground, alignItems: 'center', flexDirection: 'row', justifyContent: 'space-evenly'}}>
         <Text style={{fontSize: 20, color: 'grey'}}>
           タイトル:
         </Text>
@@ -442,9 +442,11 @@ const styles = StyleSheet.create({
   },
 
   playerItem: {
+    display: 'flex',
+    justifyContent: 'space-between',
     flexDirection: "row",
     padding: 10,
-    width: viewportWidth * 0.96,
+    width: '100%',
     backgroundColor: customColors.customOpacityDarkBlack,
     borderWidth: 1,
     borderColor: customColors.customLightBlue,
@@ -497,9 +499,10 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 30,
 
     backgroundColor: customColors.customDarkBlueBackground,
-    width: '100%',
+    width: '97%',
     alignItems: 'center',
     paddingTop: 40,
+    paddingHorizontal: 6,
     marginTop: 30,
     marginBottom: 10,
   },
