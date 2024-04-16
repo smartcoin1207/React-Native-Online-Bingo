@@ -148,12 +148,13 @@ const GameRoomScreen = () => {
         <Text style={styles.nameTitle}>{item.displayName}</Text>
       </View>
       <View>
-        <Text style={[styles.nameTitle, { opacity: 0.5, fontSize: 12} ]}>タイトル</Text>
-        <Text style={styles.nameTitle}>{item.displayRoomName}</Text>
+        <Text style={[styles.nameTitle, { opacity: 0.5, fontSize: 12, textAlign: 'center'} ]}>タイトル</Text>
+        <View style={{flexDirection: 'row'}}>
+          <Text style={styles.nameTitle}>{item.displayRoomName}</Text>
+          <Text style={[styles.nameTitle, {opacity: 0.5}]}> ({item.subscriberNum})</Text>
+        </View>
       </View>
-      
-      <Text style={{position: 'absolute', top: 5, left: 5, fontSize: 18, fontWeight: '500', color: 'white'}}>{item.subscriberNum}</Text>
-      
+            
       <TouchableOpacity style={styles.joinBtn} onPress={() => joinRoomModal(item)}>
         <Text style={styles.joinBtnText}>参加する</Text>
       </TouchableOpacity>
@@ -267,7 +268,18 @@ const GameRoomScreen = () => {
         </View>
       </Modal>
 
-      <View style={{ display: 'flex', alignItems: 'center', width: '90%', padding: 10, backgroundColor: customColors.customDarkBlueBackground, borderRadius: 20, flexDirection: 'row', justifyContent:'space-between' }}>
+      <View style={{ 
+        marginHorizontal: 20, // This will set a horizontal margin of 20 units
+        alignItems: 'center', 
+        padding: 10, 
+        backgroundColor: customColors.customDarkBlueBackground,
+        borderWidth: 1,
+        borderColor: customColors.customLightBlue1,
+        borderRadius: 20, 
+        flexDirection: 'row', 
+        justifyContent: 'space-between',
+        width: '96%'
+      }}>
         {ProfileAvatar(authUser?.photoURL, authUser?.displayName)}
 
         <TouchableOpacity style={[styles.button, {flexDirection: 'row', alignSelf: 'center'}]} onPress={createRoomModal}>
@@ -277,7 +289,7 @@ const GameRoomScreen = () => {
       </View>
       
       <View style={styles.FlatListStyle}>
-        <View style={{ position: 'absolute', top: -20, borderRadius: 10, borderColor: customColors.blackGrey, borderWidth: 0, backgroundColor: customColors.black, paddingVertical: 5, paddingHorizontal: 15 }}>
+        <View style={{ position: 'absolute', top: -20, borderRadius: 10, borderColor: customColors.customLightBlue1, borderWidth: 0, backgroundColor: customColors.black, paddingVertical: 5, paddingHorizontal: 15 }}>
           <Text style={styles.listTitle}>プレイルーム一覧</Text>
         </View>
 
@@ -299,7 +311,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: customColors.black,
-    paddingTop: 50,
+    paddingTop: 35,
     width: "100%",
   },
 
@@ -314,13 +326,13 @@ const styles = StyleSheet.create({
   },
   
   button: {
-    backgroundColor: customColors.customDarkBlue,
-    paddingVertical: 12,
+    backgroundColor: customColors.customDarkBlue1,
+    paddingVertical: 6,
     paddingHorizontal: 12,
     marginHorizontal: 4,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: customColors.customLightBlue
+    borderRadius: 30,
+    borderWidth: 0.8,
+    borderColor: customColors.customLightBlue1
   },
 
   textTitle: {
@@ -338,12 +350,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
-    marginVertical: 5,
+    marginVertical: 3,
     padding: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     backgroundColor: customColors.customDarkBlue,
-    borderWidth: 1,
-    borderColor: customColors.customLightBlue,
+    borderWidth: 0.8,
+    borderColor: customColors.customDarkGreen1,
     borderRadius: 10,
   },
 
@@ -384,14 +396,15 @@ const styles = StyleSheet.create({
   FlatListStyle: {
     flex: 1,
     borderWidth: 1,
-    borderRadius: 30,
+    borderColor: customColors.customLightBlue1,
+    borderRadius: 20,
     backgroundColor: customColors.customDarkBlueBackground,
-    width: '100%',
     alignItems: 'center',
-    paddingTop: 40,
-    paddingHorizontal: 10,
+    paddingTop: 30,
+    paddingBottom:5,
+    paddingHorizontal: 6,
     marginTop: 30,
-    marginBottom: 10,
+    width: '96%'
   },
 
   divider: {

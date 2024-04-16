@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Linking, Animated, Easing  } from 'react-native';
+import { View, SafeAreaView, Text, StyleSheet, TouchableOpacity, Dimensions, Linking, Animated, Easing  } from 'react-native';
 import { UseSelector, useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useEffect } from 'react';
@@ -27,17 +27,17 @@ const HomeScreen: React.FC = () => {
     }, [isLoggedIn])
 
     return (
-        <View style={styles.container}>
-            <TouchableOpacity style={styles.button1} onPress={() => openWebsite()}>
+        <SafeAreaView style={styles.container}>
+            <TouchableOpacity style={styles.button1} activeOpacity={0.6} onPress={() => openWebsite()}>
                 <Text style={styles.textTitle}>アカウント登録</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.button2} onPress={() => navigation.navigate('register')}>
+            <TouchableOpacity style={styles.button1} activeOpacity={0.6} onPress={() => navigation.navigate('register')}>
                 <Text style={[styles.textTitle, {letterSpacing: 12}]}>　登録　</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.button2} onPress={() => navigation.navigate('login')}>
+            <TouchableOpacity style={styles.button1} activeOpacity={0.6} onPress={() => navigation.navigate('login')}>
                 <Text style={styles.textTitle}> 　ログイン　 </Text>
             </TouchableOpacity>
-        </View>
+        </SafeAreaView>
     );
 }
 
@@ -64,24 +64,20 @@ const styles = StyleSheet.create({
         backgroundColor: customColors.customDarkBlue,
         paddingVertical: 10,
         paddingHorizontal: 25,
-        borderColor: customColors.customLightBlue,
-        borderWidth: 1,
-        borderRadius: 15
-    },
-    button2: {
-        backgroundColor: customColors.customDarkBlue,
-        paddingVertical: 10,
-        paddingHorizontal: 25,
-        borderColor: customColors.customLightBlue,
-        borderWidth: 1,
-        borderRadius: 15,
-        marginTop: cellSize * 0.65
+        borderColor: '#5e95f7b0',
+        borderWidth: 1.5,
+        borderRadius: 75,
+        width:150,
+        height: 150,
+        justifyContent: 'center',
+        marginVertical: 10
     },
     textTitle: {
-        fontSize: 20,
+        fontSize: 18,
         color: customColors.white,
         fontFamily: 'serif',
         fontWeight: '700',
+        textAlign: 'center'
     }
 });
 

@@ -115,9 +115,11 @@ const styles = StyleSheet.create({
     },
     signBtn: {
         width: '100%',
-        backgroundColor: customColors.blackRed,
+        backgroundColor: '#69103d9e',
         paddingVertical: 8,
         borderRadius: 100,
+        borderWidth: 1,
+        borderColor: customColors.customLightBlue,
     },
     textTitle: {
         fontSize: 20,

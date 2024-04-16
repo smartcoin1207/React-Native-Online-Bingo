@@ -79,15 +79,11 @@ const FirstRoute = () => {
 };
 
 const PenaltyScreen = () => {
-  const handleListBtnClick = () => {};
 
   return (
     <View style={styles.container}>
       <View style={styles.topHeader}>
         <Text style={styles.title}>罰ゲーム</Text>
-        <TouchableOpacity style={styles.pressBtn} onPress={handleListBtnClick}>
-          <Text style={styles.pressBtnText}> 罰ゲーム一覧 </Text>
-        </TouchableOpacity>
       </View>
       <FirstRoute />
     </View>
