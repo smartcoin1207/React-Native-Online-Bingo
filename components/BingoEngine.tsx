@@ -67,7 +67,6 @@ const bingoCellValuesUS = (): BingoCellValues => {
         }
         cellValues.push(row);
     }
-    // cellValues[2][2] = "💎";
   
     return cellValues;
 };

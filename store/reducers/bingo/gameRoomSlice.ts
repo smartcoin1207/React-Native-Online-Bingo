@@ -1,11 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { GameRoomState } from '../../../utils/Types';
+import { GameRoomState, GameType } from '../../../utils/Types';
 
 const INITIAL_STATE: GameRoomState = {
     gameRooms: [],
     currentGameRoom: null,
     isHost: false,
-    gameRoomId: ''
+    gameRoomId: '',
+    gameType: GameType.Penalty
 };
 
 export const gameRoomSlice = createSlice({
@@ -27,9 +28,12 @@ export const gameRoomSlice = createSlice({
         setGameRoomId: (state, action) => {
             state.gameRoomId = action.payload?.gameRoomId;
             state.isHost = action.payload?.isHost;
+        },
+        setGameType: (state, action) => {
+            state.gameType = action.payload
         }
     },
 });
 
-export const { setGameRooms, addGameRooms, setCurrentGameRoom, setGameRoomId } = gameRoomSlice.actions;
+export const { setGameRooms, addGameRooms, setCurrentGameRoom, setGameRoomId, setGameType } = gameRoomSlice.actions;
 export default gameRoomSlice.reducer;

@@ -24,10 +24,10 @@ import {
   setPlayerGameSort,
   startGameBingo,
 } from "../utils/firebase/FirebaseUtil";
-import { GameWaitingRouteParams, Player, User } from "../utils/Types";
+import { GameType, GameWaitingRouteParams, Player, User } from "../utils/Types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store";
-import { setCurrentGameRoom, setGameRoomId } from "../store/reducers/bingo/gameRoomSlice";
+import { setCurrentGameRoom, setGameRoomId, setGameType } from "../store/reducers/bingo/gameRoomSlice";
 import { customColors } from "../utils/Color";
 import EffectBorder from "../components/EffectBorder";
 import { setBingoInitial } from "../store/reducers/bingo/bingoSlice";
@@ -143,10 +143,18 @@ const GameWaitingScreen = () => {
     const turnPlayerId = sort[0];
     if(!turnPlayerId) return false;
     
+    dispatch(setGameType(GameType.Bingo));
+    navigator.navigate("penalty", {startGame: testGame});
+  };
+
+  const testGame = async () => {
+    const turnPlayerId = sort[0];
+    if(!turnPlayerId) return false;
+
+    console.log('testgame');
     dispatch(setBingoInitial({}));
     await startGameBingo(gameRoomId, turnPlayerId);
-    navigator.navigate("bingo");
-  };
+  }
 
   const exitRoom = () => {
     if (authUser.uid) {
@@ -365,8 +373,9 @@ const GameWaitingScreen = () => {
         
         {isHost && (
           <TouchableOpacity
-            style={styles.successButton}
+            style={ styles.successButton }
             onPress={() => {
+              console.log(authUser)
               setGameListModalVisible(true);
             }}
           >

@@ -326,27 +326,6 @@ export const setPlayerGameSort  = async (gameRoomId: string, uids: string[]) => 
     }
 }
 
-// export const setPlayerGameSort  = async (gameRoomId: string, uids: string[]) => {
-//     console.log("setPlayerGameSort");
-//     if(!gameRoomId) {
-//         return false;
-//     }
-
-//     const turnPlayerId = uids[0];
-//     try {
-//         const docRef = doc(collection(db, gameTable), gameRoomId);
-//         await updateDoc(docRef, {
-//             sort: uids,
-//             turnPlayerId: turnPlayerId,
-//             turnNumber: 1,
-//             bingoCompleted: []
-//         });
-//     } catch (error) {
-//         console.log("bingo error")
-//     }
-// }
-
-
 export const getBingo = (gameRoomId: string, callback : any ) => {
     if(!gameRoomId) {
         return false;

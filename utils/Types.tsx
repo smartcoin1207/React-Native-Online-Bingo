@@ -39,6 +39,10 @@ export interface GameWaitingRouteParams {
     gameRoomId: string 
 }
 
+export interface PenaltyScreenParams {
+    startGame: Function
+}
+
 /**
  * Represents the parameters for the setBingoCompletedPlayer function.
  */
@@ -69,11 +73,18 @@ export interface CurrentGameRoom {
     isHost: boolean
 }
 
+export enum GameType {
+    Bingo = "Bingo",
+    Penalty = "Penalty",
+    Tictactoe = "Tactactoe"
+}
+
 export interface GameRoomState {
     gameRooms: GameRoom[],
     currentGameRoom: CurrentGameRoom | null,
     gameRoomId: string,
-    isHost: boolean
+    isHost: boolean,
+    gameType: GameType
 }
 
 export interface BingoPlayState {

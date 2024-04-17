@@ -10,15 +10,16 @@ import {
   Modal,
   FlatList,
   Keyboard,
-  Platform
+  Platform,
+  ActivityIndicator
 } from "react-native";
 import { customColors } from "../utils/Color";
 import SwitchToggle from "react-native-switch-toggle";
 import { List } from "react-native-paper";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { getAllPenalty } from "../utils/firebase/FirebaseUtil";
-import { Penalty } from "../utils/Types";
-import { useNavigation } from "@react-navigation/native";
+import { GameType, Penalty, PenaltyScreenParams } from "../utils/Types";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
 
@@ -28,9 +29,11 @@ enum PatternType {
 }
 
 const PenaltyScreen = () => {
+  const route = useRoute();
   const navigation = useNavigation();
   const isHost = useSelector((state: RootState) => state.gameRoom.isHost);
   const gameRoomId = useSelector((state: RootState) => state.gameRoom.gameRoomId);
+  const gameType = useSelector((state: RootState) => state.gameRoom.gameType);
 
   const [isLightBlueEnabled, setIsLightBlueEnabled] = React.useState(false);
   const [isLightCyanEnabled, setIsLightCyanEnabled] = React.useState(false);
@@ -49,6 +52,8 @@ const PenaltyScreen = () => {
   );
   const [keyboardShow, setKeyBoardShow] = useState<boolean>(false);
   const [patternASetAvailable, setPatternASetAvailable] = useState<boolean>(false);
+  const [patternASelected, setPatternASelected] = useState<boolean>(false);
+  const { startGame }: PenaltyScreenParams =  route.params as PenaltyScreenParams;
 
   useEffect(() => {
     const fetchPenalties = async () => {
@@ -91,12 +96,23 @@ const PenaltyScreen = () => {
     };
   }, []);
 
-  const startGame = (isPenalty: boolean) => {
+  const startGamPenalty = (isPenalty: boolean) => {
     if(isPenalty) {
       console.log(isPenalty);
     } else {
       console.log(isPenalty);
     }
+    console.log('bingo')
+
+    // if(gameType == GameType.Bingo) {
+      console.log('bingo')
+      startGame();
+    // }
+  }
+
+  const setPatternA = () => {
+    const penaltyAId1 = penaltyAId;
+    setPatternASelected(true);
   }
 
   const _keyboardDidShow = () => {
@@ -509,7 +525,7 @@ const PenaltyScreen = () => {
               alignItems: "center",
               justifyContent: "center",
             }}
-            onPress={() => startGame(false)}
+            onPress={() => startGamPenalty(false)}
           >
             <Text style={{ color: "white", fontSize: 18 }}>スキップ</Text>
           </TouchableOpacity>
@@ -525,7 +541,7 @@ const PenaltyScreen = () => {
               alignItems: "center",
               justifyContent: "center",
             }}
-            onPress={() => startGame(true)}
+            onPress={() => startGamPenalty(true)}
           >
             <Text style={{ color: "white", fontSize: 18 }}>ゲーム開始</Text>
           </TouchableOpacity>
@@ -540,10 +556,141 @@ const PenaltyScreen = () => {
         }}>
           {!patternASetAvailable && (
             <View>
+              <Text style={{ color: 'white', fontSize: 15}}>ホストが罰ゲームを設定しています ...</Text>
               <View>
-
+                {!patternASetAvailable ? <ActivityIndicator size="large" color="#007AFF" /> : ""}
               </View>
-              <Text style={{ color: 'white', fontSize: 15}}>ホストが罰ゲームを設定しています。111</Text>
+            </View>
+          )}
+
+          {patternASetAvailable && (
+            <View 
+              style={{
+                flex:1, 
+                borderWidth:1,
+                borderColor: "#5a6fff",
+                borderRadius: 30,
+                justifyContent: 'center',
+                margin: 10,
+                width: '100%',
+                backgroundColor: customColors.customDarkBlueBackground,
+                alignItems: 'center'
+              }}
+            >
+              {!penaltyAId ? (
+                <>
+                  <View style={{
+                    alignItems: 'center'
+                  }}>
+                    <Text
+                      style={{
+                        color:'white',
+                        fontSize: 18
+                      }}
+                    >
+                      パターンAを設定してください。
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    style={{
+                      width: 50,
+                      height: 50,
+                      borderRadius: 50,
+                      borderWidth: 1,
+                      borderColor: "#5a6fff",
+                      padding: 10,
+                      margin: 10,
+                      paddingHorizontal: 12,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                    onPress={() => {
+                      handlePatternAPlusBtnClick();
+                    }}
+                  >
+                    <Icon name="plus" size={25} color={"#5a6fff"} />
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <View style={{
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: "100%",
+                }}>
+
+                <View
+                  style={{
+                    display: patternASelected ? "flex" : "none",
+                    position: "absolute",
+                    top: 0,
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    zIndex: 10,
+                  }}
+                ></View>
+                  <View
+                    style={{
+                      margin: 10,
+                      justifyContent: "center",
+                      borderWidth: 1,
+                      borderColor: "#5a6fff",
+                      borderRadius: 20,
+                      width: "90%",
+                      padding: 10,
+                      backgroundColor: "#0f203e",
+                      opacity: patternASelected ? 0.3: 1
+                    }}
+                  >
+                    <TouchableOpacity
+                      style={[styles.penaltyItemRow]}
+                      onPress={() => handlePatternAPlusBtnClick()}
+                    >
+                      <View style={styles.penaltyItemTitle}>
+                        <Text
+                          style={{ fontSize: 20, color: "white", display: "flex" }}
+                        >
+                          {penaltyA?.title}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+
+                  <TouchableOpacity
+                      style={{
+                        padding: 10,
+                        paddingHorizontal: 20,
+                        borderWidth: 1,
+                        marginTop: 30,
+                        borderColor: '#5a6fff',
+                        backgroundColor: "#19212e",
+                        borderRadius: 30,
+                        opacity: patternASelected ? 0.3: 1
+                      }}
+                      onPress={() => setPatternA()}
+                    >
+                      <Text
+                        style={{ fontSize: 20, color: "white", display: "flex" }}
+                      >
+                        確認
+                      </Text>
+                  </TouchableOpacity>
+                  
+                  {patternASelected && (
+                    <View style={{
+                      marginTop: 100
+                    }}>
+                      <Text style={{ color: 'white', fontSize: 15}}>ホストがゲームを開始するまで待機します ...</Text>
+                      <View style={{
+                        marginTop: 20
+                      }}>
+                        {true ? <ActivityIndicator size="large" color="#007AFF" /> : ""}
+                      </View>
+                    </View>
+                  )}
+                  
+                </View>
+              )}
             </View>
           )}
         </View>
