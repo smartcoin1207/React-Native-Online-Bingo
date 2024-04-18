@@ -41,7 +41,6 @@ const GameRoom: React.FC<GameListScreen> = () => {
     }
 
     const handleMovePenalty = () => {
-        navigation.navigate("penalty");
     }
 
     return (

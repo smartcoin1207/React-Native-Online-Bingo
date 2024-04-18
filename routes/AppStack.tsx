@@ -11,22 +11,26 @@ import GameRoom from '../screens/GameRoomListScreen';
 import GameWaitingScreen  from '../screens/GameWaitingScreen';
 import PenaltyScreen from '../screens/penaltyScreen';
 import PenaltyEditList from '../screens/penaltyEditList';
+import { RootStackParamList } from '../constants/navigate';
 
-const Stack = createNativeStackNavigator();
+
+// Define the types for the route paramete
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const AppNavigator = () => {
   return (
     <Stack.Navigator initialRouteName='Splash'>
-      <Stack.Screen name="Splash" component={SplashScreen} options={{ headerShown: false }}/>
-      <Stack.Screen name="bingo" component={PlayBoard} options={{ headerShown: false }}/>
-      <Stack.Screen name="Home" component={Home} options={{ headerShown: false }}/>
-      <Stack.Screen name="register" component={Register} options={{ headerShown: false }}/>
-      <Stack.Screen name="login" component={Login} options={{ headerShown: false }}/>
-      <Stack.Screen name="GameList" component={GameList} options={{ headerShown: false }}/>
-      <Stack.Screen name="gameRoomList" component={GameRoom} options={{ headerShown: false }}/>
-      <Stack.Screen name="currentRoom" component={GameWaitingScreen} options={{ headerShown: false }}/>
-      <Stack.Screen name="penalty" component={PenaltyScreen} options={{ headerShown: false }}/>
-      <Stack.Screen name="penaltyEdit" component={PenaltyEditList} options={{ headerShown: false }}/>
+      <Stack.Screen name='Splash' component={SplashScreen} options={{ headerShown: false }}/>
+      <Stack.Screen name='bingo' component={PlayBoard} options={{ headerShown: false }}/>
+      <Stack.Screen name='Home' component={Home} options={{ headerShown: false }}/>
+      <Stack.Screen name='register' component={Register} options={{ headerShown: false }}/>
+      <Stack.Screen name='login' component={Login} options={{ headerShown: false}}/>
+      <Stack.Screen name='GameList' component={GameList} options={{ headerShown: false }}/>
+      <Stack.Screen name='gameRoomList' component={GameRoom} options={{ headerShown: false }}/>
+      <Stack.Screen name='currentRoom' component={GameWaitingScreen} options={{ headerShown: false }}/>
+      <Stack.Screen name='penalty' component={PenaltyScreen} options={{headerShown: false}}/>
+      <Stack.Screen name='penaltyEdit' component={PenaltyEditList} options={{ headerShown: false }}/>
     </Stack.Navigator>
   );
 };

@@ -16,24 +16,28 @@ import {
 import { customColors } from "../utils/Color";
 import SwitchToggle from "react-native-switch-toggle";
 import { List } from "react-native-paper";
+import { RouteProp } from '@react-navigation/native';
+
 import Icon from "react-native-vector-icons/FontAwesome";
-import { getAllPenalty } from "../utils/firebase/FirebaseUtil";
-import { GameType, Penalty, PenaltyScreenParams } from "../utils/Types";
+import { addPenaltyPatternA, getAllPenalty, getGamePenalty, setPatternASet } from "../utils/firebase/FirebaseUtil";
+import { GameType, Penalty } from "../utils/Types";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
+import { RootStackParamList } from "../constants/navigate";
 
 enum PatternType {
   PatternA = "PatternA",
   PatternB = "PatternB",
 }
+type PenaltyScreenRouteProp = RouteProp<RootStackParamList, 'penalty'>;
 
 const PenaltyScreen = () => {
   const route = useRoute();
+
   const navigation = useNavigation();
   const isHost = useSelector((state: RootState) => state.gameRoom.isHost);
   const gameRoomId = useSelector((state: RootState) => state.gameRoom.gameRoomId);
-  const gameType = useSelector((state: RootState) => state.gameRoom.gameType);
 
   const [isLightBlueEnabled, setIsLightBlueEnabled] = React.useState(false);
   const [isLightCyanEnabled, setIsLightCyanEnabled] = React.useState(false);
@@ -53,7 +57,19 @@ const PenaltyScreen = () => {
   const [keyboardShow, setKeyBoardShow] = useState<boolean>(false);
   const [patternASetAvailable, setPatternASetAvailable] = useState<boolean>(false);
   const [patternASelected, setPatternASelected] = useState<boolean>(false);
-  const { startGame }: PenaltyScreenParams =  route.params as PenaltyScreenParams;
+  const { startGame } = route.params;
+  
+  // get penalty by gameRoomId
+  useEffect(() => {
+    getGamePenalty(gameRoomId, (penalty: any) => {
+      // console.log(penalty?.PatternASet);
+      if(penalty?.patternASet) {
+        setPatternASetAvailable(true)
+      } else {
+        setPatternASetAvailable(false);
+      }
+    })
+  }, [])
 
   useEffect(() => {
     const fetchPenalties = async () => {
@@ -65,6 +81,10 @@ const PenaltyScreen = () => {
 
     fetchPenalties();
   }, []);
+
+  // useEffect(() => {
+  //   setPatternASetAvailable(penaltyPatternASet);
+  // }, [penaltyPatternASet])
 
   useEffect(() => {
     if (penaltyAId) {
@@ -102,12 +122,10 @@ const PenaltyScreen = () => {
     } else {
       console.log(isPenalty);
     }
-    console.log('bingo')
-
-    // if(gameType == GameType.Bingo) {
-      console.log('bingo')
+    try {
       startGame();
-    // }
+    } catch (error) {
+    }
   }
 
   const setPatternA = () => {
@@ -129,8 +147,10 @@ const PenaltyScreen = () => {
     setIsLightBlueEnabled((previousState) => !previousState);
     setPenaltyAId('');
     setPenaltyA(undefined);
+    
+    setPatternASet(gameRoomId);
   };
-
+  
   const toggleLightCyanSwitch = () => {
     setIsLightCyanEnabled((previousState) => !previousState);
     setPenaltyBId('');
@@ -154,7 +174,6 @@ const PenaltyScreen = () => {
     setPatternType(PatternType.PatternB);
     setPenaltyListModalVisible(true);
     console.log(PatternType.PatternB)
-
   };
 
   const handlePenaltyListItemClick = (penaltyId: string) => {

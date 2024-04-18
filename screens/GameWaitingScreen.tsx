@@ -21,8 +21,11 @@ import Icon from "react-native-vector-icons/FontAwesome";
 import {
   exitGameRoom,
   getGameRoom,
+  setGameRoomOpen,
+  setGameTypeF,
   setPlayerGameSort,
   startGameBingo,
+  startGamePenalty,
 } from "../utils/firebase/FirebaseUtil";
 import { GameType, GameWaitingRouteParams, Player, User } from "../utils/Types";
 import { useDispatch, useSelector } from "react-redux";
@@ -60,6 +63,9 @@ const GameWaitingScreen = () => {
   const currentGameRoom = useSelector(
     (state: RootState) => state.gameRoom.currentGameRoom
   );
+
+  const [gameTypeR, setGameTypeR] = useState<GameType>(GameType.Room);
+  const [gameRoomOpened, setGameRoomOpened] = useState<boolean>(true);
 
   useEffect(() => {
     dispatch(setGameRoomId({ gameRoomId: gameRoomId, isHost: isHost }))
@@ -102,14 +108,21 @@ const GameWaitingScreen = () => {
             (player: any) => player.uid === authUser.uid
           )
         ) {
-          navigator.navigate("gameRoomList");
+          navigator.navigate('gameRoomList');
         }
       }
 
-      if (gameRoom?.gameStarted == true) {
+      if(gameRoom?.gameType == GameType.Penalty && !isHost) {
+        navigator.navigate("penalty", {startGame: () => {}});
+      }
+
+      if (gameRoom?.gameStarted == true && gameRoom?.gameType == GameType.Bingo) {
         dispatch(setBingoInitial({}));
         navigator.navigate("bingo");
       }
+
+      setGameRoomOpened(gameRoom?.gameRoomOpened);
+      setGameTypeR(gameRoom?.gameType);
 
       setGameRoomDisplayName(gameRoom?.displayRoomName);
       setSort(gameRoom?.sort || []);
@@ -119,7 +132,7 @@ const GameWaitingScreen = () => {
         subscribersPlayers: gameRoom?.subscribersPlayers || [],
         sort: gameRoom?.sort || []
       };
-
+      
       dispatch(setCurrentGameRoom(currentGameRoom));
       setListLoading(false);
     });
@@ -143,17 +156,27 @@ const GameWaitingScreen = () => {
     const turnPlayerId = sort[0];
     if(!turnPlayerId) return false;
     
-    dispatch(setGameType(GameType.Bingo));
-    navigator.navigate("penalty", {startGame: testGame});
+    setGameTypeF(gameRoomId, GameType.Penalty);
+    startGamePenalty(gameRoomId);
+
+    try {
+      navigator.navigate("penalty", {startGame: startBingo_});
+    } catch (error) {
+      
+      console.log(error)
+    }
   };
 
-  const testGame = async () => {
+  const startBingo_ = async () => {
     const turnPlayerId = sort[0];
     if(!turnPlayerId) return false;
 
-    console.log('testgame');
     dispatch(setBingoInitial({}));
     await startGameBingo(gameRoomId, turnPlayerId);
+  }
+
+  const setGameRoomOpen_ = async () => {
+    setGameRoomOpen(gameRoomId, !gameRoomOpened);
   }
 
   const exitRoom = () => {
@@ -334,13 +357,33 @@ const GameWaitingScreen = () => {
         </View>
       </Modal>
 
-      <View style={{width: '97%', padding: 20, borderRadius: 20, backgroundColor: customColors.customDarkBlueBackground, alignItems: 'center', flexDirection: 'row', justifyContent: 'space-evenly'}}>
-        <Text style={{fontSize: 20, color: 'grey'}}>
-          タイトル:
-        </Text>
-        <Text style={{fontSize: 30, color: 'white'}}>
-          { gameRoomDisplayName }
-        </Text>
+      <View style={{width: '97%', padding: 10, borderRadius: 20, backgroundColor: customColors.customDarkBlueBackground, alignItems: 'center', flexDirection: 'row', justifyContent: 'space-evenly'}}>
+        <View 
+          style={{backgroundColor: 'black', width: '60%', padding: 15, borderWidth: 1, borderRadius: 20, borderColor: customColors.customLightBlue1, alignItems: 'center'}}
+        >
+          <Icon name= { gameRoomOpened ? "unlock" : "lock" } size={20} color={'white'} style={{ position: 'absolute', top: 10, left: 10 }} />
+
+          <Text style={{ fontSize: 20, color: 'grey' }}>
+            タイトル:
+          </Text>
+          <Text style={{ fontSize: 30, color: 'white' }}>
+            { gameRoomDisplayName }
+          </Text>
+        </View>
+        {isHost && (
+          <TouchableOpacity
+            style={{
+              padding: 10, 
+              borderWidth: 1,
+              borderColor: customColors.customLightBlue1,
+              borderRadius: 20,
+              flexDirection: 'row'
+            }}
+            onPress={setGameRoomOpen_}
+          >
+            <Text style={{fontSize: 15, color: 'white', marginLeft: 10}}>{gameRoomOpened ? "部屋を閉じる" : "部屋を開く"}</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={styles.FlatListStyle}>
@@ -478,8 +521,8 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignItems: 'center',
     alignSelf: 'center',
-    right: 5,
-    position: 'absolute'
+    // right: 5,
+    // position: 'absolute'
   },
 
   joinBtnText: {

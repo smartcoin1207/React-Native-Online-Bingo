@@ -14,6 +14,7 @@ import { RootState } from "../store";
 import { signInAuthUser } from "../utils/firebase/FirebaseUtil";
 import { SignIn } from "../store/reducers/bingo/userSlice";
 import { customColors } from "../utils/Color";
+import { inCorrectUserInfoRequired } from "../utils/ValidationString";
 interface LoginScreenProps {}
 
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
@@ -23,6 +24,7 @@ const Login: React.FC<LoginScreenProps> = () => {
   const [password, setPassword] = useState<string>("");
   const [emailError, setEmailError] = useState<string>("");
   const [passwordError, setPasswordError] = useState<string>("");
+  const [inCorrectUserInfo, setInCorrectUserInfo] = useState<string>("");
   const navigation = useNavigation();
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const authUser = useSelector((state: RootState) => state.auth.authUser);
@@ -44,9 +46,14 @@ const Login: React.FC<LoginScreenProps> = () => {
     setPasswordError(passwordErr || "");
 
     if (!emailErr && !passwordErr) {
-      signInAuthUser(email, password).then((userData) => {
+      signInAuthUser(email, password).then((userData: any) => {
         if (userData) {
           dispatch(SignIn(userData));
+          setInCorrectUserInfo("");
+        }
+        if(!userData) {
+          console.log(userData);
+          setInCorrectUserInfo(inCorrectUserInfoRequired);
         }
       });
     }
@@ -76,6 +83,9 @@ const Login: React.FC<LoginScreenProps> = () => {
         />
         {passwordError !== "" && (
           <Text style={styles.errText}>{passwordError}</Text>
+        )}
+        {inCorrectUserInfo !== "" && (
+          <Text style={styles.errText}>{inCorrectUserInfo}</Text>
         )}
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>ログイン</Text>

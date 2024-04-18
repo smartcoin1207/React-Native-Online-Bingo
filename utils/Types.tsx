@@ -39,10 +39,6 @@ export interface GameWaitingRouteParams {
     gameRoomId: string 
 }
 
-export interface PenaltyScreenParams {
-    startGame: Function
-}
-
 /**
  * Represents the parameters for the setBingoCompletedPlayer function.
  */
@@ -74,6 +70,7 @@ export interface CurrentGameRoom {
 }
 
 export enum GameType {
+    Room = "Room",
     Bingo = "Bingo",
     Penalty = "Penalty",
     Tictactoe = "Tactactoe"
@@ -84,7 +81,7 @@ export interface GameRoomState {
     currentGameRoom: CurrentGameRoom | null,
     gameRoomId: string,
     isHost: boolean,
-    gameType: GameType
+    gameType: GameType,
 }
 
 export interface BingoPlayState {
@@ -97,8 +94,18 @@ export interface Penalty {
     title: string
 }
 
+export interface GamePenalty {
+    uid: string, 
+    penaltyId: string,
+    penaltyTitle: string
+}
+
 export interface PenaltySliceType {
-    penaltyList:  Penalty[]
+    penaltyList:  Penalty[],
+    patternASet: boolean,
+    patternAList: GamePenalty[],
+    patternB: string,
+    patternC: number
 }
 
 //Firebase Util Functions Parameters type

@@ -45,7 +45,7 @@ const GameRoomScreen = () => {
   const [titleError, setTitleError] = useState<string>("");
 
   const authUser = useSelector((state: RootState) => state.auth.authUser);
-  const [currentJoinGameRoom, setCurrentJoinGameRoom] = useState<GameRoom>({});
+  const [currentJoinGameRoom, setCurrentJoinGameRoom] = useState<GameRoom | undefined>(undefined);
 
   //data from redux
   const gameRooms = useSelector(
@@ -87,11 +87,13 @@ const GameRoomScreen = () => {
 
       //firebaseに新しいroomが作成されるまで待ちます。
       const newGameRoomId = await createGameRoom(authUser.uid, gameRoomDisplayName, password);
+
       setCreateRoomLoading(false);
       navigator.navigate("currentRoom", {
         isHost: true,
-        gameRoomId: newGameRoomId,
+        gameRoomId: newGameRoomId as string,
       });
+
     }
 
     setRoomModalVisible(false);
@@ -112,7 +114,8 @@ const GameRoomScreen = () => {
 
     if(passwordErr) return false;
 
-    const gameRoomItem: GameRoom = currentJoinGameRoom;
+    const gameRoomItem: GameRoom | undefined = currentJoinGameRoom; 
+    if(!gameRoomItem) return false;
     if (createRoomLoading) return false;
 
     if (password != gameRoomItem.password) {

@@ -405,8 +405,18 @@ const PlayBoard: React.FC = () => {
     };
 
     const getCellStyle = (cellType: string) : any => {
-        if(cellType) {
-            return styles[cellType];
+        if(cellType == "pressedModal") {
+            return styles.pressedModal;
+        } else if(cellType == 'pressed') {
+            return styles.pressed;
+        } else if(cellType == 'bingoCellModal') {
+            return styles.bingoCellModal;
+        } else if(cellType == 'bingoCell') {
+            return styles.bingoCell
+        } else if(cellType == 'selectedCell') {
+            return styles.selectedCell;
+        } else if( cellType == 'normal' ) {
+            return styles.normal;
         }
 
         return ''

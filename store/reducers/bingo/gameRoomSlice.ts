@@ -6,7 +6,7 @@ const INITIAL_STATE: GameRoomState = {
     currentGameRoom: null,
     isHost: false,
     gameRoomId: '',
-    gameType: GameType.Penalty
+    gameType: GameType.Room,
 };
 
 export const gameRoomSlice = createSlice({

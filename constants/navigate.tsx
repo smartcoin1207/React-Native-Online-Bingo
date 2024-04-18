@@ -8,15 +8,15 @@ declare global {
 
 export type RootStackParamList = {
   Splash: undefined;
-  Login: undefined;
+  bingo: undefined;
   Home: undefined;
-  Notice: undefined;
-  Chating: undefined;
-  SettingMain: undefined;
-  SettingChat: undefined;
-  Request: undefined;
-  RequestSend: undefined;
-  Exhibit: undefined;
+  register: undefined;
+  login: undefined;
+  GameList: undefined;
+  gameRoomList: undefined;
+  currentRoom: {isHost: boolean, gameRoomId: string};
+  penalty: { startGame: () => void };
+  penaltyEdit: undefined;
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> =

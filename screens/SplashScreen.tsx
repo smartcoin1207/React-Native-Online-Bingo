@@ -8,7 +8,7 @@ import { RootState } from '../store';
 const screenHeight = Dimensions.get('window').height;
 const cellSize = screenHeight / 5; 
 
-type Props = NativeStackScreenProps<RootStackParamList, "Splash">;
+type Props =  NativeStackScreenProps<RootStackParamList, 'Splash'>;
 
 const SplashScreen: React.FC<Props> = ({navigation: {navigate}}) => {
     const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
