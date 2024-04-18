@@ -11,33 +11,49 @@ import {
   FlatList,
   Keyboard,
   Platform,
-  ActivityIndicator
+  ActivityIndicator,
 } from "react-native";
 import { customColors } from "../utils/Color";
 import SwitchToggle from "react-native-switch-toggle";
 import { List } from "react-native-paper";
-import { RouteProp } from '@react-navigation/native';
+import { RouteProp } from "@react-navigation/native";
 
 import Icon from "react-native-vector-icons/FontAwesome";
-import { addPenaltyPatternA, getAllPenalty, getGamePenalty, setPatternASet } from "../utils/firebase/FirebaseUtil";
-import { GameType, Penalty } from "../utils/Types";
+import {
+  addPenaltyPatternA,
+  getAllPenalty,
+  getGamePenalty,
+  setPatternASet,
+  setPenaltyPatternB,
+  setPenaltyPatternC,
+} from "../utils/firebase/FirebaseUtil";
+import { GameType, Penalty, Player } from "../utils/Types";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
 import { RootStackParamList } from "../constants/navigate";
+import { auth } from "../utils/firebase/FirebaseInitialize";
+import GameRoomScreen from "./GameRoomListScreen";
 
 enum PatternType {
   PatternA = "PatternA",
   PatternB = "PatternB",
 }
-type PenaltyScreenRouteProp = RouteProp<RootStackParamList, 'penalty'>;
+type PenaltyScreenRouteProp = RouteProp<RootStackParamList, "penalty">;
 
-const PenaltyScreen = () => {
-  const route = useRoute();
+type PenaltyScreenProps = {
+  route: PenaltyScreenRouteProp;
+};
 
+const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
+  const { startGame } = route.params;
   const navigation = useNavigation();
   const isHost = useSelector((state: RootState) => state.gameRoom.isHost);
-  const gameRoomId = useSelector((state: RootState) => state.gameRoom.gameRoomId);
+  const gameRoomId = useSelector(
+    (state: RootState) => state.gameRoom.gameRoomId
+  );
+  const authUser = useSelector((state: RootState) => state.auth.authUser);
+  const currentGameRoom = useSelector((state: RootState) => state.gameRoom.currentGameRoom);
 
   const [isLightBlueEnabled, setIsLightBlueEnabled] = React.useState(false);
   const [isLightCyanEnabled, setIsLightCyanEnabled] = React.useState(false);
@@ -54,37 +70,57 @@ const PenaltyScreen = () => {
   const [patternType, setPatternType] = useState<PatternType>(
     PatternType.PatternA
   );
+
+  const [patternBChecked, setPatternBChecked] = useState<boolean>(false);
+  const [patternCChecked, setPatternCChecked] = useState<boolean>(false);
   const [keyboardShow, setKeyBoardShow] = useState<boolean>(false);
-  const [patternASetAvailable, setPatternASetAvailable] = useState<boolean>(false);
+  const [patternASetAvailable, setPatternASetAvailable] =
+    useState<boolean>(false);
   const [patternASelected, setPatternASelected] = useState<boolean>(false);
-  const { startGame } = route.params;
-  
+  const [subscribers, setSubscribers] = useState<Player[]>([]);
+  const [allSelectedPatternA, setAllSelectedPatternA] = useState<boolean>(false);
+
   // get penalty by gameRoomId
   useEffect(() => {
     getGamePenalty(gameRoomId, (penalty: any) => {
-      // console.log(penalty?.PatternASet);
-      if(penalty?.patternASet) {
-        setPatternASetAvailable(true)
+      if (penalty?.patternASet) {
+        setPatternASetAvailable(true);
       } else {
         setPatternASetAvailable(false);
       }
-    })
+
+      const patternAlist = penalty?.patternAList || [];
+    
+      if(patternAlist.length == subscribers.length) {
+        setAllSelectedPatternA(true);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    const subscribers_ = currentGameRoom?.subscribersPlayers || [];
+    setSubscribers(subscribers_);
   }, [])
 
   useEffect(() => {
     const fetchPenalties = async () => {
       try {
         const penalties = await getAllPenalty();
-        setAllPenalties(penalties);
+        setAllPenalties(penalties || []);
       } catch (error) {}
     };
 
     fetchPenalties();
   }, []);
 
-  // useEffect(() => {
-  //   setPatternASetAvailable(penaltyPatternASet);
-  // }, [penaltyPatternASet])
+  useEffect(() => {
+    setPatternCChecked(false);
+  }, [number]);
+
+
+  useEffect(() => {
+    setPatternBChecked(false);
+  }, [penaltyBId])
 
   useEffect(() => {
     if (penaltyAId) {
@@ -102,12 +138,12 @@ const PenaltyScreen = () => {
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      _keyboardDidShow,
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      _keyboardDidShow
     );
     const keyboardDidHideListener = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      _keyboardDidHide,
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      _keyboardDidHide
     );
 
     return () => {
@@ -117,44 +153,73 @@ const PenaltyScreen = () => {
   }, []);
 
   const startGamPenalty = (isPenalty: boolean) => {
-    if(isPenalty) {
+    if (isPenalty) {
+      if(!allSelectedPatternA) {
+        return false;
+      }
       console.log(isPenalty);
     } else {
       console.log(isPenalty);
     }
     try {
       startGame();
-    } catch (error) {
-    }
-  }
+    } catch (error) {}
+  };
 
   const setPatternA = () => {
-    const penaltyAId1 = penaltyAId;
     setPatternASelected(true);
-  }
+
+    if (gameRoomId && authUser?.uid && penaltyAId) {
+      addPenaltyPatternA(gameRoomId, authUser.uid, penaltyAId);
+    }
+  };
+
+  const setPatternB = (penaltyBId: string) => {
+    if (gameRoomId && penaltyBId) {
+      setPenaltyPatternB(gameRoomId, penaltyBId);
+    }
+    if(!penaltyBId) {
+      setPatternBChecked(false)
+    }
+    setPatternBChecked(true);
+  };
+
+  const setPatternC = () => {
+    let patternCNumber = 1;
+    if (!number) {
+      patternCNumber = 1;
+    } else {
+      patternCNumber = parseInt(number);
+    }
+    setPatternCChecked(true);
+    setPenaltyPatternC(gameRoomId, patternCNumber);
+  };
 
   const _keyboardDidShow = () => {
-    console.log('Keyboard shown');
-    setKeyBoardShow(true)
+    console.log("Keyboard shown");
+    setKeyBoardShow(true);
   };
 
   const _keyboardDidHide = () => {
-    console.log('Keyboard hidden');
+    console.log("Keyboard hidden");
     setKeyBoardShow(false);
   };
 
   const toggleLightBlueSwitch = () => {
     setIsLightBlueEnabled((previousState) => !previousState);
-    setPenaltyAId('');
+    setPenaltyAId("");
     setPenaltyA(undefined);
-    
+
     setPatternASet(gameRoomId);
   };
-  
+
   const toggleLightCyanSwitch = () => {
     setIsLightCyanEnabled((previousState) => !previousState);
-    setPenaltyBId('');
+    setPenaltyBId("");
     setPenaltyB(undefined);
+    if (isLightCyanEnabled) {
+      setPatternB("");
+    }
   };
 
   const toggleLightGreenSwitch = () => {
@@ -167,19 +232,19 @@ const PenaltyScreen = () => {
   const handlePatternAPlusBtnClick = () => {
     setPatternType(PatternType.PatternA);
     setPenaltyListModalVisible(true);
-    console.log(PatternType.PatternA)
+    console.log(PatternType.PatternA);
   };
 
   const handlePatternBPlusBtnClick = () => {
     setPatternType(PatternType.PatternB);
     setPenaltyListModalVisible(true);
-    console.log(PatternType.PatternB)
+    console.log(PatternType.PatternB);
   };
 
   const handlePenaltyListItemClick = (penaltyId: string) => {
-    if (patternType ==  PatternType.PatternA) {
+    if (patternType == PatternType.PatternA) {
       setPenaltyAId(penaltyId);
-    } else if (patternType ==  PatternType.PatternB) {
+    } else if (patternType == PatternType.PatternB) {
       setPenaltyBId(penaltyId);
     }
 
@@ -218,14 +283,28 @@ const PenaltyScreen = () => {
     <View style={styles.container}>
       <View style={styles.topHeader}>
         <TouchableOpacity
-          style={{ width: 44, height: 44, padding:10, borderWidth:1, borderColor: customColors.blackGrey, borderRadius: 25, alignItems:'center',justifyContent: 'center'}}
+          style={{
+            width: 44,
+            height: 44,
+            padding: 10,
+            borderWidth: 1,
+            borderColor: customColors.blackGrey,
+            borderRadius: 25,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
           onPress={() => navigation.goBack()}
         >
-          <Icon name="arrow-left" size={18} color={'white'} style={{opacity: 0.8}} />
+          <Icon
+            name="arrow-left"
+            size={18}
+            color={"white"}
+            style={{ opacity: 0.8 }}
+          />
         </TouchableOpacity>
         <Text style={styles.title}>罰ゲーム</Text>
       </View>
-      {isHost &&
+      {isHost && (
         <View
           style={{
             flex: 1,
@@ -253,7 +332,9 @@ const PenaltyScreen = () => {
               </View>
               <SwitchToggle
                 switchOn={isLightBlueEnabled}
-                onPress={()=>{ if(!isLightBlueEnabled) toggleLightBlueSwitch()}}
+                onPress={() => {
+                  if (!isLightBlueEnabled) toggleLightBlueSwitch();
+                }}
                 circleColorOff="grey"
                 circleColorOn="white"
                 backgroundColorOn="#5a6fff"
@@ -319,27 +400,76 @@ const PenaltyScreen = () => {
               ) : (
                 <View
                   style={{
-                    margin: 10,
-                    justifyContent: "center",
-                    borderWidth: 1,
-                    borderColor: "#5a6fff",
-                    borderRadius: 20,
                     width: "90%",
-                    padding: 10,
-                    backgroundColor: "#0f203e",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    margin: 10,
+                    opacity: patternASelected ? 0.3 : 1,
                   }}
                 >
-                  <TouchableOpacity
-                    style={[styles.penaltyItemRow]}
-                    onPress={() => handlePatternAPlusBtnClick()}
+                  <View
+                    style={{
+                      display: patternASelected ? "flex" : "none",
+                      position: "absolute",
+                      top: 0,
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      zIndex: 10,
+                    }}
+                  ></View>
+                  <View
+                    style={{
+                      justifyContent: "center",
+                      borderWidth: 1,
+                      borderColor: "#5a6fff",
+                      borderRadius: 20,
+                      padding: 10,
+                      width: "100%",
+                      backgroundColor: "#0f203e",
+                    }}
                   >
-                    <View style={styles.penaltyItemTitle}>
-                      <Text
-                        style={{ fontSize: 20, color: "white", display: "flex" }}
-                      >
-                        {penaltyA?.title}
-                      </Text>
-                    </View>
+                    <TouchableOpacity
+                      style={[styles.penaltyItemRow]}
+                      onPress={() => handlePatternAPlusBtnClick()}
+                    >
+                      <View style={styles.penaltyItemTitle}>
+                        <Text
+                          style={{
+                            fontSize: 20,
+                            color: "white",
+                            display: "flex",
+                          }}
+                        >
+                          {penaltyA?.title}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+
+                  <TouchableOpacity
+                    style={{
+                      padding: 10,
+                      paddingHorizontal: 20,
+                      borderWidth: 1,
+                      marginTop: 30,
+                      borderColor: "#5a6fff",
+                      backgroundColor: "#19212e",
+                      borderRadius: 30,
+                      width: "40%",
+                    }}
+                    onPress={() => setPatternA()}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 20,
+                        color: "white",
+                        display: "flex",
+                        textAlign: "center",
+                      }}
+                    >
+                      確認
+                    </Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -428,30 +558,60 @@ const PenaltyScreen = () => {
                   <Icon name="plus" size={25} color={"#29ccdc"} />
                 </TouchableOpacity>
               ) : (
-                <View
-                  style={{
-                    margin: 10,
-                    justifyContent: "center",
-                    borderWidth: 1,
-                    borderColor: "#29ccdc",
-                    borderRadius: 20,
-                    width: "90%",
-                    padding: 10,
-                    backgroundColor: "#0f203e",
-                  }}
-                >
-                  <TouchableOpacity
-                    style={[styles.penaltyItemRow]}
-                    onPress={() => handlePatternBPlusBtnClick()}
+                <View style={{
+                  width: '100%',
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                }}>
+                  <View
+                    style={{
+                      margin: 10,
+                      justifyContent: "center",
+                      borderWidth: 1,
+                      borderColor: "#29ccdc",
+                      borderRadius: 20,
+                      padding: 10,
+                      backgroundColor: "#0f203e",
+                      flex:1
+                    }}
                   >
-                    <View style={styles.penaltyItemTitle}>
-                      <Text
-                        style={{ fontSize: 20, color: "white", display: "flex" }}
-                      >
-                        {penaltyB?.title}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.penaltyItemRow,]}
+                      onPress={() => handlePatternBPlusBtnClick()}
+                    >
+                      <View style={styles.penaltyItemTitle}>
+                        <Text
+                          style={{
+                            fontSize: 20,
+                            color: "white",
+                            display: "flex",
+                          }}
+                        >
+                          {penaltyB?.title}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={{ padding: 0, justifyContent: 'center' }}>
+                    <View
+                      style={{
+                        display: patternBChecked ? "flex" : "none",
+                        position: "absolute",
+                        top: 0,
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        zIndex: 10,
+                      }}
+                    ></View>
+                    <TouchableOpacity onPress={() =>setPatternB(penaltyBId)}>
+                      <Icon
+                        name={patternBChecked ? "check-circle" : "check"}
+                        size={30}
+                        color={patternBChecked ? "#29ccdc" : "#335724a8"}
+                      />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               )}
             </View>
@@ -497,7 +657,13 @@ const PenaltyScreen = () => {
                 duration={200}
               />
             </View>
-            <View style={{ opacity: isLightGreenEnabled ? 1 : 0.3 }}>
+            <View
+              style={{
+                opacity: isLightGreenEnabled ? 1 : 0.3,
+                flexDirection: "row",
+                justifyContent: "space-between",
+              }}
+            >
               <View
                 style={{
                   display: isLightGreenEnabled ? "none" : "flex",
@@ -515,20 +681,50 @@ const PenaltyScreen = () => {
                 keyboardType="numeric"
                 placeholder="罰ゲームの回転数"
                 placeholderTextColor={customColors.blackGrey}
-                style={{ padding: 10, color: "white", fontSize: 20 }}
+                style={{
+                  marginHorizontal: 10,
+                  marginVertical: 0,
+                  textAlign: "center",
+                  padding: 10,
+                  color: "white",
+                  fontSize: 25,
+                  borderWidth: 0,
+                  borderColor: "white",
+                  borderRadius: 20,
+                }}
               />
+              <View style={{ padding: 10, justifyContent: 'center' }}>
+                <View
+                  style={{
+                    display: patternCChecked ? "flex" : "none",
+                    position: "absolute",
+                    top: 0,
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    zIndex: 10,
+                  }}
+                ></View>
+                <TouchableOpacity onPress={setPatternC}>
+                  <Icon
+                    name={patternCChecked ? "check-circle" : "check"}
+                    size={30}
+                    color={patternCChecked ? "#6ebf40" : "#335724a8"}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
-      }
+      )}
 
-      {isHost && 
+      {isHost && (
         <View
           style={{
             bottom: 0,
             width: "100%",
             flexDirection: "row",
-            display: keyboardShow ?  "none" : "flex",
+            display: keyboardShow ? "none" : "flex",
             justifyContent: "space-around",
             paddingHorizontal: 10,
           }}
@@ -559,52 +755,63 @@ const PenaltyScreen = () => {
               borderRadius: 30,
               alignItems: "center",
               justifyContent: "center",
+              opacity: allSelectedPatternA ? 1 : 0.3
             }}
             onPress={() => startGamPenalty(true)}
           >
             <Text style={{ color: "white", fontSize: 18 }}>ゲーム開始</Text>
           </TouchableOpacity>
         </View>
-      }
+      )}
 
       {!isHost && (
-        <View style={{
-          flex:1,
-          alignItems:'center',
-          justifyContent: 'center'
-        }}>
+        <View
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
           {!patternASetAvailable && (
             <View>
-              <Text style={{ color: 'white', fontSize: 15}}>ホストが罰ゲームを設定しています ...</Text>
+              <Text style={{ color: "white", fontSize: 15 }}>
+                ホストが罰ゲームを設定しています ...
+              </Text>
               <View>
-                {!patternASetAvailable ? <ActivityIndicator size="large" color="#007AFF" /> : ""}
+                {!patternASetAvailable ? (
+                  <ActivityIndicator size="large" color="#007AFF" />
+                ) : (
+                  ""
+                )}
               </View>
             </View>
           )}
 
           {patternASetAvailable && (
-            <View 
+            <View
               style={{
-                flex:1, 
-                borderWidth:1,
+                flex: 1,
+                borderWidth: 1,
                 borderColor: "#5a6fff",
                 borderRadius: 30,
-                justifyContent: 'center',
+                justifyContent: "center",
                 margin: 10,
-                width: '100%',
+                width: "100%",
                 backgroundColor: customColors.customDarkBlueBackground,
-                alignItems: 'center'
+                alignItems: "center",
               }}
             >
               {!penaltyAId ? (
                 <>
-                  <View style={{
-                    alignItems: 'center'
-                  }}>
+                  <View
+                    style={{
+                      alignItems: "center",
+                    }}
+                  >
                     <Text
                       style={{
-                        color:'white',
-                        fontSize: 18
+                        color: "white",
+                        fontSize: 18,
                       }}
                     >
                       パターンAを設定してください。
@@ -631,23 +838,24 @@ const PenaltyScreen = () => {
                   </TouchableOpacity>
                 </>
               ) : (
-                <View style={{
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: "100%",
-                }}>
-
                 <View
                   style={{
-                    display: patternASelected ? "flex" : "none",
-                    position: "absolute",
-                    top: 0,
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    zIndex: 10,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "100%",
                   }}
-                ></View>
+                >
+                  <View
+                    style={{
+                      display: patternASelected ? "flex" : "none",
+                      position: "absolute",
+                      top: 0,
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      zIndex: 10,
+                    }}
+                  ></View>
                   <View
                     style={{
                       margin: 10,
@@ -658,7 +866,7 @@ const PenaltyScreen = () => {
                       width: "90%",
                       padding: 10,
                       backgroundColor: "#0f203e",
-                      opacity: patternASelected ? 0.3: 1
+                      opacity: patternASelected ? 0.3 : 1,
                     }}
                   >
                     <TouchableOpacity
@@ -667,7 +875,11 @@ const PenaltyScreen = () => {
                     >
                       <View style={styles.penaltyItemTitle}>
                         <Text
-                          style={{ fontSize: 20, color: "white", display: "flex" }}
+                          style={{
+                            fontSize: 20,
+                            color: "white",
+                            display: "flex",
+                          }}
                         >
                           {penaltyA?.title}
                         </Text>
@@ -676,38 +888,47 @@ const PenaltyScreen = () => {
                   </View>
 
                   <TouchableOpacity
-                      style={{
-                        padding: 10,
-                        paddingHorizontal: 20,
-                        borderWidth: 1,
-                        marginTop: 30,
-                        borderColor: '#5a6fff',
-                        backgroundColor: "#19212e",
-                        borderRadius: 30,
-                        opacity: patternASelected ? 0.3: 1
-                      }}
-                      onPress={() => setPatternA()}
+                    style={{
+                      padding: 10,
+                      paddingHorizontal: 20,
+                      borderWidth: 1,
+                      marginTop: 30,
+                      borderColor: "#5a6fff",
+                      backgroundColor: "#19212e",
+                      borderRadius: 30,
+                      opacity: patternASelected ? 0.3 : 1,
+                    }}
+                    onPress={() => setPatternA()}
+                  >
+                    <Text
+                      style={{ fontSize: 20, color: "white", display: "flex" }}
                     >
-                      <Text
-                        style={{ fontSize: 20, color: "white", display: "flex" }}
-                      >
-                        確認
-                      </Text>
+                      確認
+                    </Text>
                   </TouchableOpacity>
-                  
+
                   {patternASelected && (
-                    <View style={{
-                      marginTop: 100
-                    }}>
-                      <Text style={{ color: 'white', fontSize: 15}}>ホストがゲームを開始するまで待機します ...</Text>
-                      <View style={{
-                        marginTop: 20
-                      }}>
-                        {true ? <ActivityIndicator size="large" color="#007AFF" /> : ""}
+                    <View
+                      style={{
+                        marginTop: 100,
+                      }}
+                    >
+                      <Text style={{ color: "white", fontSize: 15 }}>
+                        ホストがゲームを開始するまで待機します ...
+                      </Text>
+                      <View
+                        style={{
+                          marginTop: 20,
+                        }}
+                      >
+                        {true ? (
+                          <ActivityIndicator size="large" color="#007AFF" />
+                        ) : (
+                          ""
+                        )}
                       </View>
                     </View>
                   )}
-                  
                 </View>
               )}
             </View>
@@ -798,7 +1019,7 @@ const styles = StyleSheet.create({
     color: customColors.white,
     fontSize: 30,
     fontWeight: "700",
-    marginLeft: 20
+    marginLeft: 20,
   },
 
   pressBtn: {
@@ -820,11 +1041,11 @@ const styles = StyleSheet.create({
 
   topHeader: {
     flexDirection: "row",
-    justifyContent: 'flex-start',
+    justifyContent: "flex-start",
     alignItems: "center",
     marginBottom: 8,
     marginTop: 10,
-    marginLeft: 10
+    marginLeft: 10,
   },
 
   penaltyItemRow: {

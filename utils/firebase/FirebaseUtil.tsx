@@ -36,7 +36,7 @@ import {
   updateProfile,
   signOut,
 } from "firebase/auth";
-import { isArray } from "lodash";
+import { isArray, update } from "lodash";
 
 const userTable = "users";
 const gameTable = "games";
@@ -618,28 +618,6 @@ export const deletePenalty = async (id: string) => {
   await deleteDoc(docRef);
 };
 
-export const addPenaltyPatternA = async (
-  gameRoomId: string,
-  uid: string,
-  penaltyId: string
-) => {
-  if (!gameRoomId) {
-    return false;
-  }
-
-  try {
-    const docRef = doc(collection(db, gamePenaltyTable), gameRoomId);
-    const newPenaltyA = {
-      uid: uid,
-      penaltyId: penaltyId,
-    };
-
-    await updateDoc(docRef, {
-      patternAList: arrayUnion(newPenaltyA),
-    });
-  } catch (error) {}
-};
-
 export const startGamePenalty = async (gameRoomId: string) => {
   if (!gameRoomId) return false;
 
@@ -667,6 +645,121 @@ export const setPatternASet = async (gameRoomId: string) => {
     const docRef = doc(collection(db, gamePenaltyTable), gameRoomId);
     await updateDoc(docRef, {
       patternASet: true,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const addPenaltyPatternA = async (
+  gameRoomId: string,
+  uid: string,
+  penaltyId: string
+) => {
+  if (!gameRoomId) {
+    return false;
+  }
+
+  try {
+    const docRef = doc(collection(db, gamePenaltyTable), gameRoomId);
+    const docData = await getDoc(docRef);
+    
+    type PatternAType = {
+      uid: string, 
+      penaltyId: string
+    }
+
+    let exist = false;
+
+    if(docData.exists()) {
+      const patternAList: PatternAType[] = docData.data().patternAList;
+      const existPatternA = patternAList.find(pattern => pattern.uid == uid);
+
+      if(existPatternA) {
+        exist = true;
+
+        const updatedPatternAList = patternAList.map(pattern => {
+          if (pattern.uid === uid) {
+            return { ...pattern, penaltyId: penaltyId };
+          }
+          return pattern;
+        });
+
+        await updateDoc(docRef, {
+          patternAList: updatedPatternAList
+        })
+      }
+    } 
+    if(!exist) {
+      const newPenaltyA = {
+        uid: uid,
+        penaltyId: penaltyId,
+      };
+  
+      await updateDoc(docRef, {
+        patternAList: arrayUnion(newPenaltyA),
+      });
+    }
+  } catch (error) {}
+};
+
+// export const addPenaltyPatternA = async (gameRoomId: string, uid: string, penaltyId: string): Promise<boolean> => {
+//   if (!gameRoomId) {
+//     return false;
+//   }
+
+//   try {
+//     const docRef = doc(collection(db, gamePenaltyTable), gameRoomId);
+
+//     const querySnapshot = await getDocs(query(collection(db, gamePenaltyTable), where('patternAList.uid', '==', uid)));
+//     if (!querySnapshot.empty) {
+//       // If uid exists, update the existing item in patternAList
+//       querySnapshot.forEach((doc) => {
+//         const existingDocId = doc.id;
+//         updateDoc(docRef, {
+//           [`patternAList.${existingDocId}`]: { uid: uid, penaltyId: penaltyId },
+//         });
+//       });
+//     } else {
+//       // If uid doesn't exist, add a new item to patternAList
+//       const newPenaltyA = {
+//         uid: uid,
+//         penaltyId: penaltyId,
+//       };
+//       await updateDoc(docRef, {
+//         patternAList: arrayUnion(newPenaltyA),
+//       });
+//     }
+
+//     return true; // Return true if the update is successful
+//   } catch (error) {
+//     console.error('Error adding or updating penalty pattern:', error);
+//     return false; // Return false if an error occurs
+//   }
+// };
+
+export const setPenaltyPatternB = async ( gameRoomId: string, penaltyId: string ) => {
+  if (!gameRoomId) return false;
+
+  try {
+    const docRef = doc(collection(db, gamePenaltyTable), gameRoomId);
+
+    await updateDoc(docRef, {
+      patternB: penaltyId,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const setPenaltyPatternC = async ( gameRoomId: string, number: number ) => {
+  if (!gameRoomId) return false;
+
+  try {
+    const docRef = doc(collection(db, gamePenaltyTable), gameRoomId);
+
+    await updateDoc(docRef, {
+      patternC: number,
     });
   } catch (error) {
     console.log(error);
