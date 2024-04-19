@@ -13,6 +13,12 @@ export const penaltySlice = createSlice({
     name: 'penalty',
     initialState: INITIAL_STATE,
     reducers: {
+        setPenaltyInitial: (state, action) => {
+            state.patternASet = false;
+            state.patternAList = [];
+            state.patternB = "";
+            state.patternC = 1;
+        },
         setPenaltyList: (state, action) => {
             state.penaltyList = action.payload;
         },
@@ -34,5 +40,5 @@ export const penaltySlice = createSlice({
     },
 });
 
-export const { setPenaltyList, addPenaltyList, setPatternASet, setPatternAList, setPatternB, setpatternC } = penaltySlice.actions;
+export const { setPenaltyInitial, setPenaltyList, addPenaltyList, setPatternASet, setPatternAList, setPatternB, setpatternC } = penaltySlice.actions;
 export default penaltySlice.reducer;

@@ -35,8 +35,8 @@ export interface BingoCheck {
  * Represents the route params from other screen to GameWaitingScreen
  */
 export interface GameWaitingRouteParams {
-    isHost: boolean,
-    gameRoomId: string 
+    isHostParam: boolean,
+    gameRoomIdParam: string 
 }
 
 /**
@@ -46,6 +46,11 @@ export type setBingoCompletedPlayerParams =  {
     uid: string, gameRoomId: string, cellStatus: string, cellValue: string
 }
 
+/**
+ * Function type of Firebase onsnap callback unsubscribe
+ */
+export type UnsubscribeOnsnapCallbackFunction = () => void;
+
 export type GameRoomsCallBackFunction = (gameRooms: any[]) => void;
 
 export type BingoCellValues = Array<Array<any>>;
@@ -54,7 +59,7 @@ export type RenderColumnFunction = (rowNum: any, columnNum: any, cellStatus: num
 
 // ------------------------------------------------------------------------------
 export interface NavigatorType {
-    navigate: (screen: string, params: { isHost: boolean; gameRoomId: string }) => void;
+    navigate: (screen: string, params: { isHostParam: boolean; gameRoomIdParam: string }) => void;
 }
 
 export interface UserState {
@@ -70,6 +75,7 @@ export interface CurrentGameRoom {
 }
 
 export enum GameType {
+    Exit= "Exit",
     Room = "Room",
     Bingo = "Bingo",
     Penalty = "Penalty",

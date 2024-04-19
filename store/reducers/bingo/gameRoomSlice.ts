@@ -6,13 +6,20 @@ const INITIAL_STATE: GameRoomState = {
     currentGameRoom: null,
     isHost: false,
     gameRoomId: '',
-    gameType: GameType.Room,
+    gameType: GameType.Exit,
 };
 
 export const gameRoomSlice = createSlice({
     name: 'gameRoom',
     initialState: INITIAL_STATE,
     reducers: {
+        setGameRoomInitial: (state, action) => {
+            state.gameRooms = [];
+            state.currentGameRoom = null;
+            state.isHost = false,
+            state.gameRoomId = '';
+            state.gameType = GameType.Exit;
+        },
         setGameRooms: (state, action) => {
             state.gameRooms = action.payload
         },
@@ -25,7 +32,7 @@ export const gameRoomSlice = createSlice({
             state.currentGameRoom = action.payload
         },
 
-        setGameRoomId: (state, action) => {
+        setGameRoomIdHost: (state, action) => {
             state.gameRoomId = action.payload?.gameRoomId;
             state.isHost = action.payload?.isHost;
         },
@@ -35,5 +42,5 @@ export const gameRoomSlice = createSlice({
     },
 });
 
-export const { setGameRooms, addGameRooms, setCurrentGameRoom, setGameRoomId, setGameType } = gameRoomSlice.actions;
+export const { setGameRooms, addGameRooms, setCurrentGameRoom, setGameRoomIdHost, setGameType,setGameRoomInitial } = gameRoomSlice.actions;
 export default gameRoomSlice.reducer;

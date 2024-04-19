@@ -281,7 +281,6 @@ const PenaltyEditList = () => {
           }}
         >
           <View style={styles.modalBody}>
-
             <Text style={{color: 'white', fontSize: 18}}>
               選択した罰ゲームを削除してもよろしいですか？
             </Text>
@@ -305,7 +304,6 @@ const PenaltyEditList = () => {
                     {jpLanguage.addString}
                   </Text>
                 </TouchableOpacity>
-              
             </View>
           </View>
         </View>
@@ -315,10 +313,9 @@ const PenaltyEditList = () => {
 };
 
 const styles = StyleSheet.create({
-        container: {
+  container: {
     flex: 1,
     padding: 5,
-    paddingTop: 10,
     backgroundColor: customColors.black,
   },
   title: {
@@ -337,12 +334,10 @@ const styles = StyleSheet.create({
   },
 
   topHeader: {
-    marginVertical: 20,
+    marginTop: 5,
     marginBottom: 5,
     borderRadius: 20,
-    // borderWidth:1,
     borderColor: customColors.customLightBlue,
-    // backgroundColor: '#090828d4',
     padding: 15
   },
 

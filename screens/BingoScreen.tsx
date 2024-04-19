@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useRef, useState } from "react";
+import React, { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import {
     StyleSheet,
     Text,
@@ -33,18 +33,27 @@ import {
     setNextTurnPlayer,
     setBingoNextNumberUpdate,
     setBingoCompletedPlayer,
+    setGameTypeF,
+    exitGameRoom,
+    getGameRoom,
 } from "../utils/firebase/FirebaseUtil";
-import { BingoCellValues, Player } from "../utils/Types";
+import { BingoCellValues, GameType, Player, UnsubscribeOnsnapCallbackFunction } from "../utils/Types";
 import { customColors } from "../utils/Color";
 import EffectBorder from "../components/EffectBorder";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { setPenaltyInitial } from "../store/reducers/bingo/penaltySlice";
+import { setGameRoomInitial } from "../store/reducers/bingo/gameRoomSlice";
 
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get("window");
 const screenWidth = Dimensions.get("window").width;
 const cellSize = (screenWidth * 0.9) / 5;
 
 const PlayBoard: React.FC = () => {
+    const navigation = useNavigation();
     const [modalCompletedVisible, setModalCompletedVisible] = useState(false);
-    const [turnText, setTurnText] = useState <string>("");
+    const [exitModalVisible, setExitModalVisible] = useState<boolean>(false);
+    const [exitModalText, setExitModalText] = useState<string>("");
+    const [turnText, setTurnText] = useState<string>("");
     const [cellStatus, setCellStatus] = React.useState<number[][]>(
         bingoCellStatusInit()
     );
@@ -54,11 +63,11 @@ const PlayBoard: React.FC = () => {
     const [turnPlayerId, setTurnPlayerId] = useState<string>("");
     const [bingoCompleted, setBingoCompleted] = useState<string[]>([]);
     const [bingoNewCompleted, setBingoNewCompleted] = useState<string[]>([]);
-    
+
     const [bingoCompletedObj, setBingoCompletedObj] = useState<any[]>([]);
     const [bingoCompletedNumber, setBingoCompletedNumber] = useState<string>("");
     const [bingoCompletedMessagesObj, setBingoCompletedMessagesObj] = useState<any[]>([]);
-    
+
     const [notifyExpand, setNotifyExpand] = useState(false);
     const [notifyExpandKey, setNotifyExpandKey] = useState(0);
 
@@ -96,32 +105,71 @@ const PlayBoard: React.FC = () => {
     );
     const dispatch = useDispatch();
 
-    //退会時にビンゴゲームを初期化...
-    useEffect(() => {
-        const backAction = () => {
-            dispatch(setBingoInitial({}));
-            return false;
-        };
-        const backHandler = BackHandler.addEventListener(
-            "hardwareBackPress",
-            backAction
-        );
+    useFocusEffect(
+        useCallback(() => {
+            const onBackPress = () => {
+                setExitModalText("ビンゴゲームから退会しますか？");
+                setExitModalVisible(true);
+                return true; // Indicate that the back press is handled
+            };
 
-        return () => backHandler.remove(); // Clean up the event listener
-    }, []);
+            BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+            return () => {
+                BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+            };
+        }, [navigation])
+    )
+
+    useFocusEffect(
+        useCallback(() => {
+            const unsubscribe1: UnsubscribeOnsnapCallbackFunction = getGameRoom(gameRoomId, (gameRoom: any) => {
+                if (!gameRoom) {
+                    dispatch(setBingoInitial(null));
+                    dispatch(setGameRoomInitial(null));
+                    navigation.navigate("gameRoomList");
+                    return false;
+                }
+
+                if (gameRoom ?.subscribersPlayers) {
+                    if (
+                        !gameRoom ?.subscribersPlayers.some(
+                            (player: any) => player.uid === authUser.uid
+                        )
+                ) {
+                        dispatch(setBingoInitial(null));
+                        dispatch(setGameRoomInitial(null));
+                        navigation.navigate('gameRoomList');
+                        return false;
+                    }
+                }
+
+                if (gameRoom ?.gameType == GameType.Room && !isHost) {
+                    dispatch(setBingoInitial(null));
+                    navigation.navigate("currentRoom", { isHostParam: isHost, gameRoomIdParam: gameRoomId });
+                }
+            })
+
+            return unsubscribe1;
+        }, [])
+    )
 
     useEffect(() => {
-        const sort:string[] = currentGameRoom?.sort || [];
+        const sort: string[] = currentGameRoom ?.sort || [];
         setSort(sort);
-        
+
         let sortedPlayers: Player[] | any[] = [];
-        const subscribersPlayers: Player[] = currentGameRoom?.subscribersPlayers || [];
+        const subscribersPlayers: Player[] = currentGameRoom ?.subscribersPlayers || [];
         if (subscribersPlayers && subscribersPlayers.length > 0) {
-            sortedPlayers  = sort.map(uid => subscribersPlayers.find(player => player.uid === uid)).filter(Boolean);
+            sortedPlayers = sort.map(uid => subscribersPlayers.find(player => player.uid === uid)).filter(Boolean);
             setPlayerOrderList(sortedPlayers);
         }
-        
+
     }, [currentGameRoom]);
+
+    useEffect(() => {
+        console.log("bingo initiated--------------------", turnPlayerId);
+    }, [])
 
     useEffect(() => {
         setCellStatus(bingoCellStatus);
@@ -135,130 +183,109 @@ const PlayBoard: React.FC = () => {
 
     useEffect(() => {
         if (bingoCompleted.length != bingoNewCompleted.length) {
-          setBingoCompleted(bingoNewCompleted);
-          const newCount = bingoNewCompleted.length - bingoCompleted.length;
-          const messages = bingoCompletedMessagesObj;
+            setBingoCompleted(bingoNewCompleted);
+            const newCount = bingoNewCompleted.length - bingoCompleted.length;
+            const messages = bingoCompletedMessagesObj;
 
-          for (let index = 0; index < newCount; index++) {
-            const completedPlayerId = bingoNewCompleted[bingoNewCompleted.length - (newCount - index)];
-            const rank = bingoNewCompleted.length - (newCount-index);
+            for (let index = 0; index < newCount; index++) {
+                const completedPlayerId = bingoNewCompleted[bingoNewCompleted.length - (newCount - index)];
+                const rank = bingoNewCompleted.length - (newCount - index);
 
-            if(authUser.uid == completedPlayerId && completed != true) {
-              setCompleted(true);
-              setBingoCompletedNumber((rank + 1).toString());
-              setModalCompletedVisible(true);
-            }
-
-            if (authUser.uid != completedPlayerId) {
-              const subscribersPlayers: Player[] | undefined = currentGameRoom ?.subscribersPlayers;
-  
-              if (subscribersPlayers) {
-                const completedPlayer = subscribersPlayers.find(
-                    (player) => player.uid === completedPlayerId
-                );
-  
-                if (completedPlayer) {
-                  const otherPlayerCellstatus = JSON.parse(bingoCompletedObj[rank]?.cellstatus);
-                  const otherPlayerCellValue = JSON.parse(bingoCompletedObj[rank]?.cellValue); ;
-
-                  const newBingoCompletedMessageObj = {
-                    rank: rank,
-                    uid:  completedPlayerId,
-                    displayName: completedPlayer["displayName"],
-                    cellStatus: otherPlayerCellstatus,
-                    cellValue: otherPlayerCellValue
-                  };
-  
-                  messages.push(newBingoCompletedMessageObj);
+                if (authUser.uid == completedPlayerId && completed != true) {
+                    setCompleted(true);
+                    setBingoCompletedNumber((rank + 1).toString());
+                    setModalCompletedVisible(true);
                 }
-              }
-            }
-          }
 
-          setBingoCompletedMessagesObj(messages);
+                if (authUser.uid != completedPlayerId) {
+                    const subscribersPlayers: Player[] | undefined = currentGameRoom ?.subscribersPlayers;
+
+                    if (subscribersPlayers) {
+                        const completedPlayer = subscribersPlayers.find(
+                            (player) => player.uid === completedPlayerId
+                        );
+
+                        if (completedPlayer) {
+                            const otherPlayerCellstatus = JSON.parse(bingoCompletedObj[rank] ?.cellstatus);
+                            const otherPlayerCellValue = JSON.parse(bingoCompletedObj[rank] ?.cellValue);;
+
+                            const newBingoCompletedMessageObj = {
+                                rank: rank,
+                                uid: completedPlayerId,
+                                displayName: completedPlayer["displayName"],
+                                cellStatus: otherPlayerCellstatus,
+                                cellValue: otherPlayerCellValue
+                            };
+
+                            messages.push(newBingoCompletedMessageObj);
+                        }
+                    }
+                }
+            }
+
+            setBingoCompletedMessagesObj(messages);
         }
-    }, [ JSON.stringify(bingoNewCompleted)]);
+    }, [JSON.stringify(bingoNewCompleted)]);
 
     //リアルタイムfirestoreから該当するビンゴゲームデータを取得する
-    useEffect(() => {
-        getBingo(gameRoomId, (bingo: any) => {
 
-            const turnPlayerId: string = bingo ?.turnPlayerId;
-            const bingoMyTurn: boolean = turnPlayerId == authUser.uid;
-            const subscribersPlayers: Player[] = currentGameRoom ?.subscribersPlayers || [];
-            const bingoCompletedFirestore: string[] = bingo ?.bingoCompleted;
-            const bingoCompletedObj: any[] = bingo?.bingoCompletedObj;
+    useFocusEffect(
+        useCallback(() => {
+            const unsubscribe: UnsubscribeOnsnapCallbackFunction = getBingo(gameRoomId, (bingo: any) => {
 
-            const bingoInfo = {
-                bingoMyTurn: bingoMyTurn,
-                bingoNextNumber: bingo ?.bingoNextNumber || "",
-                turnNumber: bingo ?.turnNumber,
-            };
+                const turnPlayerId: string = bingo ?.turnPlayerId;
+                const bingoMyTurn: boolean = turnPlayerId == authUser.uid;
+                const subscribersPlayers: Player[] = currentGameRoom ?.subscribersPlayers || [];
+                const bingoCompletedFirestore: string[] = bingo ?.bingoCompleted;
+                const bingoCompletedObj: any[] = bingo ?.bingoCompletedObj;
 
-            setBingoCompletedObj(bingoCompletedObj || []);
-            setBingoNewCompleted(bingoCompletedFirestore || []);
-            setTurnPlayerId(bingo ?.turnPlayerId);
-            dispatch(setBingoInfo(bingoInfo));
-            
-            if (bingoMyTurn) {
-                setTurnText("あなたの番です。");
-            } else {
-                if (subscribersPlayers) {
-                    const turnPlayer = subscribersPlayers.find(
-                        (player) => player.uid === turnPlayerId
-                    );
-                    if (turnPlayer) {
-                        setTurnText(turnPlayer ?.displayName + " さんの番です。");
-                    } else {
-                        setTurnText("");
+                const bingoInfo = {
+                    bingoMyTurn: bingoMyTurn,
+                    bingoNextNumber: bingo ?.bingoNextNumber || "",
+                    turnNumber: bingo ?.turnNumber,
+                };
+
+                setBingoCompletedObj(bingoCompletedObj || []);
+                setBingoNewCompleted(bingoCompletedFirestore || []);
+                setTurnPlayerId(bingo ?.turnPlayerId);
+                dispatch(setBingoInfo(bingoInfo));
+
+                if (bingoMyTurn) {
+                    setTurnText("あなたの番です。");
+                } else {
+                    if (subscribersPlayers) {
+                        const turnPlayer = subscribersPlayers.find(
+                            (player) => player.uid === turnPlayerId
+                        );
+                        if (turnPlayer) {
+                            setTurnText(turnPlayer ?.displayName + " さんの番です。");
+                        } else {
+                            setTurnText("");
+                        }
                     }
                 }
+            });
+
+            return () => unsubscribe();
+        }, [])
+    )
+
+    const exitScreen = () => {
+        if (isHost) {
+            setGameTypeF(gameRoomId, GameType.Room);
+            dispatch(setPenaltyInitial(null));
+            dispatch(setBingoInitial(null));
+            navigation.navigate("currentRoom", { isHostParam: isHost, gameRoomIdParam: gameRoomId });
+        } else {
+            dispatch(setBingoInitial(null));
+            dispatch(setGameRoomInitial(null));
+            if (authUser.uid) {
+                exitGameRoom(authUser.uid, gameRoomId, false);
             }
-        });
-    }, []);
 
-    interface CustomNotifierProps {
-        item: any;
-        onPress: () => void;
+            navigation.navigate("gameRoomList");
+        }
     }
-
-    const CustomNotifier: React.FC<CustomNotifierProps> = ({
-        item,
-        onPress,
-    }) => {
-      console.log(item);
-        return (
-            <DraggableComponent>
-                <View style = { styles.notifierContainer }>
-                    <TouchableOpacity style={{display: 'flex', alignItems: 'center'}} onPress = {() => { if(item?.rank == notifyExpandKey) { setNotifyExpand(!notifyExpand); } else { setNotifyExpand(true) } setNotifyExpandKey(item?.rank)}}>
-                        <Text>
-                            <Text style={[styles.notifierDescription, {fontWeight: 'bold', fontSize: 24, textDecorationLine: 'underline'}]}> {item?.displayName} </Text>
-                            <Text style={styles.notifierDescription}> 様が </Text>
-                            <Text style={[styles.notifierDescription, {fontWeight: 'bold', fontSize: 24, textDecorationLine: 'underline'}]}> {item?.rank + 1}位</Text>
-                            <Text style={styles.notifierDescription}> にビンゴしました。</Text>
-                        </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={onPress} style={styles.notifierButton}>
-                        <Icon name="times" size={20} color="white" />
-                    </TouchableOpacity>
-
-                    { (notifyExpand && notifyExpandKey == item?.rank) && 
-                        <View style={{ display: 'flex', alignContent: 'center' }}>
-                            <View style={styles.boardContainerOutModalNot}>
-                                <View style={[styles.boardContainerModalNot]}>{ BingoBoard(item?.cellStatus, item?.cellValue, true) }</View>
-                            </View>
-                        </View>
-                    }
-                </View>
-            </DraggableComponent>
-        );
-    };
-
-    const closeNotification = (item: any) => {
-        const messages = bingoCompletedMessagesObj;
-        const updatedItems = messages.filter((item1) => item1.uid !== item.uid);
-        setBingoCompletedMessagesObj(updatedItems);
-    };
 
     const setNextTurnPlayerId = (
         turnPlayerId: string,
@@ -278,6 +305,50 @@ const PlayBoard: React.FC = () => {
         } catch (error) {
             console.log("sort error was occoured");
         }
+    };
+
+    interface CustomNotifierProps {
+        item: any;
+        onPress: () => void;
+    }
+
+    const CustomNotifier: React.FC<CustomNotifierProps> = ({
+        item,
+        onPress,
+    }) => {
+        return (
+            <DraggableComponent>
+                <View style={styles.notifierContainer}>
+                    <TouchableOpacity style={{ display: 'flex', alignItems: 'center' }} onPress={() => { if (item ?.rank == notifyExpandKey) { setNotifyExpand(!notifyExpand); } else { setNotifyExpand(true) } setNotifyExpandKey(item ?.rank) }}>
+                        <Text style={{
+                            
+                        }}>
+                            <Text style={[styles.notifierDescription, { fontWeight: 'bold', fontSize: 24, textDecorationLine: 'underline' }]}> {item ?.displayName} </Text>
+                            <Text style={styles.notifierDescription}> 様が </Text>
+                            <Text style={[styles.notifierDescription, { fontWeight: 'bold', fontSize: 24, textDecorationLine: 'underline' }]}> {item ?.rank + 1} 位</Text>
+                            <Text style={styles.notifierDescription}> にビンゴしました。</Text>
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={onPress} style={styles.notifierButton}>
+                        <Icon name="times" size={20} color="white" />
+                    </TouchableOpacity>
+
+                    {(notifyExpand && notifyExpandKey == item ?.rank) &&
+                        <View style={{ display: 'flex', alignContent: 'center' }}>
+                            <View style={styles.boardContainerOutModalNot}>
+                                <View style={[styles.boardContainerModalNot]}>{BingoBoard(item ?.cellStatus, item ?.cellValue, true)}</View>
+                            </View>
+                        </View>
+                    }
+                </View>
+            </DraggableComponent>
+        );
+    };
+
+    const closeNotification = (item: any) => {
+        const messages = bingoCompletedMessagesObj;
+        const updatedItems = messages.filter((item1) => item1.uid !== item.uid);
+        setBingoCompletedMessagesObj(updatedItems);
     };
 
     const handleCellClick = (
@@ -342,8 +413,6 @@ const PlayBoard: React.FC = () => {
 
         dispatch(setBingoCellStatus(newCellStatus));
 
-        //cellStatus, cellValues
-
         if (isCompleted) {
 
             const cellValueJson = JSON.stringify(bingoCellValue);
@@ -355,7 +424,7 @@ const PlayBoard: React.FC = () => {
     };
 
     const handleSetNumberClick = () => {
-        if(!selectedCellValue) {
+        if (!selectedCellValue) {
             return false;
         }
         dispatch(setBingoNextNumber(selectedCellValue));
@@ -404,18 +473,18 @@ const PlayBoard: React.FC = () => {
         );
     };
 
-    const getCellStyle = (cellType: string) : any => {
-        if(cellType == "pressedModal") {
+    const getCellStyle = (cellType: string): any => {
+        if (cellType == "pressedModal") {
             return styles.pressedModal;
-        } else if(cellType == 'pressed') {
+        } else if (cellType == 'pressed') {
             return styles.pressed;
-        } else if(cellType == 'bingoCellModal') {
+        } else if (cellType == 'bingoCellModal') {
             return styles.bingoCellModal;
-        } else if(cellType == 'bingoCell') {
+        } else if (cellType == 'bingoCell') {
             return styles.bingoCell
-        } else if(cellType == 'selectedCell') {
+        } else if (cellType == 'selectedCell') {
             return styles.selectedCell;
-        } else if( cellType == 'normal' ) {
+        } else if (cellType == 'normal') {
             return styles.normal;
         }
 
@@ -428,11 +497,11 @@ const PlayBoard: React.FC = () => {
 
         let cellType = "";
 
-        if(cellStatusValue === 1) {
+        if (cellStatusValue === 1) {
             cellType = isModal ? 'pressedModal' : 'pressed'
-        } else if(cellStatusValue == 2) {
+        } else if (cellStatusValue == 2) {
             cellType = isModal ? 'bingoCellModal' : 'bingoCell'
-        } else if(selectedCellValue == cellValue && !isModal) {
+        } else if (selectedCellValue == cellValue && !isModal) {
             cellType = 'selectedCell'
         } else {
             cellType = 'normal'
@@ -470,7 +539,7 @@ const PlayBoard: React.FC = () => {
         const dynamicStyle = getCellStyle(cellType);
 
         return (
-            <View style={[isModal ? styles.boardSizeModal : styles.boardSize, {borderWidth: 1, borderColor: customColors.white, borderRadius: 10}]}>
+            <View style={[isModal ? styles.boardSizeModal : styles.boardSize, { borderWidth: 1, borderColor: customColors.white, borderRadius: 10 }]}>
                 <Text style={[dynamicStyle]}>
                     {cellValue}
                 </Text>
@@ -478,7 +547,7 @@ const PlayBoard: React.FC = () => {
         );
     };
 
-    const bingoCardLayout = (cellStatus:number[][], cellValues: BingoCellValues, isModal: boolean) => createBingoCard(
+    const bingoCardLayout = (cellStatus: number[][], cellValues: BingoCellValues, isModal: boolean) => createBingoCard(
         cellStatus,
         cellValues,
         renderRow,
@@ -493,13 +562,13 @@ const PlayBoard: React.FC = () => {
     const ShowOrder = () => {
 
         return (
-            <View style={{ position: 'absolute', left: 5, top: viewportWidth * 0.2 + viewportHeight* 0.05 + 10 , width: '25%', height: (viewportHeight - viewportWidth * 1.2 - viewportHeight * 0.05-10),  borderWidth: 1, borderColor: customColors.blackGrey, borderRadius: 10}}>
+            <View style={{ position: 'absolute', left: 5, top: viewportWidth * 0.2 + viewportHeight * 0.05 + 10, width: '25%', height: (viewportHeight - viewportWidth * 1.2 - viewportHeight * 0.05 - 10), borderWidth: 1, borderColor: customColors.blackGrey, borderRadius: 10 }}>
                 <ScrollView >
-                    <View style={{alignItems: 'center', padding: 5}}>
+                    <View style={{ alignItems: 'center', padding: 5 }}>
                         {playerOrderList.map((player, index) => (
                             <View style={{ flexDirection: 'row', marginBottom: 5 }} key={player.uid + "order"}>
-                                <View style={{ borderWidth: 1, borderRadius: 20,  borderColor: turnPlayerId == player.uid ?  customColors.blackGreen : customColors.blackGrey, padding: 5, paddingVertical: 5, marginRight: 5 }}><Text style={{color: 'white', fontSize: 10}}>{index + 1}</Text></View>
-                                <View style={{ padding: 2, borderRadius: 2, borderWidth: 1, borderColor: turnPlayerId == player.uid ?  customColors.blackGreen : customColors.blackGrey }}><Text style={{ color: 'white' }}>{player.displayName}</Text></View>
+                                <View style={{ borderWidth: 1, borderRadius: 20, borderColor: turnPlayerId == player.uid ? customColors.blackGreen : customColors.blackGrey, padding: 5, paddingVertical: 5, marginRight: 5 }}><Text style={{ color: 'white', fontSize: 10 }}>{index + 1}</Text></View>
+                                <View style={{ padding: 2, borderRadius: 2, borderWidth: 1, borderColor: turnPlayerId == player.uid ? customColors.blackGreen : customColors.blackGrey }}><Text style={{ color: 'white' }}>{player.displayName}</Text></View>
                             </View>
                         ))}
                     </View>
@@ -524,12 +593,58 @@ const PlayBoard: React.FC = () => {
                 {bingoCompletedMessagesObj.map((item, index) => (
                     <View key={index} style={{ width: '100%', flex: 1, alignItems: "center" }}>
                         <CustomNotifier
-                            item = {item}
+                            item={item}
                             onPress={() => closeNotification(item)}
                         />
                     </View>
                 ))}
             </View>
+
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={exitModalVisible}
+                onRequestClose={() => {
+                    setExitModalVisible(false);
+                }}
+            >
+                <View
+                    style={{
+                        flex: 1,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        backgroundColor: customColors.modalBackgroundColor,
+                    }}
+                >
+                    <View style={{
+                        justifyContent: "center",
+                        alignItems: "center",
+                        backgroundColor: customColors.modalContainerBackgroundColor,
+                        paddingHorizontal: 15,
+                        paddingVertical: 50,
+                        borderWidth: 1,
+                        borderColor: "grey",
+                        borderRadius: 20,
+                        width: "80%",
+                    }}>
+                        <Text style={{ fontSize: 20, color: 'white', textAlign: 'center', }}>{exitModalText}</Text>
+
+                        <View style={{ flexDirection: 'row', marginTop: 20, justifyContent: 'space-evenly', width: '100%' }}>
+                            <TouchableOpacity
+                                style={{ padding: 10, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderRadius: 10, borderColor: customColors.blackGrey, backgroundColor: customColors.blackGrey }}
+                                onPress={() => setExitModalVisible(false)}
+                            >
+                                <Text style={{ color: 'white', fontSize: 16 }}> キャンセル </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={{ padding: 10, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderRadius: 10, borderColor: customColors.blackGrey, backgroundColor: customColors.blackRed }}
+                                onPress={exitScreen}>
+                                <Text style={{ color: 'white', fontSize: 16 }}> は い </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
 
             <Modal
                 animationType="fade"
@@ -605,11 +720,11 @@ const PlayBoard: React.FC = () => {
                 </View>
 
                 <Text style={styles.turnText}>{turnText}</Text>
-                
-                <View style={{position: 'absolute', bottom: 0 }}>
+
+                <View style={{ position: 'absolute', bottom: 0 }}>
                     <View style={{ flex: 1, alignItems: 'center' }}>
                         {bingoMyTurn ? (
-                            <EffectBorder style={{width: '40%', marginBottom: 10}}>
+                            <EffectBorder style={{ width: '40%', marginBottom: 10 }}>
                                 <TouchableOpacity
                                     style={styles.passBtn}
                                     onPress={handleSetNumberClick}
@@ -766,7 +881,7 @@ const styles = StyleSheet.create({
     },
 
     passBtn: {
-        backgroundColor: customColors.blackGreen,
+        backgroundColor: customColors.customLightBlue,
         paddingVertical: 8,
         paddingHorizontal: 6,
         padding: 4,
@@ -775,7 +890,8 @@ const styles = StyleSheet.create({
         borderRadius: 30,
         borderWidth: 1,
         borderColor: customColors.white,
-        // width: viewportWidth* 0.4
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     passBtnText: {
         fontSize: 20,
@@ -783,7 +899,7 @@ const styles = StyleSheet.create({
         fontFamily: "serif",
         fontWeight: "700",
         textAlign: "center",
-        letterSpacing: 20
+        letterSpacing: 10
     },
     boardContainer: {
         borderColor: customColors.white,
@@ -796,8 +912,6 @@ const styles = StyleSheet.create({
     },
 
     boardContainerOut: {
-        // position: "absolute",
-        // bottom: viewportHeight * 0.01,
         borderRadius: 10,
         padding: viewportWidth * 0.015,
         alignItems: "center",
@@ -979,9 +1093,9 @@ const styles = StyleSheet.create({
 
     notifierContainer: {
         backgroundColor: '#373a38',
-        padding: 20,
+        padding: 10,
         borderRadius: 10,
-        width: viewportWidth*0.9,
+        width: viewportWidth * 0.9,
         alignItems: "center",
         marginBottom: 5,
         borderWidth: 1,
@@ -1037,32 +1151,32 @@ export default PlayBoard;
 
 interface DraggableComponentProps {
     children: ReactNode;
-  }
+}
 const DraggableComponent: React.FC<DraggableComponentProps> = ({ children }) => {
     const pan = useRef(new Animated.ValueXY()).current;
-  
+
     const panResponder = PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onPanResponderMove: Animated.event(
-        [null, { dx: pan.x }],
-        { useNativeDriver: false }
-      ),
-      onPanResponderRelease: () => {
-        Animated.spring(pan, {
-          toValue: {x: 0, y: 0},
-          useNativeDriver: true,
-        }).start();
-      },
+        onStartShouldSetPanResponder: () => true,
+        onPanResponderMove: Animated.event(
+            [null, { dx: pan.x }],
+            { useNativeDriver: false }
+        ),
+        onPanResponderRelease: () => {
+            Animated.spring(pan, {
+                toValue: { x: 0, y: 0 },
+                useNativeDriver: true,
+            }).start();
+        },
     });
     return (
-      <View style={{flex: 1, alignContent: 'center', alignItems: 'center', width: '100%'}}>
-        <Animated.View
-          style={{ transform: [{ translateX: pan.x }] }}
-          {...panResponder.panHandlers}
-        >
-          {children}
-        </Animated.View>
-      </View>
+        <View style={{ flex: 1, alignContent: 'center', alignItems: 'center', width: '100%' }}>
+            <Animated.View
+                style={{ transform: [{ translateX: pan.x }] }}
+                {...panResponder.panHandlers}
+            >
+                {children}
+            </Animated.View>
+        </View>
     );
-  };
-  
+};
+

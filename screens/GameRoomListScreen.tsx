@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigation } from "@react-navigation/native";
+import { useCallback, useEffect, useState } from "react";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import {
   View,
   Text,
@@ -18,7 +18,7 @@ import {
   getWaitingGameRooms,
   joinGameRoom,
 } from "../utils/firebase/FirebaseUtil";
-import { GameRoom, NavigatorType } from "../utils/Types";
+import { GameRoom, NavigatorType, UnsubscribeOnsnapCallbackFunction } from "../utils/Types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store";
 import { setGameRooms } from "../store/reducers/bingo/gameRoomSlice";
@@ -28,8 +28,6 @@ import { validateRoomPassword, validateRoomTitle } from "../utils/ValidtionUtils
 import Icon from "react-native-vector-icons/FontAwesome";
 
 const defaultAvatar = require('../assets/images/default1.png');
-const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
-
 
 const GameRoomScreen = () => {
   const navigator: NavigatorType = useNavigation();
@@ -54,14 +52,18 @@ const GameRoomScreen = () => {
 
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    setListLoading(true);
-    getWaitingGameRooms((gameRooms: GameRoom[]) => {
-      
-      dispatch(setGameRooms(gameRooms || []));
-      setListLoading(false);
-    });
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      setListLoading(true);
+
+      const unsubscribe: UnsubscribeOnsnapCallbackFunction = getWaitingGameRooms((gameRooms: GameRoom[]) => {
+        dispatch(setGameRooms(gameRooms || []));
+        setListLoading(false);
+      });
+
+      return () => unsubscribe();
+    }, [])
+  )
 
   const createRoomModal = () => {
     setRoomModalVisible(true);
@@ -90,8 +92,8 @@ const GameRoomScreen = () => {
 
       setCreateRoomLoading(false);
       navigator.navigate("currentRoom", {
-        isHost: true,
-        gameRoomId: newGameRoomId as string,
+        isHostParam: true,
+        gameRoomIdParam: newGameRoomId as string,
       });
 
     }
@@ -129,8 +131,8 @@ const GameRoomScreen = () => {
       setCreateRoomLoading(false);
       
       navigator.navigate("currentRoom", {
-        isHost: false,
-        gameRoomId: gameRoomItem.gameRoomId,
+        isHostParam: false,
+        gameRoomIdParam: gameRoomItem.gameRoomId,
       });
     }
     setRoomModalVisible(false);

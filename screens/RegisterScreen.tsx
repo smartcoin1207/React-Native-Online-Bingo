@@ -54,7 +54,7 @@ const Register: React.FC<LoginScreenProps> = () => {
           setSelectedImage(result.canceled?'':result.assets[0].uri);
           return result.canceled?null:result.assets[0].uri;
       } catch(e){
-        throw e;
+        console.log(e);
       }
     }
 

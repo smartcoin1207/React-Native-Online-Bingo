@@ -27,6 +27,7 @@ import {
   GameRoomsCallBackFunction,
   GameType,
   Player,
+  UnsubscribeOnsnapCallbackFunction,
   User,
   setBingoCompletedPlayerParams,
 } from "../Types";
@@ -124,7 +125,7 @@ export const signOutAuthUser = () => {
  * @param {GameRoomsCallBackFunction} callback - callback function to handle data from firestore
  * @returns {void}
  */
-export const getWaitingGameRooms = (callback: GameRoomsCallBackFunction) => {
+export const getWaitingGameRooms = (callback: GameRoomsCallBackFunction): UnsubscribeOnsnapCallbackFunction => {
   try {
     const q = query(
       collection(db, gameTable),
@@ -167,6 +168,7 @@ export const getWaitingGameRooms = (callback: GameRoomsCallBackFunction) => {
     });
   } catch (error) {
     console.log("waiting gamerooms error: ", error);
+    return () => {}
   }
 };
 
@@ -196,6 +198,7 @@ export const createGameRoom = async (
       displayRoomName: displayRoomName,
       password: password,
       subscribers: subscribersRef,
+      sort: [uid],
       gameRoomOpened: true,
       gameStarted: false,
       gameStopped: false,
@@ -232,6 +235,7 @@ export const joinGameRoom = async (uid: string, gameRoomId: string) => {
     if (data?.subscribers.length < 10) {
       await updateDoc(docRef, {
         subscribers: arrayUnion(userReference),
+        sort: arrayUnion(uid)
       });
       console.log("New subscriber added successfully");
       return true;
@@ -283,9 +287,10 @@ export const exitGameRoom = async (
   }
 };
 
-//
-export const getGameRoom = (gameRoomId: string, callback: any) => {
-  if (!gameRoomId) return false;
+export const getGameRoom = (gameRoomId: string, callback: (data: any | false) => void): UnsubscribeOnsnapCallbackFunction => {
+  if (!gameRoomId) {
+    return () => {};
+  };
 
   const docRef = doc(db, gameTable, gameRoomId);
 
@@ -354,7 +359,6 @@ export const startGameBingo = async (
   turnPlayerId: string
 ) => {
   if (!gameRoomId) return false;
-  console.log("startGame");
 
   const docRef = doc(db, gameTable, gameRoomId);
   try {
@@ -398,10 +402,11 @@ export const setPlayerGameSort = async (gameRoomId: string, uids: string[]) => {
   }
 };
 
-export const getBingo = (gameRoomId: string, callback: any) => {
+export const getBingo = (gameRoomId: string, callback: any) : UnsubscribeOnsnapCallbackFunction => {
   if (!gameRoomId) {
-    return false;
+    return () => {};
   }
+
   const docRef = doc(db, bingoTable, gameRoomId);
 
   return onSnapshot(docRef, {
@@ -638,6 +643,17 @@ export const startGamePenalty = async (gameRoomId: string) => {
   }
 };
 
+export const deleteGamePenalty = async (gameRoomId: string) => {
+  if(!gameRoomId) return false;
+  
+  try {
+    const gamePenaltyRef = doc(collection(db, gamePenaltyTable), gameRoomId);
+    await deleteDoc(gamePenaltyRef);
+  } catch (error) {
+    console.log(error)
+  }
+}
+
 export const setPatternASet = async (gameRoomId: string) => {
   if (!gameRoomId) return false;
 
@@ -703,40 +719,46 @@ export const addPenaltyPatternA = async (
   } catch (error) {}
 };
 
-// export const addPenaltyPatternA = async (gameRoomId: string, uid: string, penaltyId: string): Promise<boolean> => {
-//   if (!gameRoomId) {
-//     return false;
-//   }
 
-//   try {
-//     const docRef = doc(collection(db, gamePenaltyTable), gameRoomId);
+export const deletePenaltyAListItem = async (
+  gameRoomId: string,
+  uid: string
+) => {
+  if (!gameRoomId) {
+    return false;
+  }
 
-//     const querySnapshot = await getDocs(query(collection(db, gamePenaltyTable), where('patternAList.uid', '==', uid)));
-//     if (!querySnapshot.empty) {
-//       // If uid exists, update the existing item in patternAList
-//       querySnapshot.forEach((doc) => {
-//         const existingDocId = doc.id;
-//         updateDoc(docRef, {
-//           [`patternAList.${existingDocId}`]: { uid: uid, penaltyId: penaltyId },
-//         });
-//       });
-//     } else {
-//       // If uid doesn't exist, add a new item to patternAList
-//       const newPenaltyA = {
-//         uid: uid,
-//         penaltyId: penaltyId,
-//       };
-//       await updateDoc(docRef, {
-//         patternAList: arrayUnion(newPenaltyA),
-//       });
-//     }
+  try {
+    const docRef = doc(collection(db, gamePenaltyTable), gameRoomId);
+    const docData = await getDoc(docRef);
+    
+    type PatternAType = {
+      uid: string, 
+      penaltyId: string
+    }
 
-//     return true; // Return true if the update is successful
-//   } catch (error) {
-//     console.error('Error adding or updating penalty pattern:', error);
-//     return false; // Return false if an error occurs
-//   }
-// };
+    let exist = false;
+
+    if(docData.exists()) {
+      const patternAList: PatternAType[] = docData.data().patternAList;
+      const existPatternA = patternAList.find(pattern => pattern.uid == uid);
+
+      if(existPatternA) {
+        exist = true;
+
+        const updatedPatternAList = patternAList.filter(pattern => {
+          if (pattern.uid != uid) {
+            return pattern
+          }
+        });
+
+        await updateDoc(docRef, {
+          patternAList: updatedPatternAList
+        })
+      }
+    }
+  } catch (error) {}
+};
 
 export const setPenaltyPatternB = async ( gameRoomId: string, penaltyId: string ) => {
   if (!gameRoomId) return false;
@@ -767,8 +789,10 @@ export const setPenaltyPatternC = async ( gameRoomId: string, number: number ) =
 };
 
 //
-export const getGamePenalty = (gameRoomId: string, callback: any) => {
-  if (!gameRoomId) return false;
+export const getGamePenalty = (gameRoomId: string, callback: any): UnsubscribeOnsnapCallbackFunction => {
+  if(!gameRoomId) {
+    return () => {};
+  }
 
   try {
     const docRef = doc(collection(db, gamePenaltyTable), gameRoomId);
@@ -783,17 +807,6 @@ export const getGamePenalty = (gameRoomId: string, callback: any) => {
     });
   } catch (error) {
     console.log(error);
+    return () => {}
   }
 };
-
-// export const addPenaltyPatternA = async
-
-// export const getPenaltyPatternA = async (gameRoomId:string) => {
-//     if(!gameRoomId) return false;
-
-//     try {
-
-//     } catch (error) {
-
-//     }
-// }

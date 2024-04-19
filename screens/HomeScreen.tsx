@@ -5,7 +5,6 @@ import { useEffect } from 'react';
 import { RootState } from '../store';
 import { customColors } from '../utils/Color';
 const screenHeight = Dimensions.get('window').height;
-const cellSize = screenHeight / 5;
 
 import { useRef } from 'react';
 import { delectDirectory, deleteBingoCollection } from '../utils/firebase/FirebaseUtil';
@@ -44,9 +43,9 @@ const HomeScreen: React.FC = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: cellSize * 1,
         alignItems: 'center',
-        backgroundColor: customColors.black
+        backgroundColor: customColors.black,
+        justifyContent: 'center'
     },
 
     container1: {
@@ -63,12 +62,12 @@ const styles = StyleSheet.create({
     button1: {
         backgroundColor: customColors.customDarkBlue,
         paddingVertical: 10,
-        paddingHorizontal: 25,
+        paddingHorizontal: 15,
         borderColor: '#5e95f7b0',
         borderWidth: 1.5,
         borderRadius: 75,
-        width:150,
-        height: 150,
+        width:140,
+        height: 140,
         justifyContent: 'center',
         marginVertical: 10
     },
