@@ -17,6 +17,8 @@ export type RootStackParamList = {
   currentRoom: {isHostParam: boolean, gameRoomIdParam: string};
   penalty: { startGame: () => void };
   penaltyEdit: undefined;
+  highlow: undefined,
+  tictactoe: undefined
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> =

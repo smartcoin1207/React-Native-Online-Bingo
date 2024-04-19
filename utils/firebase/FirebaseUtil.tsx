@@ -810,3 +810,38 @@ export const getGamePenalty = (gameRoomId: string, callback: any): UnsubscribeOn
     return () => {}
   }
 };
+
+
+//
+export const startGameTictactoe = async (
+  gameRoomId: string) => {
+  if (!gameRoomId) return false;
+
+  const docRef = doc(db, gameTable, gameRoomId);
+  try {
+    await updateDoc(docRef, {
+      gameStarted: true,
+      gameType: GameType.Tictactoe,
+      gameRoomOpened: false,
+    });
+  } catch (error) {
+    console.log("game error");
+  }
+};
+
+//
+export const startGameHighLow = async (
+  gameRoomId: string) => {
+  if (!gameRoomId) return false;
+
+  const docRef = doc(db, gameTable, gameRoomId);
+  try {
+    await updateDoc(docRef, {
+      gameStarted: true,
+      gameType: GameType.HighLow,
+      gameRoomOpened: false,
+    });
+  } catch (error) {
+    console.log("game error");
+  }
+};

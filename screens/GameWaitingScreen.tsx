@@ -25,7 +25,9 @@ import {
     setGameTypeF,
     setPlayerGameSort,
     startGameBingo,
+    startGameHighLow,
     startGamePenalty,
+    startGameTictactoe,
 } from "../utils/firebase/FirebaseUtil";
 import { GameType, GameWaitingRouteParams, Player, UnsubscribeOnsnapCallbackFunction, User } from "../utils/Types";
 import { useDispatch, useSelector } from "react-redux";
@@ -133,14 +135,25 @@ const GameWaitingScreen = () => {
                         }
                     }
 
-                    if (gameRoom ?.gameType == GameType.Penalty && !isHost) {
-                        navigator.navigate("penalty", { startGame: () => { } });
+                    if (gameRoom?.gameType == GameType.Penalty && !isHost) {
+                        navigator.navigate("penalty", { startGame: () => {} });
                     }
+                    
+                    // if (gameRoom ?.gameStarted == true && gameRoom ?.gameType == GameType.Bingo) {
+                    //     dispatch(setBingoInitial(null));
+                    //     navigator.navigate("bingo");
+                    // }
 
-                    if (gameRoom ?.gameStarted == true && gameRoom ?.gameType == GameType.Bingo) {
-                        dispatch(setBingoInitial(null));
-                        navigator.navigate("bingo");
-                    }
+                    // if (gameRoom ?.gameStarted == true && gameRoom ?.gameType == GameType.HighLow) {
+                    //   // dispatch(setBingoInitial(null));
+                    //   navigator.navigate("highlow");
+                    // }
+
+                    
+                    // if (gameRoom ?.gameStarted == true && gameRoom ?.gameType == GameType.Tictactoe) {
+                    //   // dispatch(setBingoInitial(null));
+                    //   navigator.navigate("tictactoe");
+                    // }
 
                     setGameRoomOpened(gameRoom ?.gameRoomOpened || false);
                     setGameTypeR(gameRoom ?.gameType || GameType.Exit);
@@ -204,6 +217,35 @@ const GameWaitingScreen = () => {
         dispatch(setBingoInitial(null));
 
         await startGameBingo(gameRoomId, turnPlayerId);
+    }
+
+    const startTictactoe = () => {
+      try {
+        setGameTypeF(gameRoomId, GameType.Penalty);
+        startGamePenalty(gameRoomId);
+        setGameRoomOpen(gameRoomId, false);
+        navigator.navigate("penalty", { startGame: startTictactoe_ });
+      } catch (error) {
+        
+      }
+    }
+
+    const startTictactoe_ = async () => {
+      await startGameTictactoe(gameRoomId);
+    }
+
+    const startHighLow = () => {
+      try {
+        setGameTypeF(gameRoomId, GameType.Penalty);
+        startGamePenalty(gameRoomId);
+        setGameRoomOpen(gameRoomId, false);
+        navigator.navigate("penalty", { startGame: startHighLow_ });
+      } catch (error) {
+        
+      }
+    }
+    const startHighLow_ = async () => {
+      await startGameHighLow(gameRoomId);
     }
 
     const setGameRoomOpen_ = async () => {
@@ -361,14 +403,16 @@ const GameWaitingScreen = () => {
                             </EffectBorder>
 
                             <EffectBorder style={{ width: '80%', marginTop: 10 }}>
-                                <TouchableOpacity style={styles.modalGameListButton}>
-                                    <Text style={styles.textTitle}>ゲーム1</Text>
+                                <TouchableOpacity style={styles.modalGameListButton}
+                                  onPress={startHighLow}
+                                >
+                                    <Text style={styles.textTitle}>高 ＆ 低</Text>
                                 </TouchableOpacity>
                             </EffectBorder>
 
                             <EffectBorder style={{ width: '80%', marginTop: 10 }}>
-                                <TouchableOpacity style={styles.modalGameListButton}>
-                                    <Text style={styles.textTitle}>ゲーム2</Text>
+                                <TouchableOpacity style={styles.modalGameListButton} onPress={startTictactoe}>
+                                    <Text style={styles.textTitle}>（O　X）ゲーム</Text>
                                 </TouchableOpacity>
                             </EffectBorder>
 

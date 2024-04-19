@@ -12,7 +12,8 @@ import GameWaitingScreen  from '../screens/GameWaitingScreen';
 import PenaltyScreen from '../screens/penaltyScreen';
 import PenaltyEditList from '../screens/penaltyEditList';
 import { RootStackParamList } from '../constants/navigate';
-
+import HighLowScreen from '../screens/HighLowScreen';
+import TictactoeScreen from '../screens/TictactoeScreen';
 
 // Define the types for the route paramete
 
@@ -22,7 +23,6 @@ const AppNavigator = () => {
   return (
     <Stack.Navigator initialRouteName='Splash'>
       <Stack.Screen name='Splash' component={SplashScreen} options={{ headerShown: false }}/>
-      <Stack.Screen name='bingo' component={PlayBoard} options={{ headerShown: false }}/>
       <Stack.Screen name='Home' component={Home} options={{ headerShown: false }}/>
       <Stack.Screen name='register' component={Register} options={{ headerShown: false }}/>
       <Stack.Screen name='login' component={Login} options={{ headerShown: false}}/>
@@ -31,6 +31,10 @@ const AppNavigator = () => {
       <Stack.Screen name='currentRoom' component={GameWaitingScreen} options={{ headerShown: false }}/>
       <Stack.Screen name='penalty' component={PenaltyScreen} options={{headerShown: false}}/>
       <Stack.Screen name='penaltyEdit' component={PenaltyEditList} options={{ headerShown: false }}/>
+      <Stack.Screen name='bingo' component={PlayBoard} options={{ headerShown: false }}/>
+      <Stack.Screen name='highlow' component={HighLowScreen} options={{ headerShown: false }}/>
+      <Stack.Screen name='tictactoe' component={TictactoeScreen} options={{ headerShown: false }}/>
+
     </Stack.Navigator>
   );
 };

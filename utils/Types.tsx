@@ -79,7 +79,8 @@ export enum GameType {
     Room = "Room",
     Bingo = "Bingo",
     Penalty = "Penalty",
-    Tictactoe = "Tactactoe"
+    Tictactoe = "Tactactoe",
+    HighLow = "HighLow"
 }
 
 export interface GameRoomState {

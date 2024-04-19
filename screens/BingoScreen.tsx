@@ -908,7 +908,7 @@ const styles = StyleSheet.create({
         padding: viewportWidth * 0.02,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: '#09271b82',
+        backgroundColor: customColors.customEffectBorderColor,
     },
 
     boardContainerOut: {
@@ -916,7 +916,7 @@ const styles = StyleSheet.create({
         padding: viewportWidth * 0.015,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: '#09271b82',
+        backgroundColor: customColors.customEffectBorderColor,
     },
 
     boardContainerModal: {
@@ -926,7 +926,7 @@ const styles = StyleSheet.create({
         padding: viewportWidth * 0.02,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: '#09271b82',
+        backgroundColor: customColors.customEffectBorderColor,
     },
 
     boardContainerOutModal: {
@@ -936,7 +936,7 @@ const styles = StyleSheet.create({
         padding: viewportWidth * 0.015,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: '#09271b82',
+        backgroundColor: customColors.customEffectBorderColor,
     },
 
     boardContainerModalNot: {
