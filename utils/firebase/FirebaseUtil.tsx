@@ -373,7 +373,7 @@ export const startGameBingo = async (
     const newBingoDocRef = doc(bingosCollectionRef, gameRoomId);
     await setDoc(newBingoDocRef, {
       turnPlayerId: turnPlayerId,
-      turnNumber: 1,
+      // turnNumber: 1,
       bingoCompleted: [],
     });
 
@@ -435,7 +435,6 @@ export const getBingo = (gameRoomId: string, callback: any) : UnsubscribeOnsnapC
  * @returns {Promise<void>}
  */
 export const setBingoNextNumberUpdate = async (
-  uid: string,
   gameRoomId: string,
   bingoNextNumber: string
 ) => {
@@ -452,6 +451,59 @@ export const setBingoNextNumberUpdate = async (
 };
 
 /**
+ * 
+ * @param gameRoomId 
+ */
+export const setBingoRoundEnd = async (
+  gameRoomId: string,
+  // : string
+) => {
+  console.log("setBingoRioundEnd");
+  const docRef = doc(db, bingoTable, gameRoomId);
+
+  try {
+    await updateDoc(docRef, {
+      bingoRoundEnd: true,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+/**
+ * 
+ * @param gameRoomId 
+ */
+export const setBingoNextRound = async (
+  gameRoomId: string,
+  bingoCompleted: string[],
+  bingoRound: number,
+  turnPlayerId: string
+) => {
+  console.log("setBingoNextRound");
+  const docRef = doc(db, bingoTable, gameRoomId);
+
+  const newHistory = {
+    round: bingoRound - 1,
+    roundScore: JSON.stringify(bingoCompleted)
+  }
+
+  try {
+    await updateDoc(docRef, {
+      bingoCompletedHistory: arrayUnion(JSON.stringify(newHistory)),
+      bingoRound: bingoRound,
+      bingoRoundEnd: false,
+      bingoCompleted: [],
+      bingoCompletedObj: [],
+      turnPlayerId: turnPlayerId,
+      bingoNextNumber: "",
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+/**
  * Desicde who the next player will be
  * @param newTurnPlayerId - next player user id
  * @param gameRoomId - gameRooomId where bingo game is being played
@@ -462,18 +514,21 @@ export const setBingoNextNumberUpdate = async (
 export const setNextTurnPlayer = async (
   newTurnPlayerId: string,
   gameRoomId: string,
-  newTurnNumber: number
+  // newTurnNumber: number
 ) => {
   console.log("setNextTurnPlayer");
   const docRef = doc(db, bingoTable, gameRoomId);
   try {
     await updateDoc(docRef, {
       turnPlayerId: newTurnPlayerId,
-      turnNumber: newTurnNumber,
+      // turnNumber: newTurnNumber,
       bingoNextNumber: "",
     });
   } catch (error) {
+
+    console.log(error)
     console.log("bingo error");
+    // console.log(newTurnPlayerId, gameRoomId, newTurnNumber)
   }
 };
 
