@@ -25,7 +25,7 @@ import {
   deletePenaltyAListItem,
   exitGameRoom,
   getAllPenalty,
-  getGamePenalty,
+  getGamePenaltyRealtime,
   getGameRoom,
   setGameTypeF,
   setPatternASet,
@@ -79,7 +79,9 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
 
   const [allPenalties, setAllPenalties] = useState<Penalty[]>([]);
   const [penaltyAId, setPenaltyAId] = useState<string>("");
+  const [penaltyATitle, setPenaltyATitle] = useState<string>("");
   const [penaltyBId, setPenaltyBId] = useState<string>("");
+  const [penaltyBTitle, setPenaltyBTitle] = useState<string>("");
   const [penaltyA, setPenaltyA] = useState<Penalty>();
   const [penaltyB, setPenaltyB] = useState<Penalty>();
   const [patternType, setPatternType] = useState<PatternType>(
@@ -101,7 +103,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
   // get penalty by gameRoomId
   useFocusEffect(
     useCallback(() => {
-      const unsubscribe: UnsubscribeOnsnapCallbackFunction = getGamePenalty(
+      const unsubscribe: UnsubscribeOnsnapCallbackFunction = getGamePenaltyRealtime(
         gameRoomId,
         (penalty: any) => {
           if (penalty?.patternASet) {
@@ -285,13 +287,13 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
     setPatternASelected(true);
 
     if (gameRoomId && authUser?.uid && penaltyAId) {
-      addPenaltyPatternA(gameRoomId, authUser.uid, penaltyAId);
+      addPenaltyPatternA(gameRoomId, authUser.uid, penaltyAId, penaltyATitle);
     }
   };
 
   const setPatternB = (penaltyBId: string) => {
     if (gameRoomId && penaltyBId) {
-      setPenaltyPatternB(gameRoomId, penaltyBId);
+      setPenaltyPatternB(gameRoomId, penaltyBId, penaltyBTitle);
     }
     if (!penaltyBId) {
       setPatternBChecked(false);
@@ -307,6 +309,8 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
       patternCNumber = parseInt(number);
     }
     setPatternCChecked(true);
+
+    //firebase
     setPenaltyPatternC(gameRoomId, patternCNumber);
   };
 
@@ -356,11 +360,13 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
     console.log(PatternType.PatternB);
   };
 
-  const handlePenaltyListItemClick = (penaltyId: string) => {
+  const handlePenaltyListItemClick = (penaltyId: string, penaltyTitle: string) => {
     if (patternType == PatternType.PatternA) {
       setPenaltyAId(penaltyId);
+      setPenaltyATitle(penaltyTitle);
     } else if (patternType == PatternType.PatternB) {
       setPenaltyBId(penaltyId);
+      setPenaltyBTitle(penaltyTitle);
     }
 
     setPenaltyListModalVisible(false);
@@ -403,7 +409,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
       <TouchableOpacity
         style={[styles.penaltyItemRow]}
         key={index}
-        onPress={() => handlePenaltyListItemClick(item.id)}
+        onPress={() => handlePenaltyListItemClick(item.id, item.title)}
       >
         <View style={styles.penaltyItemTitle}>
           <Text style={{ fontSize: 20, color: "white", display: "flex" }}>

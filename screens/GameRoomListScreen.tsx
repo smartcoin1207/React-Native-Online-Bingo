@@ -57,6 +57,7 @@ const GameRoomScreen = () => {
       setListLoading(true);
 
       const unsubscribe: UnsubscribeOnsnapCallbackFunction = getWaitingGameRooms((gameRooms: GameRoom[]) => {
+        console.log("gameRoomwaiting cal back->>>>>>>>>>>>>>", gameRooms);
         dispatch(setGameRooms(gameRooms || []));
         setListLoading(false);
       });
@@ -89,13 +90,13 @@ const GameRoomScreen = () => {
 
       //firebaseに新しいroomが作成されるまで待ちます。
       const newGameRoomId = await createGameRoom(authUser.uid, gameRoomDisplayName, password);
+      console.log("newgamerromid", newGameRoomId);
 
       setCreateRoomLoading(false);
       navigator.navigate("currentRoom", {
         isHostParam: true,
         gameRoomIdParam: newGameRoomId as string,
       });
-
     }
 
     setRoomModalVisible(false);

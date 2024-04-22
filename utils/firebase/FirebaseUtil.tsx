@@ -38,6 +38,7 @@ import {
   signOut,
 } from "firebase/auth";
 import { isArray, update } from "lodash";
+import { cloneElement } from "react";
 
 const userTable = "users";
 const gameTable = "games";
@@ -284,6 +285,16 @@ export const exitGameRoom = async (
       .catch((error) => {
         console.error("Error removing document: ", error);
       });
+
+    const bingoRef = doc(collection(db, bingoTable), gameRoomId);
+    deleteDoc(bingoRef).then(() => {
+      console.log("bingo successfully deleted")
+    }).catch((error) => {
+      console.log(error);
+    })
+    
+    const penaltyRef = doc(collection(db, penaltyTable), gameRoomId);
+    deleteDoc(penaltyRef);
   }
 };
 
@@ -291,7 +302,6 @@ export const getGameRoom = (gameRoomId: string, callback: (data: any | false) =>
   if (!gameRoomId) {
     return () => {};
   };
-
   const docRef = doc(db, gameTable, gameRoomId);
 
   return onSnapshot(docRef, async (document) => {
@@ -322,6 +332,7 @@ export const getGameRoom = (gameRoomId: string, callback: (data: any | false) =>
       } else {
         callback({ ...document.data() });
       }
+
     } else {
       console.log("error");
       callback(false);
@@ -421,9 +432,27 @@ export const getBingo = (gameRoomId: string, callback: any) : UnsubscribeOnsnapC
     },
     error: (error) => {
       console.error("In getBingo() Function, Error fetching bingo:", error);
-      callback(null, error); // Pass the error to the callback function
+      callback(false); // Pass the error to the callback function
     },
   });
+};
+
+//get All completed history for bingo 
+export const getBingoCompletedHistory = async (gameRoomId: string) => {
+  if(!gameRoomId) {
+    return false;
+  }
+
+  try {
+    const docRef = doc(collection(db, bingoTable), gameRoomId);
+    const document = await getDoc(docRef);
+    const bingo = document.data();
+    
+    return bingo?.bingoCompletedHistory;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
 };
 
 /**
@@ -725,7 +754,8 @@ export const setPatternASet = async (gameRoomId: string) => {
 export const addPenaltyPatternA = async (
   gameRoomId: string,
   uid: string,
-  penaltyId: string
+  penaltyId: string,
+  penaltyATitle: string
 ) => {
   if (!gameRoomId) {
     return false;
@@ -737,7 +767,8 @@ export const addPenaltyPatternA = async (
     
     type PatternAType = {
       uid: string, 
-      penaltyId: string
+      penaltyId: string,
+      penaltyTitle: string
     }
 
     let exist = false;
@@ -751,7 +782,7 @@ export const addPenaltyPatternA = async (
 
         const updatedPatternAList = patternAList.map(pattern => {
           if (pattern.uid === uid) {
-            return { ...pattern, penaltyId: penaltyId };
+            return { ...pattern, penaltyId: penaltyId, penaltyTitle: penaltyATitle };
           }
           return pattern;
         });
@@ -765,6 +796,7 @@ export const addPenaltyPatternA = async (
       const newPenaltyA = {
         uid: uid,
         penaltyId: penaltyId,
+        penaltyTitle: penaltyATitle
       };
   
       await updateDoc(docRef, {
@@ -815,14 +847,17 @@ export const deletePenaltyAListItem = async (
   } catch (error) {}
 };
 
-export const setPenaltyPatternB = async ( gameRoomId: string, penaltyId: string ) => {
+export const setPenaltyPatternB = async ( gameRoomId: string, penaltyId: string, penaltyTitle: string) => {
   if (!gameRoomId) return false;
 
   try {
     const docRef = doc(collection(db, gamePenaltyTable), gameRoomId);
-
+    const penaltyB = {
+      penaltyId: penaltyId,
+      penaltyTitle: penaltyTitle
+    };
     await updateDoc(docRef, {
-      patternB: penaltyId,
+      penaltyB: penaltyB
     });
   } catch (error) {
     console.log(error);
@@ -844,7 +879,7 @@ export const setPenaltyPatternC = async ( gameRoomId: string, number: number ) =
 };
 
 //
-export const getGamePenalty = (gameRoomId: string, callback: any): UnsubscribeOnsnapCallbackFunction => {
+export const getGamePenaltyRealtime = (gameRoomId: string, callback: any): UnsubscribeOnsnapCallbackFunction => {
   if(!gameRoomId) {
     return () => {};
   }
@@ -866,6 +901,23 @@ export const getGamePenalty = (gameRoomId: string, callback: any): UnsubscribeOn
   }
 };
 
+export const getGamePenalty = async (gameRoomId: string) => {
+  if(!gameRoomId) {
+    return false;
+  }
+
+  try {
+    const docRef = doc(collection(db, gamePenaltyTable), gameRoomId);
+
+    const gamePenaltyDocument = await getDoc(docRef);
+    gamePenaltyDocument.data();
+
+    return {...gamePenaltyDocument.data()};
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+};
 
 //
 export const startGameTictactoe = async (

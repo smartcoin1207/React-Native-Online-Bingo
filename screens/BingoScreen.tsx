@@ -11,6 +11,7 @@ import {
     Animated,
     PanResponder,
     ScrollView,
+    FlatList,
 } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { useDispatch, useSelector } from "react-redux";
@@ -38,6 +39,8 @@ import {
     getGameRoom,
     setBingoRoundEnd,
     setBingoNextRound,
+    getGamePenalty,
+    getBingoCompletedHistory,
 } from "../utils/firebase/FirebaseUtil";
 import { BingoCellValues, GameType, Player, UnsubscribeOnsnapCallbackFunction } from "../utils/Types";
 import { customColors } from "../utils/Color";
@@ -52,8 +55,13 @@ const screenWidth = Dimensions.get("window").width;
 const cellSize = (screenWidth * 0.9) / 5;
 const jpLanguage = Language.jp;
 
+type ResultData = {
+    uid: string, 
+    displayName: string, 
+    ranks: number[]
+}
+
 const PlayBoard: React.FC = () => {
-    // const staticCellStatus = 
     const navigation = useNavigation();
     const [modalCompletedVisible, setModalCompletedVisible] = useState(false);
     const [exitModalVisible, setExitModalVisible] = useState<boolean>(false);
@@ -74,6 +82,9 @@ const PlayBoard: React.FC = () => {
     const [bingoCompletedMessagesObj, setBingoCompletedMessagesObj] = useState<any[]>([]);
     const [bingoRoundEnded, setBingoRoundEnded] = useState<boolean>(false);
     const [bingoRound, setBingoRound] = useState<number>(1);
+    const [bingoAllRoundEnd, setBingoAllRoundEnd] = useState<boolean>(false);
+    const [bingoResultTableData, setBingoResultTableData] = useState<any[]>([]);
+
     const [notifyExpand, setNotifyExpand] = useState(false);
     const [notifyExpandKey, setNotifyExpandKey] = useState(0);
 
@@ -91,7 +102,6 @@ const PlayBoard: React.FC = () => {
     const bingoCellStatus = useSelector(
         (state: RootState) => state.bingo.bingoCellStatus
     );
-
     const bingoNextNumber = useSelector(
         (state: RootState) => state.bingo.bingoNextNumber
     );
@@ -107,7 +117,8 @@ const PlayBoard: React.FC = () => {
     );
     const penaltyAList = useSelector((state: RootState) => state.penalty.patternAList);
     const penaltyB = useSelector((state: RootState) => state.penalty.patternB);
-    const penaltyRoundCound = useSelector((state: RootState) => state.penalty.patternC);
+    const [penaltyRoundCound, setPenaltyRoundCound] = useState<number>(1);
+    // const penaltyRoundCound = 3;
 
     const dispatch = useDispatch();
 
@@ -126,6 +137,19 @@ const PlayBoard: React.FC = () => {
             };
         }, [navigation])
     )
+
+    useEffect(() => {
+        const fetchGamePenaltyData = async () => {
+          const gamePenaltyData = await getGamePenalty(gameRoomId);
+
+          if(gamePenaltyData) {
+            setPenaltyRoundCound(gamePenaltyData?.patternC as number || 1);
+          }
+          // Handle the game penalty data as needed
+        };
+      
+        fetchGamePenaltyData();
+      }, [gameRoomId]);
 
     useFocusEffect(
         useCallback(() => {
@@ -238,10 +262,68 @@ const PlayBoard: React.FC = () => {
     }, [JSON.stringify(bingoNewCompleted)]);
 
     useEffect(() => {
-        if(bingoRoundEnded && sort.length > 1) {
-            setModalCompletedVisible(false);
-            setBingoEndedModalVisible(true)
+        
+    }, [bingoRound])
+
+    useEffect(() => {
+        const showResult = async () => {
+            if(bingoRoundEnded && sort.length > 1) {
+                if(bingoRound >= penaltyRoundCound) {
+                    setBingoAllRoundEnd(true);
+                }
+
+                const getPlayersBySort = (sort: string[], subscribers: Player[]): Player[] => {
+                    const sortedPlayers: Player[] = [...subscribers];
+                  
+                    sortedPlayers.sort((player1, player2) => {
+                      const index1 = sort.indexOf(player1.uid);
+                      const index2 = sort.indexOf(player2.uid);
+                      return index1 - index2;
+                    });
+                  
+                    return sortedPlayers;
+                  };
+                
+                const sortedPlayers = getPlayersBySort(sort, currentGameRoom?.subscribersPlayers || []);
+                const bingoCompletedHistory = await getBingoCompletedHistory(gameRoomId) || [];
+
+                let historyAll: any[][] = [];
+                bingoCompletedHistory.forEach((element:any) => {
+                    const roundData = JSON.parse(element);
+                    const round = roundData?.round;
+                    const roundScore = JSON.parse(roundData?.roundScore) as any[];
+                    console.log('roundScore', roundScore);
+                    historyAll.push(roundScore);
+                });
+    
+                const remainedBingoSubscribers = sort.filter(playerId => !bingoCompleted.includes(playerId));
+                const bingoCompletedAllRank = [...bingoCompleted, ...remainedBingoSubscribers];
+
+                historyAll.push(bingoCompletedAllRank);
+
+                const resultTableData: ResultData[] = sortedPlayers.map((player: Player) => {
+                    const playerRanks = historyAll.map((historyOne, index) => {
+                        const roundRank = historyOne.indexOf(player.uid);
+                        return roundRank;
+                    });
+                    const row: ResultData = {
+                        uid: player.uid, 
+                        displayName: player.displayName,
+                        ranks: playerRanks
+                    }
+    
+                    return row;
+                });
+    
+                console.log(resultTableData)
+                setBingoResultTableData(resultTableData);
+                setModalCompletedVisible(false);
+                setBingoEndedModalVisible(true)
+            }
         }
+
+        showResult();
+        
     }, [bingoRoundEnded])
 
     useEffect(() => {
@@ -265,7 +347,6 @@ const PlayBoard: React.FC = () => {
             setSelectedCellValue("");
             setPlayerOrderList([]);
         }
-        
     }, [bingoRound])
 
     //リアルタイムfirestoreから該当するビンゴゲームデータを取得する
@@ -351,6 +432,7 @@ const PlayBoard: React.FC = () => {
         }, [])
     )
 
+
     const exitScreen = () => {
         if (isHost) {
             setGameTypeF(gameRoomId, GameType.Room);
@@ -369,7 +451,6 @@ const PlayBoard: React.FC = () => {
     }
 
     const startBingoNextRound = () => {
-        console.log("prev:--", bingoRound);
         dispatch(setBingoInitial(null));
         setModalCompletedVisible(false);
         setBingoEndedModalVisible(false);
@@ -389,9 +470,9 @@ const PlayBoard: React.FC = () => {
         setSelectedCellValue("");
         setPlayerOrderList([]);
 
-        console.log("next--",bingoRound);
-
-        setBingoNextRound(gameRoomId, bingoCompleted, bingoRound + 1, sort[0]);
+        const remainedBingoSubscribers = sort.filter(playerId => !bingoCompleted.includes(playerId));
+        const bingoCompletedAllRank = [...bingoCompleted, ...remainedBingoSubscribers];
+        setBingoNextRound(gameRoomId, bingoCompletedAllRank, bingoRound + 1, sort[0]);
     }
 
     const setNextTurnPlayerId = (
@@ -469,6 +550,22 @@ const PlayBoard: React.FC = () => {
         const updatedItems = messages.filter((item1) => item1.uid !== item.uid);
         setBingoCompletedMessagesObj(updatedItems);
     };
+
+    const renderPlayerItem = ({ item, index }: { item: ResultData, index: number }) => (
+        <>
+            <TouchableOpacity style={{flexDirection: 'row', borderWidth:1, borderColor: 'grey', justifyContent: 'space-between', alignItems: 'center'}} activeOpacity={0.5} key={index+1}>
+                <View style={{ width: 60, alignItems: 'center' }}>
+                    <Text style={{color: 'white', textAlign: 'center'}}>{item?.displayName}</Text>
+                </View>
+
+                {item.ranks.map((rank: number) =>
+                    <View style={{ borderWidth:1, borderLeftColor: 'grey', padding: 5, width: ((viewportWidth*0.9-60-10)/(item.ranks.length > 5 ? 5: item.ranks.length)), justifyContent: 'space-between', alignItems: 'center'}}>
+                        <Text style={{color: 'white', textAlign: 'center'}}>{isNaN(rank) ? '' : rank + 1}</Text>
+                    </View>
+                )}
+            </TouchableOpacity>
+        </>
+    );
 
     const handleCellClick = (
         rowNum: number,
@@ -824,7 +921,13 @@ const PlayBoard: React.FC = () => {
                 transparent={true}
                 visible={bingoEndedModalVisible}
                 onRequestClose={() => {
-                    setBingoEndedModalVisible(false);
+                    if(isHost) {
+                        if(bingoAllRoundEnd) {
+                            setBingoEndedModalVisible(false);
+                        }
+                    } else {
+                        setBingoEndedModalVisible(false);
+                    }
                 }}
             >
                 <View
@@ -835,11 +938,39 @@ const PlayBoard: React.FC = () => {
                         backgroundColor: customColors.modalBackgroundColor,
                     }}
                 >
-                    <View style={styles.modalBody}>
-                        <View>
-                            <Text style={{color: 'white', fontSize: 20}}>End</Text>
+                    <View style={[styles.modalBody, {width: '95%', height: '95%', backgroundColor: customColors.black}]}>
+
+                        <View style={{marginVertical: 10}}>
+                            <Text style={{color: 'white', fontSize: 20}}>ゲーム結果</Text>
                         </View>
-                        {isHost && (
+
+                        <View style={styles.FlatResultDataListStyle}>
+                            <ScrollView horizontal={true} style={{}}>
+                                <TouchableOpacity style={{flexDirection: 'row', borderWidth:1, borderColor: 'grey', justifyContent: 'space-between', alignItems: 'center', backgroundColor: customColors.customLightBlue}} activeOpacity={0.5}>
+                                    <View style={{ width: 60, alignItems: 'center' }}>
+                                        <Text style={{color: 'white', textAlign: 'center', fontSize: 18}}>Name</Text>
+                                    </View>
+
+                                    {Array.from({length: bingoRound}, (v, i) => i).map((rank: number, round: number) =>
+                                        <View style={{ borderWidth:1, borderLeftColor: 'grey', padding: 5, width: ((viewportWidth*0.9-60-10)/(bingoRound > 5 ? 5: bingoRound)), justifyContent: 'space-between', alignItems: 'center'}}>
+                                            <Text style={{color: 'white', textAlign: 'center', letterSpacing: 5, fontSize: 18}}>{(round + 1) + "回"}</Text>
+                                        </View>
+                                    )}
+
+                                </TouchableOpacity>
+
+                                <FlatList
+                                    data={bingoResultTableData}
+                                    renderItem={renderPlayerItem}
+                                    keyExtractor={(item, index) => index.toString()}
+                                />
+                            </ScrollView>
+                        </View>
+
+                        <View>
+                            <Text style={{color: 'white', fontSize: 20}}>Round End</Text>
+                        </View>
+                        {(isHost && !bingoAllRoundEnd) && (
                             <TouchableOpacity
                                 style={{padding: 10, borderWidth:1, borderColor: 'white', borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginTop: 100}}
                                 onPress={() => startBingoNextRound()}
@@ -1330,4 +1461,14 @@ const styles = StyleSheet.create({
         top: -12,
         right: -12,
     },
+    FlatResultDataListStyle: {
+        flex: 1,
+        backgroundColor: customColors.customDarkBlueBackground,
+        padding: 5,
+        borderRadius: 10,
+        width: '100%',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+    },
+
 });
