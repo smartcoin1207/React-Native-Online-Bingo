@@ -101,6 +101,12 @@ export interface Penalty {
     title: string
 }
 
+export type PatternAType = {
+    uid: string, 
+    penaltyId: string,
+    penaltyTitle: string
+}
+
 export interface GamePenalty {
     uid: string, 
     penaltyId: string,

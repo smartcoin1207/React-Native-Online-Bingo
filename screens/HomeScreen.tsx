@@ -8,6 +8,7 @@ const screenHeight = Dimensions.get('window').height;
 
 import { useRef } from 'react';
 import { delectDirectory, deleteBingoCollection } from '../utils/firebase/FirebaseUtil';
+import EffectBorder from '../components/EffectBorder';
 
 const openWebsite = () => {
     const url = 'https://newgate-llc.shop/listener/registration';
@@ -27,7 +28,7 @@ const HomeScreen: React.FC = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <TouchableOpacity style={styles.button1} activeOpacity={0.6} onPress={() => openWebsite()}>
+            {/* <TouchableOpacity style={styles.button1} activeOpacity={0.6} onPress={() => openWebsite()}>
                 <Text style={styles.textTitle}>アカウント登録</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.button1} activeOpacity={0.6} onPress={() => navigation.navigate('register')}>
@@ -35,7 +36,25 @@ const HomeScreen: React.FC = () => {
             </TouchableOpacity>
             <TouchableOpacity style={styles.button1} activeOpacity={0.6} onPress={() => navigation.navigate('login')}>
                 <Text style={styles.textTitle}> 　ログイン　 </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
+
+            <EffectBorder style={{ width: '70%', marginVertical: 20}}>
+                <TouchableOpacity style={styles.gameBtn} onPress={openWebsite}>
+                    <Text style={styles.textTitle}>アカウント登録</Text>
+                </TouchableOpacity>
+            </EffectBorder>
+
+            <EffectBorder style={{ width: '70%', marginVertical: 20}}>
+                <TouchableOpacity style={styles.gameBtn} onPress={() => navigation.navigate('register')}>
+                    <Text style={styles.textTitle}>　登録　</Text>
+                </TouchableOpacity>
+            </EffectBorder>
+
+            <EffectBorder style={{ width: '70%', marginVertical: 20}}>
+                <TouchableOpacity style={styles.gameBtn} onPress={() => navigation.navigate('login')}>
+                    <Text style={styles.textTitle}>　ログイン　</Text>
+                </TouchableOpacity>
+            </EffectBorder>
         </SafeAreaView>
     );
 }
@@ -77,7 +96,15 @@ const styles = StyleSheet.create({
         fontFamily: 'serif',
         fontWeight: '700',
         textAlign: 'center'
-    }
+    },
+    gameBtn: {
+        width: '100%',
+        backgroundColor: customColors.customDarkBlue,
+        borderWidth: 1,
+        borderColor: customColors.customLightBlue,
+        paddingVertical: 8,
+        borderRadius: 100,
+    },
 });
 
 export default HomeScreen;
