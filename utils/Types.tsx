@@ -101,7 +101,7 @@ export interface Penalty {
     title: string
 }
 
-export type PatternAType = {
+export type PenaltyAType = {
     uid: string, 
     penaltyId: string,
     penaltyTitle: string
@@ -120,6 +120,7 @@ export interface PenaltySliceType {
     patternB: string,
     patternC: number
 }
+
 
 //Firebase Util Functions Parameters type
 
