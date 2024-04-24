@@ -26,7 +26,7 @@ import {
     bingoCheck,
     createBingoCard,
 } from "../components/BingoEngine";
-import _, { result } from "lodash";
+import _, { result, round } from "lodash";
 import { RootState } from "../store";
 
 import {
@@ -59,7 +59,9 @@ type ResultData = {
     uid: string, 
     displayName: string, 
     ranks: number[],
-    sum: number
+    sum: number,
+    firstRankCount: number,
+    lastRankCount: number
 }
 
 const PlayBoard: React.FC = () => {
@@ -118,17 +120,19 @@ const PlayBoard: React.FC = () => {
     );
     // const penaltyAList = useSelector((state: RootState) => state.penalty.patternAList);
     // const penaltyB = useSelector((state: RootState) => state.penalty.patternB);
-    const [penaltyRoundCound, setPenaltyRoundCound] = useState<number>(1);
     const [penaltyAList, setPenaltyAList] = useState<any[]>([]);
     const [penaltyB, setPenaltyB] = useState<any>();
+    const [isPatternASet, setIsPatternASet] = useState<boolean>(false);
+    const [isPatternBSet, setIsPatternBSet] = useState<boolean>(false); 
+    const [isSubPattern1, setIsSubPattern1] = useState<boolean>(false);
+    const [isSubPattern2, setIsSubPattern2] = useState<boolean>(false);
+    const [isSubPattern3, setIsSubPattern3] = useState<boolean>(false);
+    const [penaltyRunCount, setPenaltyRunCount] = useState<number>(1);
 
     const [firstPlayerDisplayName, setFirstPlayerDisplayName] = useState("");
     const [lastPlayerDisplayName, setLastPlayerDisplayName] = useState("");
     const [penaltyATitle, setPenaltyATitle] = useState("");
     const [penaltyBTitle, setPenaltyBTitle] = useState("");
-
-    // const penaltyRoundCound = 3;
-
     const dispatch = useDispatch();
 
     useFocusEffect(
@@ -152,9 +156,14 @@ const PlayBoard: React.FC = () => {
           const gamePenaltyData = await getGamePenalty(gameRoomId);
 
           if(gamePenaltyData) {
-            setPenaltyRoundCound(gamePenaltyData?.patternC as number || 1);
+            setPenaltyRunCount(gamePenaltyData?.penaltyRunCount as number || 1);
             setPenaltyAList(gamePenaltyData?.patternAList || []);
             setPenaltyB(gamePenaltyData?.penaltyB);
+            setIsPatternASet(gamePenaltyData?.patternASet);
+            setIsPatternBSet(gamePenaltyData?.patternBSet);
+            setIsSubPattern1(gamePenaltyData?.subPattern1);
+            setIsSubPattern2(gamePenaltyData?.subPattern2);
+            setIsSubPattern3(gamePenaltyData?.subPattern3);
           }
           // Handle the game penalty data as needed
         };
@@ -279,7 +288,7 @@ const PlayBoard: React.FC = () => {
     useEffect(() => {
         const showResult = async () => {
             if(bingoRoundEnded && sort.length > 1) {
-                if(bingoRound >= penaltyRoundCound) {
+                if(bingoRound >= penaltyRunCount) {
                     setBingoAllRoundEnd(true);
                 }
 
@@ -311,9 +320,13 @@ const PlayBoard: React.FC = () => {
 
                 const resultTableData: ResultData[] = sortedPlayers.map((player: Player) => {
                     let sum = 0;
+                    let firstRankCount = 0; 
+                    let lastRankCount = 0;
                     const playerRanks = historyAll.map((historyOne, index) => {
                         const roundRank = historyOne.indexOf(player.uid);
                         sum += roundRank;
+                        firstRankCount += roundRank == 0 ? 1 : 0;
+                        lastRankCount += (roundRank >= sortedPlayers.length - 1) ? 1 : 0;
                         return roundRank;
                     });
 
@@ -321,21 +334,25 @@ const PlayBoard: React.FC = () => {
                         uid: player.uid, 
                         displayName: player.displayName,
                         ranks: playerRanks,
-                        sum: sum
+                        firstRankCount: firstRankCount,
+                        lastRankCount: lastRankCount,
+                        sum: sum,
                     }
     
                     return row;
                 });
 
-                if(bingoRound >= penaltyRoundCound) {
-                    const resortResultTableData = resultTableData.sort((a: ResultData, b: ResultData) => a.sum - b.sum);
-                    const firstUid = resortResultTableData[0].uid;
-                    const lastUid = resortResultTableData[resortResultTableData.length-1].uid;
+                if(bingoRound >= penaltyRunCount) {
+                    const resortResultTableDataByFirstRank = resultTableData.sort((a: ResultData, b: ResultData) => b.firstRankCount - a.firstRankCount);
+                    const firstUid = resortResultTableDataByFirstRank[0].uid;
+
+                    const resortResultTableDataByLastRank = resultTableData.sort((a: ResultData, b: ResultData) => b.lastRankCount - a.lastRankCount);
+                    const lastUid = resortResultTableDataByLastRank[0].uid;
+
                     const firstPlayerDisplayName = getPlayerDisplayName(firstUid) || '';
                     const lastPlayerDisplayName = getPlayerDisplayName(lastUid) || '';
                     const penaltyATitle = getPenaltyATitle(firstUid) || '';
                     const penaltyBTitle = getPenaltyBTitle() || '';
-
 
                     setFirstPlayerDisplayName(firstPlayerDisplayName);
                     setLastPlayerDisplayName(lastPlayerDisplayName);
@@ -597,30 +614,78 @@ const PlayBoard: React.FC = () => {
     const renderPlayerItem = ({ item, index }: { item: ResultData, index: number }) => (
         <>
             {index == 0 && 
-                <TouchableOpacity style={{flexDirection: 'row', borderWidth:1, borderColor: 'grey', justifyContent: 'space-between', alignItems: 'center', backgroundColor: customColors.customLightBlue}} activeOpacity={0.5} key={index + "resultkey"}>
-                    <View style={{ width: 60, alignItems: 'center' }}>
-                        <Text style={{color: 'white', textAlign: 'center', fontSize: 18}}>名前</Text>
+                <View style={{flexDirection: 'row', height:50, borderWidth:0, borderColor: 'grey', justifyContent: 'space-between', alignItems: 'center', backgroundColor: customColors.customLightBlue}}  key={index + "resultkey"}>
+                    
+                    {/* <View style={{ width: 60, alignItems: 'center' }}>
+                        <Text style={{color: 'white', textAlign: 'center', fontSize: 15}}>名前</Text>
                     </View>
+                    <View style={{ width: 60, alignItems: 'center', borderLeftWidth:0, borderLeftColor: 'grey', paddingVertical:5 }}>
+                        <Text style={{color: 'white', textAlign: 'center', fontSize: 15}}>1位</Text>
+                    </View>
+                    <View style={{ width: 60, alignItems: 'center',  borderLeftWidth:0, borderLeftColor: 'grey', paddingVertical:5 }}>
+                        <Text style={{color: 'white', textAlign: 'center', fontSize: 15}}>最下位</Text>
+                    </View> */}
 
                     {Array.from({length: bingoRound}, (v, i) => i).map((rank: number, round: number) =>
-                        <View key={round + "roundIndex"} style={{ borderWidth:1, borderLeftColor: 'grey', padding: 5, width: ((viewportWidth*0.9-60-10)/(bingoRound > 5 ? 5: bingoRound)), justifyContent: 'space-between', alignItems: 'center'}}>
+                        <View key={round + "roundIndex"} style={{ borderLeftWidth:0, borderLeftColor: 'grey', padding: 5, width: ((viewportWidth*0.5-10)/(bingoRound > 3 ? 3: bingoRound)), justifyContent: 'space-between', alignItems: 'center'}}>
                             <Text style={{color: 'white', textAlign: 'center', letterSpacing: 5, fontSize: 18}}>{(round + 1) + "回"}</Text>
                         </View>
                     )}
-                </TouchableOpacity>
+                </View>
             }
             
-            <TouchableOpacity style={{flexDirection: 'row', borderWidth:1, borderColor: 'grey', justifyContent: 'space-between', alignItems: 'center'}} activeOpacity={0.5} key={(index+1) + "resultkey"}>
-                <View style={{ width: 60, alignItems: 'center' }}>
-                    <Text style={{color: 'white', textAlign: 'center'}}>{item?.displayName}</Text>
+            <View style={{flexDirection: 'row', height:50, borderWidth:0, borderColor: 'grey', justifyContent: 'space-between', alignItems: 'center'}}  key={(index+1) + "resultkey"}>
+                {/* <View style={{ width: 60, alignItems: 'center' }}>
+                    <Text style={{color: 'white', textAlign: 'center'}}>{item?.displayName}様</Text>
                 </View>
 
+                <View style={{ alignItems: 'center', width: 60, borderLeftWidth:0, borderLeftColor: 'grey' }} key={(index+1) + "firstrank"}>
+                    <Text style={{color: 'white', textAlign: 'center'}}>{item?.firstRankCount}</Text>
+                </View>
+
+                <View style={{ alignItems: 'center', width: 60, borderLeftWidth:0, borderLeftColor: 'grey' }} key={(index+1) + "lastrank"}>
+                    <Text style={{color: 'white', textAlign: 'center'}}>{item?.lastRankCount}</Text>
+                </View> */}
+
                 {item.ranks.map((rank: number, rankIndex: number) =>
-                    <View key={rankIndex + "rankIndex"} style={{ borderWidth:1, borderLeftColor: 'grey', padding: 5, width: ((viewportWidth*0.9-60-10)/(bingoRound > 5 ? 5: bingoRound)), justifyContent: 'space-between', alignItems: 'center'}}>
+                    <View key={rankIndex + "rankIndex"} style={{ borderLeftWidth:0, borderLeftColor: 'grey', padding: 5, width: ((viewportWidth*0.5-10)/(bingoRound > 3 ? 3: bingoRound)), justifyContent: 'space-between', alignItems: 'center'}}>
                         <Text style={{color: 'white', textAlign: 'center'}}>{isNaN(rank) ? '' : rank + 1} 位</Text>
                     </View>
                 )}
-            </TouchableOpacity>
+            </View>
+        </>
+    );
+
+    const renderPlayerItem1 = ({ item, index }: { item: ResultData, index: number }) => (
+        <>
+            {index == 0 && 
+                <View style={{flexDirection: 'row', height:50, borderWidth:0, borderColor: 'grey', justifyContent: 'space-between', alignItems: 'center', backgroundColor: customColors.customLightBlue}}  key={index + "resultkey"}>
+                    
+                    <View style={{ width: 60, alignItems: 'center' }}>
+                        <Text style={{color: 'white', textAlign: 'center', fontSize: 15}}>名前</Text>
+                    </View>
+                    <View style={{ width: 40, alignItems: 'center', borderLeftWidth:0, borderLeftColor: 'grey', paddingVertical:5 }}>
+                        <Text style={{color: 'white', textAlign: 'center', fontSize: 15}}>1位</Text>
+                    </View>
+                    <View style={{ width: 60, alignItems: 'center',  borderLeftWidth:0, borderLeftColor: 'grey', paddingVertical:5 }}>
+                        <Text style={{color: 'white', textAlign: 'center', fontSize: 15}}>最下位</Text>
+                    </View>
+                </View>
+            }
+            
+            <View style={{flexDirection: 'row', height:50, borderWidth:0, borderColor: 'grey', justifyContent: 'space-between', alignItems: 'center'}}  key={(index+1) + "resultkey"}>
+                <View style={{ width: 60, alignItems: 'center' }}>
+                    <Text style={{color: 'white', textAlign: 'center'}}>{item?.displayName}様</Text>
+                </View>
+
+                <View style={{ alignItems: 'center', width: 40, borderLeftWidth:0, borderLeftColor: 'grey' }} key={(index+1) + "firstrank"}>
+                    <Text style={{color: 'white', textAlign: 'center'}}>{item?.firstRankCount}</Text>
+                </View>
+
+                <View style={{ alignItems: 'center', width: 60, borderLeftWidth:0, borderLeftColor: 'grey' }} key={(index+1) + "lastrank"}>
+                    <Text style={{color: 'white', textAlign: 'center'}}>{item?.lastRankCount}</Text>
+                </View>
+            </View>
         </>
     );
 
@@ -972,7 +1037,6 @@ const PlayBoard: React.FC = () => {
                 </View>
             </Modal>
 
-            
             <Modal
                 animationType="fade"
                 transparent={true}
@@ -1002,14 +1066,23 @@ const PlayBoard: React.FC = () => {
                                 <Text style={{color: 'white', fontSize: 20}}>ゲーム結果</Text>
                             </View>
 
-                            <View style={styles.FlatResultDataListStyle}>
-                                <ScrollView horizontal={true} style={{}}>
+                            <View style={[styles.FlatResultDataListStyle, {paddingHorizontal: 2, borderWidth:1, borderColor: 'grey', borderRadius: 0, flexDirection: 'row', justifyContent: 'space-between' }]}>
+                                <View style={{width: '50%'}}>
                                     <FlatList
                                         data={bingoResultTableData}
-                                        renderItem={renderPlayerItem}
+                                        renderItem={renderPlayerItem1}
                                         keyExtractor={(item, index) => index.toString()}
                                     />
-                                </ScrollView>
+                                </View>
+                                <View style={{width: '50%', borderLeftWidth:1, borderLeftColor:'#75787d8c', paddingLeft:0}}>
+                                    <ScrollView horizontal={true}>
+                                        <FlatList
+                                            data={bingoResultTableData}
+                                            renderItem={renderPlayerItem}
+                                            keyExtractor={(item, index) => index.toString()}
+                                        />
+                                    </ScrollView>
+                                </View>
                             </View>
 
                             {bingoAllRoundEnd && 
@@ -1017,16 +1090,16 @@ const PlayBoard: React.FC = () => {
                                     <Text style={{color: 'white', fontSize: 20, textAlign: 'center'}}>罰ゲーム実行</Text>
 
                                     <View style={{borderWidth:1, borderRadius: 5, width: '100%', padding:5, paddingVertical: 10, marginVertical: 10}}>
-                                        {penaltyATitle && 
+                                        {(penaltyATitle && isPatternASet) && 
                                             <View style={{ padding:10, borderWidth:1, borderColor: customColors.customLightBlue, borderRadius:10, marginVertical: 10}}>
-                                                <Text style={{color: 'white', textAlign: 'center', fontSize: 18, textDecorationLine: 'underline'}}>{firstPlayerDisplayName}(勝) - {lastPlayerDisplayName}(敗)</Text>
+                                                <Text style={{color: 'white', textAlign: 'center', fontSize: 18, textDecorationLine: 'underline'}}>{firstPlayerDisplayName}(様) {' => '} {lastPlayerDisplayName}(様)</Text>
                                                 <Text style={{color: 'white', textAlign: 'center', fontSize: 15, marginTop: 10}}>{penaltyATitle}</Text>
                                                 <View style={{}}></View>
                                             </View>
                                         }
-                                        {penaltyBTitle && 
+                                        {(penaltyBTitle && isPatternBSet) && 
                                             <View style={{padding:10, borderWidth:1, borderColor: customColors.customLightBlue, borderRadius:10, marginVertical: 10}}>
-                                                <Text style={{color: 'white', textAlign: 'center', fontSize: 18, textDecorationLine: 'underline'}}>共通罰ゲーム</Text>
+                                                <Text style={{color: 'white', textAlign: 'center', fontSize: 18, textDecorationLine: 'underline'}}>共通罰ゲーム  {'  =>  '} {lastPlayerDisplayName}(さん)</Text>
                                                 <Text style={{color: 'white', textAlign: 'center', fontSize: 15,  marginTop: 10}}>{penaltyBTitle}</Text>
                                             </View>
                                         }
@@ -1530,9 +1603,8 @@ const styles = StyleSheet.create({
     FlatResultDataListStyle: {
         // flex: 1,
         backgroundColor: customColors.customDarkBlueBackground,
-        padding: 5,
-        paddingVertical: 10,
         borderRadius: 10,
+        padding:2,
         width: '100%',
         alignItems: 'center',
         justifyContent: 'flex-start'

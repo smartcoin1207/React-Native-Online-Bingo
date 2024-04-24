@@ -41,6 +41,7 @@ import {
 } from "firebase/auth";
 import { isArray, update } from "lodash";
 import { cloneElement } from "react";
+import { PerfLogger } from "metro-config";
 
 const userTable = "users";
 const gameTable = "games";
@@ -721,8 +722,6 @@ export const startGamePenalty = async (gameRoomId: string) => {
     await setDoc(newGamePenaltyDocRef, {
       patternASet: false,
       patternAList: [],
-      patternB: "",
-      patternC: 1,
     });
   } catch (error) {
     console.log(error);
@@ -756,7 +755,12 @@ export const setPatternASetFirestore = async (gameRoomId: string, patternAset: b
 export const publicPatternAFirestore = async (
   gameRoomId: string,
   uid: string,
-  penalty: Penalty
+  penalty: Penalty,
+  subPattern1: boolean, 
+  subPattern2: boolean,
+  subPattern3: boolean,
+  penaltyRunCount: number,
+  isHost: boolean
 ) => {
   if (!gameRoomId) {
     return false;
@@ -780,10 +784,19 @@ export const publicPatternAFirestore = async (
           }
           return pattern;
         });
-
-        await updateDoc(docRef, {
-          patternAList: updatedPatternAList
-        })
+        if(isHost) {
+          await updateDoc(docRef, {
+            patternAList: updatedPatternAList,
+            subPattern1: subPattern1,
+            subPattern2: subPattern2,
+            subPattern3: subPattern3,
+            penaltyRunCount: penaltyRunCount
+          })
+        } else {
+          await updateDoc(docRef, {
+            patternAList: updatedPatternAList
+          })
+        }
       }
     } 
     if(!exist) {
@@ -792,10 +805,20 @@ export const publicPatternAFirestore = async (
         penaltyId: penalty?.id ,
         penaltyTitle: penalty?.title
       };
-  
-      await updateDoc(docRef, {
-        patternAList: arrayUnion(newPenaltyA),
-      });
+
+      if(isHost) {
+        await updateDoc(docRef, {
+          patternAList: arrayUnion(newPenaltyA),
+          subPattern1: subPattern1,
+          subPattern2: subPattern2,
+          subPattern3: subPattern3,
+          penaltyRunCount: penaltyRunCount
+        })
+      } else {
+        await updateDoc(docRef, {
+          patternAList: arrayUnion(newPenaltyA),
+        })
+      }
     }
   } catch (error) {}
 };
@@ -865,69 +888,43 @@ export const setPenaltyBInitialFirestore = async ( gameRoomId: string ) => {
   }
 };
 
-export const setPenaltyPatternB = async ( gameRoomId: string, penaltyId: string, penaltyTitle: string, patternC: number, patternD: number, patternE: boolean) => {
+export const setpatternBSetFirestore = async (gameRoomId: string, patternBSet: boolean) => {
+  if (!gameRoomId) return false;
+
+  try {
+    const docRef = doc(collection(db, gamePenaltyTable), gameRoomId);
+    await updateDoc(docRef, {
+      patternBSet: patternBSet,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const publicPatternBFirestore = async ( gameRoomId: string, penalty: Penalty, subPattern1: boolean, subPattern2: boolean, subPattern3: boolean, penaltyRunCount: number) => {
   if (!gameRoomId) return false;
 
   try {
     const docRef = doc(collection(db, gamePenaltyTable), gameRoomId);
     const penaltyB = {
-      penaltyId: penaltyId,
-      penaltyTitle: penaltyTitle
+      penaltyId: penalty?.id,
+      penaltyTitle: penalty?.title
     };
     await updateDoc(docRef, {
-      patternAList: [],
-      patternASet: false,
+      patternBSet: true,
       penaltyB: penaltyB,
-      patternC: patternC,
-      patternD: patternD,
-      patternE: patternE
+      subPattern1: subPattern1,
+      subPattern2: subPattern2,
+      subPattern3: subPattern3,
+      penaltyRunCount: penaltyRunCount
     });
   } catch (error) {
     console.log(error);
   }
 };
 
-export const setPenaltySkip = async (gameRooomId:string) => {
-  try {
-    const docRef = doc(collection(db, gamePenaltyTable), gameRooomId);
-    await updateDoc(docRef, {
-      patternAList: [],
-      patternASet: false,
-      penaltyB: null,
-      patternC: 1
-    })
-  } catch (error) {
-    console.log(error);
-  }
-}
 
-export const setPenaltyAllFirestore = async (gameRooomId:string, patternB: any, patternC: number, ) => {
-  try {
-    const docRef = doc(collection(db, gamePenaltyTable), gameRooomId);
-    await updateDoc(docRef, {
-      patternAList: [],
-      patternASet: false,
-      penaltyB: patternB,
-      patternC: patternC
-    })
-  } catch (error) {
-    console.log(error);
-  }
-}
 
-export const setPenaltyPatternC = async ( gameRoomId: string, number: number ) => {
-  if (!gameRoomId) return false;
-
-  try {
-    const docRef = doc(collection(db, gamePenaltyTable), gameRoomId);
-
-    await updateDoc(docRef, {
-      patternC: number,
-    });
-  } catch (error) {
-    console.log(error);
-  }
-};
 
 //
 export const getGamePenaltyRealtime = (gameRoomId: string, callback: any): UnsubscribeOnsnapCallbackFunction => {

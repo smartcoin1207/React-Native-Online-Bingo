@@ -29,11 +29,8 @@ import {
   setGameTypeF,
   setPatternASetFirestore,
   setPenaltyAInitialFirestore,
-  setPenaltyAllFirestore,
   setPenaltyBInitialFirestore,
-  setPenaltyPatternB,
-  setPenaltyPatternC,
-  setPenaltySkip,
+  publicPatternBFirestore,
 } from "../utils/firebase/FirebaseUtil";
 import {
   GameType,
@@ -124,46 +121,60 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
         getGamePenaltyRealtime(gameRoomId, (penalty: any) => {
           if (penalty?.patternASet) {
             setPenaltyASetAvailable(true);
+            setIsPatternASet(true);
           } else {
             setPenaltyASetAvailable(false);
             setPenaltyA(undefined);
             setPenaltyASelected(false);
+            setIsPatternASet(false);
           }
 
-          const patternAList1: PenaltyAType[] = penalty?.patternAList || [];
+          const penaltyAList1: PenaltyAType[] = penalty?.patternAList || [];
           if (
-            patternAList1.length == subscribers.length &&
-            patternAList1.length > 0 &&
+            penaltyAList1.length == subscribers.length &&
+            penaltyAList1.length > 0 &&
             penalty?.patternASet
           ) {
-            setPenaltyAList(patternAList1);
+            console.log("kkkggk");
+            setPenaltyAList(penaltyAList1);
             setPenaltyPublicModalVisible(true);
           } else {
             setPenaltyAList([]);
           }
-          // console.log()
-          const penaltyB1 = penalty?.penaltyB;
-          console.log(penaltyB1);
-          if (
-            penaltyB1 &&
-            (penalty?.patternC || penalty?.patternD || penalty?.patternE)
-          ) {
-            setPatternBSet(true);
+
+          if (penalty?.patternBSet) {
+            setIsPatternBSet(true);
+          } else {
+            setIsPatternBSet(false);
+          }
+
+          const penaltyB1 = penalty?.penaltyB || null;
+          if (penaltyB1 && penalty?.patternBSet) {
             if (!isHost) {
-              setPenaltyB({
-                id: penaltyB1?.penaltyId,
-                title: penaltyB1?.penaltyTitle,
-              });
-              setPenaltyRunCount(penalty?.patternC);
-              // setIsPatternB3SwitchEnabled(penalty?.patternE);
+              console.log("xxx", penaltyB1)
+              setPenaltyB({id: penaltyB1?.penaltyId, title: penaltyB1?.penaltyTitle});
             }
 
-            console.log("xxxx");
-
             setPenaltyPublicModalVisible(true);
-          } else {
-            // setPenaltyPublicModalVisible(false);
-            setPatternBSet(false);
+          }
+
+          if (
+            !(
+              (penaltyAList1.length == subscribers.length &&
+                penaltyAList1.length > 0 &&
+                penalty?.patternASet) ||
+              (penaltyB1 && penalty?.patternBSet)
+            )
+          ) {
+            console.log("xxxxyyyy");
+            setPenaltyPublicModalVisible(false);
+          }
+
+          if ((penalty?.patternASet || penalty?.patternBSet) && !isHost) {
+            setIsSubPattern1(penalty?.subPattern1);
+            setIsSubPattern2(penalty?.subPattern2);
+            setIsSubPattern3(penalty?.subPattern3);
+            setPenaltyRunCount(penalty?.penaltyRunCount);
           }
         });
 
@@ -235,7 +246,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
   );
 
   useEffect(() => {
-    if(isHost) {
+    if (isHost) {
       if (!isPatternASelected) {
         setPenaltyAInitialFirestore(gameRoomId);
       } else {
@@ -245,7 +256,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
   }, [isPatternASelected]);
 
   useEffect(() => {
-    if(isHost) {
+    if (isHost) {
       if (!isPatternBSelected) {
         setPenaltyBInitialFirestore(gameRoomId);
       }
@@ -315,7 +326,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
   };
 
   const startGamPenalty = (isPenalty: boolean) => {
-    if (penaltyAList.length > 0 && isPatternASelected) {
+    if (isPatternASelected && penaltyAList.length != subscribers.length) {
       return false;
     }
 
@@ -328,93 +339,92 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
     setPenaltyASelected(true);
 
     if (gameRoomId && authUser?.uid && penaltyA?.id) {
-      publicPatternAFirestore(gameRoomId, authUser.uid, penaltyA);
+      if (isHost) {
+        const subPattern1 = isSubPattern1;
+        const subPattern2 = isSubPattern2;
+        const subPattern3 = isSubPattern3;
+
+        if (subPattern1 || subPattern2 || subPattern3) {
+          if (subPattern3 && !penaltyRunCount) {
+            return false;
+          }
+          publicPatternAFirestore(
+            gameRoomId,
+            authUser.uid,
+            penaltyA,
+            subPattern1,
+            subPattern2,
+            subPattern3,
+            penaltyRunCount,
+            isHost
+          );
+        }
+      } else {
+        publicPatternAFirestore(
+          gameRoomId,
+          authUser.uid,
+          penaltyA,
+          false,
+          false,
+          false,
+          0,
+          false
+        );
+      }
     }
   };
 
   const handlePublicPatternB = () => {
-    
-  }
+    if (gameRoomId && authUser?.uid && penaltyB?.id) {
+      const subPattern1 = isSubPattern1;
+      const subPattern2 = isSubPattern2;
+      const subPattern3 = isSubPattern3;
 
+      if (subPattern1 || subPattern2 || subPattern3) {
+        if (subPattern3 && !penaltyRunCount) {
+          return false;
+        }
+        publicPatternBFirestore(
+          gameRoomId,
+          penaltyB,
+          subPattern1,
+          subPattern2,
+          subPattern3,
+          penaltyRunCount
+        );
+      }
+    }
+  };
 
-
-  // const setPatternB = () => {
-  //   if (gameRoomId && penaltyB?.id) {
-  //     let patternC = 0;
-  //     let patternD = 0;
-  //     let patternE = false;
-  //     let anyChecked: boolean = false;
-  //     // if (isPatternB1SwitchEnabled && penaltyCNumber) {
-  //     //   patternC = penaltyCNumber;
-  //     //   anyChecked = true;
-  //     // } else if (isPatternB3SwitchEnabled) {
-  //     //   patternE = true;
-  //     //   anyChecked = true;
-  //     // }
-
-  //     if (anyChecked) {
-  //       // setPenaltyPatternB(
-  //       //   gameRoomId,
-  //       //   patternC,
-  //       //   patternD,
-  //       //   patternE
-  //       // );
-  //     } else {
-  //       setPatternBError("正確に入力してください...");
-  //     }
-  //   } else {
-  //     setPatternBError("正確に入力してください...");
-  //   }
-  // };
-
-  const toggleLightBlueSwitch = () => {
+  const togglePatternASwitch = () => {
     setIsPatternASelected((previousState) => {
       if (!previousState) {
         setIsPatternBSelected(false);
         setPenaltyB(undefined);
+        setIsSubPattern1(false);
+        setIsSubPattern2(false);
+        setIsSubPattern3(false);
         setPenaltyRunCount(0);
       }
 
       return !previousState;
     });
-    setPenaltyA(undefined);
-
   };
 
-  const toggleLightCyanSwitch = () => {
+  const togglePatternBSwitch = () => {
     setIsPatternBSelected((previousState) => {
       if (!previousState) {
         setIsPatternASelected(false);
         setPenaltyA(undefined);
-        setPatternASetFirestore(gameRoomId, false);
+        setIsSubPattern1(false);
+        setIsSubPattern2(false);
+        setIsSubPattern3(false);
+        setPenaltyRunCount(0);
       }
 
       return !previousState;
     });
-    setPenaltyB(undefined);
   };
-
-  const togglePatternASwitch = () => {
-    setIsPatternASelected((previousState) => {
-      if(!previousState) {
-        setIsPatternBSelected(false);
-        setPenaltyB(undefined);
-      }
-
-      return !previousState
-    })
-  }
-
-  const togglePatternBSwitch = () => {
-    setIsPatternBSelected((previousState) => {
-      if(!previousState) {
-        setIsPatternASelected(false);
-        setPenaltyA(undefined);
-      }
-
-      return !previousState
-    })
-  }
 
   //subpatterns switch
   const toggleSubPattern1Switch = () => {
@@ -525,7 +535,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
       <TouchableOpacity
         style={[
           styles.penaltyItemRow,
-          { flexDirection: "row", marginVertical: 5 },
+          { flexDirection: "row", marginVertical: 5, width: '100%', justifyContent: 'space-between' },
         ]}
         key={index + "publicA"}
       >
@@ -552,19 +562,24 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
   };
 
   type customSwitchToogleProps = {
-    title: string,
-    mainColor: string,
-    toggleBackgroundColor: string,
-    isBig: boolean, 
-    isToggle: boolean,
-    switchToggle: () => void
-  }
+    title: string;
+    mainColor: string;
+    toggleBackgroundColor: string;
+    isBig: boolean;
+    isToggle: boolean;
+    switchToggle: () => void;
+  };
 
   const CustomSwitchToogle: React.FC<customSwitchToogleProps> = ({
-    title, mainColor, toggleBackgroundColor,isBig, isToggle, switchToggle
+    title,
+    mainColor,
+    toggleBackgroundColor,
+    isBig,
+    isToggle,
+    switchToggle,
   }) => {
     return (
-      <View style={[styles.switchToggleStyle]}>
+      <View style={[styles.switchToggleStyle, { width: "100%" }]}>
         <View style={{ maxWidth: "80%", flexDirection: "row" }}>
           <Text
             style={{
@@ -599,17 +614,19 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
           duration={100}
         />
       </View>
-    )
-  }
+    );
+  };
 
   type CustomSubPatternGroupProps = {
-    mainColor: string,
-    toggleBackgroundColor: string,
-    isActive: boolean
-  }
+    mainColor: string;
+    toggleBackgroundColor: string;
+    isActive: boolean;
+  };
 
-  const CustomSubPatternSwitchGroup:React.FC<CustomSubPatternGroupProps> = ({
-    mainColor, toggleBackgroundColor, isActive
+  const CustomSubPatternSwitchGroup: React.FC<CustomSubPatternGroupProps> = ({
+    mainColor,
+    toggleBackgroundColor,
+    isActive,
   }) => {
     return (
       <View>
@@ -692,7 +709,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
                 setNumber={(number: number) => {
                   setPenaltyRunCount(number);
                 }}
-                number={penaltyRunCount}
+                number={isSubPattern3 && isActive ? penaltyRunCount : 0}
               />
             </View>
           </View>
@@ -702,28 +719,36 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
   };
 
   type PatternItemProps = {
-    mainTitle: string,
-    mainColor: string, 
-    toggleBackgroundColor: string, 
-    isActive: boolean,
-    patternSwitchToggle: () => void,
-    handlePenaltyPlusBtnClick: () => void,
-    setPatternPublic: () => void
-  }
+    mainTitle: string;
+    mainColor: string;
+    toggleBackgroundColor: string;
+    isActive: boolean;
+    patternType: PatternType;
+    patternSwitchToggle: () => void;
+    handlePenaltyPlusBtnClick: () => void;
+    setPatternPublic: () => void;
+  };
 
   const PatternItem: React.FC<PatternItemProps> = ({
-    mainTitle, mainColor, toggleBackgroundColor, isActive, patternSwitchToggle, handlePenaltyPlusBtnClick, setPatternPublic
+    mainTitle,
+    mainColor,
+    toggleBackgroundColor,
+    isActive,
+    patternType,
+    patternSwitchToggle,
+    handlePenaltyPlusBtnClick,
+    setPatternPublic,
   }) => {
     return (
-      <View style={[styles.patternComponentStyle, {borderColor: mainColor}]}>
+      <View style={[styles.patternComponentStyle, { borderColor: mainColor }]}>
         <CustomSwitchToogle
-            title={mainTitle}
-            mainColor={mainColor}
-            toggleBackgroundColor={toggleBackgroundColor}
-            isBig={true}
-            isToggle={isActive}
-            switchToggle={patternSwitchToggle}
-          />
+          title={mainTitle}
+          mainColor={mainColor}
+          toggleBackgroundColor={toggleBackgroundColor}
+          isBig={true}
+          isToggle={isActive}
+          switchToggle={patternSwitchToggle}
+        />
 
         <View
           style={{
@@ -744,7 +769,9 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
             }}
           ></View>
 
-          {!penaltyB?.id ? (
+          {(
+            patternType == PatternType.PatternA ? !penaltyA?.id : !penaltyB?.id
+          ) ? (
             <TouchableOpacity
               style={{
                 width: 50,
@@ -794,7 +821,9 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
                         display: "flex",
                       }}
                     >
-                      {penaltyB?.title}
+                      {patternType == PatternType.PatternA
+                        ? penaltyA?.title
+                        : penaltyB?.title}
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -833,8 +862,8 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
           </TouchableOpacity>
         </View>
       </View>
-    )
-  }
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -874,24 +903,34 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
               zIndex: 2,
             }}
           >
-            <PatternItem 
-              mainTitle="PatternA"
+            <PatternItem
+              mainTitle="パターンA「全員が罰ゲームを選ぶ」"
               mainColor="#5a6fff"
               toggleBackgroundColor="#25307cde"
               isActive={isPatternASelected}
-              patternSwitchToggle={() => {togglePatternASwitch()}}
-              handlePenaltyPlusBtnClick={() => {handlePatternAPlusBtnClick()}}
-              setPatternPublic={() => handlePublicPatternA}
+              patternType={PatternType.PatternA}
+              patternSwitchToggle={() => {
+                togglePatternASwitch();
+              }}
+              handlePenaltyPlusBtnClick={() => {
+                handlePatternAPlusBtnClick();
+              }}
+              setPatternPublic={() => handlePublicPatternA()}
             />
 
-            <PatternItem 
-              mainTitle="PatternB"
+            <PatternItem
+              mainTitle="パターンB「ホストが共通の罰ゲームを選ぶ」"
               mainColor="#29ccdc"
               toggleBackgroundColor="#1c5e65c9"
               isActive={isPatternBSelected}
-              patternSwitchToggle={() => {togglePatternBSwitch()}}
-              handlePenaltyPlusBtnClick={() => {handlePatternBPlusBtnClick()}}
-              setPatternPublic={() => handlePublicPatternB}
+              patternType={PatternType.PatternB}
+              patternSwitchToggle={() => {
+                togglePatternBSwitch();
+              }}
+              handlePenaltyPlusBtnClick={() => {
+                handlePatternBPlusBtnClick();
+              }}
+              setPatternPublic={() => handlePublicPatternB()}
             />
           </View>
         </ScrollView>
@@ -1199,103 +1238,152 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
           <View
             style={{
               margin: 10,
-              justifyContent: "center",
+              justifyContent: "flex-start",
               borderWidth: 1,
-              borderColor: "white",
+              borderColor: isPatternASet ? "#5a6fff" : "#29ccdc",
               borderRadius: 20,
               width: "90%",
               padding: 10,
-              backgroundColor: "#0f203e",
+              backgroundColor: customColors.customDarkBlueBackground,
               flex: 1,
             }}
           >
-            {allPenaltyASelected && (
-              <>
-                <View
+            <View
+              style={{
+                alignItems: "center",
+                padding: 10,
+              }}
+            >
+              <Text
+                style={{ fontSize: 24, color: "white", textAlign: "center" }}
+              >
+                {isPatternASet
+                  ? "パターンA「全員が罰ゲームを選ぶ」"
+                  : "パターンB「ホストが共通の罰ゲームを選ぶ」"}
+              </Text>
+            </View>
+            <View
+              style={{
+                padding: isPatternASet ? 5 : 20,
+                paddingVertical: 20,
+                marginTop: 40,
+                borderWidth: 1,
+                borderRadius: 10,
+                borderColor: customColors.customLightBlue,
+                alignItems: "center",
+                backgroundColor: customColors.customDarkBlue,
+              }}
+            >
+              <View
+                style={{
+                  position: "absolute",
+                  top: -18,
+                  borderWidth: 0,
+                  borderColor: customColors.customLightBlue,
+                  borderRadius: 10,
+                  backgroundColor: customColors.customDarkBlue,
+                }}
+              >
+                <Text
                   style={{
-                    alignItems: "center",
-                    padding: 10,
-                    marginBottom: 10,
+                    color: "white",
+                    fontSize: 20,
                   }}
                 >
-                  <Text style={{ fontSize: 24, color: "white" }}>
-                    パターンAの罰ゲームリスト
-                  </Text>
-                </View>
+                  罰ゲーム
+                </Text>
+              </View>
+
+              {isPatternASet ? (
                 <FlatList
                   data={penaltyAList}
                   renderItem={renderPenaltyAPublicItem}
                   keyExtractor={(item, index) => index.toString()}
                 />
-              </>
-            )}
+              ) : (
+                ""
+              )}
 
-            {patternBSet && (
-              <View style={{ flex: 1 }}>
-                <View
+              {isPatternBSet ? (
+                <Text
                   style={{
-                    alignItems: "center",
-                    padding: 10,
-                    marginBottom: 10,
+                    color: "white",
+                    fontSize: 16,
+                    marginLeft: 15,
                   }}
                 >
-                  <Text style={{ fontSize: 24, color: "white" }}>
-                    パターンBの罰ゲームリスト
-                  </Text>
-                </View>
-                <View style={{}}>
-                  <Text
-                    style={{
-                      color: "white",
-                      fontSize: 20,
-                      textDecorationLine: "underline",
-                    }}
-                  >
-                    {" "}
-                    - 罰ゲーム:{" "}
-                  </Text>
-                  <Text
-                    style={{
-                      color: "white",
-                      fontSize: 16,
-                      marginLeft: 15,
-                      marginTop: 10,
-                    }}
-                  >
-                    {penaltyB?.title}
-                  </Text>
-                </View>
-                <View style={{ marginTop: 20, marginBottom: 10 }}>
-                  <Text style={{ color: "white", fontSize: 20 }}>
-                    罰ゲーム実施方法:
-                  </Text>
-                </View>
-                {penaltyCNumber ? (
-                  <View style={{ flexDirection: "row" }}>
-                    <Text style={{ color: "white", fontSize: 16 }}>
-                      ゲーム数の上限値の設定:
-                    </Text>
-                    <Text
-                      style={{ color: "white", fontSize: 20, marginLeft: 10 }}
-                    >
-                      {penaltyCNumber || ""}
-                    </Text>
-                  </View>
-                ) : (
-                  ""
-                )}
+                  {penaltyB?.title}
+                </Text>
+              ) : (
+                ""
+              )}
+            </View>
 
-                {isPatternB3SwitchEnabled ? (
-                  <View>
-                    <Text style={{ fontSize: 16, color: "white" }}>
-                      負けるごと」に、罰ゲームを実行する
-                    </Text>
-                  </View>
-                ) : (
-                  ""
-                )}
+            <View
+              style={{
+                padding: 20,
+                marginTop: 40,
+                borderWidth: 1,
+                borderRadius: 10,
+                borderColor: customColors.customLightBlue,
+                alignItems: "center",
+                backgroundColor: customColors.customDarkBlue,
+              }}
+            >
+              <View
+                style={{
+                  position: "absolute",
+                  top: -18,
+                  borderWidth: 0,
+                  borderColor: customColors.customLightBlue,
+                  borderRadius: 10,
+                  backgroundColor: customColors.customDarkBlue,
+                }}
+              >
+                <Text
+                  style={{
+                    color: "white",
+                    fontSize: 20,
+                  }}
+                >
+                  ゲーム方式
+                </Text>
               </View>
-            )}
+              {isSubPattern1 ? (
+                <View>
+                  <Text style={{ color: "white", fontSize: 16 }}>
+                    負けるたびに罰ゲームを実行する
+                  </Text>
+                </View>
+              ) : (
+                ""
+              )}
+
+              {isSubPattern2 ? (
+                <View>
+                  <Text style={{ color: "white", fontSize: 16 }}>
+                    １ゲームが終了するごとに実行する
+                  </Text>
+                </View>
+              ) : (
+                ""
+              )}
+
+              {isSubPattern3 && penaltyRunCount ? (
+                <View style={{  }}>
+                  <Text style={{ color: "white", fontSize: 16 }}>
+                    ゲーム数を決めて負けが多い人が実行する
+                  </Text>
+                  <Text
+                    style={{ padding: 10, color: "white", fontSize: 20, marginLeft: 10, textAlign: 'center' }}
+                  >
+                    {penaltyRunCount || ""} 回
+                  </Text>
+                </View>
+              ) : (
+                ""
+              )}
+            </View>
           </View>
           <View
             style={{
@@ -1549,7 +1637,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
 
-  switchToggleStyle : {
+  switchToggleStyle: {
     alignItems: "center",
     display: "flex",
     justifyContent: "space-between",

@@ -19,12 +19,9 @@ const theme = {
   },
 };
 
-StatusBar.setBarStyle('light-content');
-
-if (Platform.OS === 'android') {
-  StatusBar.setTranslucent(true);
-  StatusBar.setBackgroundColor('transparent');
-}
+StatusBar.setBarStyle('dark-content');
+StatusBar.setTranslucent(true);
+StatusBar.setBackgroundColor('transparent');
 
 function App(): JSX.Element {
   return (

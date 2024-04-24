@@ -56,27 +56,11 @@ const GameRoom: React.FC<GameListScreen> = () => {
                 
                 {
                     authUser.email == 'hayate@gmail.com' && (
-                    <>
-                        {/* <TouchableOpacity style={styles.signBtn} onPress={handleDeleteGame}>
-                            <Text style={styles.textTitle}>delete Game</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.signBtn} onPress={handleDeleteBingo}>
-                            <Text style={styles.textTitle}>delete Bingo</Text>
-                        </TouchableOpacity> */}
-                        <EffectBorder style={{ width: '80%', marginVertical: 10}}>
-                            <TouchableOpacity style={styles.gameBtn} onPress={handleMovePenalty}>
-                                <Text style={styles.textTitle}>{jpLanguage.penaltyGameEditString}</Text>
-                            </TouchableOpacity>
-                        </EffectBorder>
-                        
                         <EffectBorder style={{width: '80%', marginVertical: 10}}>
                             <TouchableOpacity style={styles.gameBtn} onPress={() => {navigation.navigate('penaltyEdit')}}>
                                 <Text style={styles.textTitle}>{jpLanguage.penaltyListTitleString}</Text>
                             </TouchableOpacity>
                         </EffectBorder>
-                        
-                    </>
                     )
                 }
                 <EffectBorder style={{width : '80%', marginVertical: 10}}>
