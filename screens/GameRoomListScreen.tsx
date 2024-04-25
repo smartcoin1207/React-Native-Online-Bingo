@@ -26,6 +26,7 @@ import { setGameRooms } from "../store/reducers/bingo/gameRoomSlice";
 import { customColors } from "../utils/Color";
 import { validateRoomPassword, validateRoomTitle } from "../utils/ValidtionUtils";
 import Icon from "react-native-vector-icons/FontAwesome";
+import React from "react";
 
 const defaultAvatar = require('../assets/images/default1.png');
 
@@ -57,7 +58,6 @@ const GameRoomScreen = () => {
       setListLoading(true);
 
       const unsubscribe: UnsubscribeOnsnapCallbackFunction = getWaitingGameRooms((gameRooms: GameRoom[]) => {
-        console.log("gameRoomwaiting cal back->>>>>>>>>>>>>>", gameRooms);
         dispatch(setGameRooms(gameRooms || []));
         setListLoading(false);
       });
@@ -90,7 +90,6 @@ const GameRoomScreen = () => {
 
       //firebaseに新しいroomが作成されるまで待ちます。
       const newGameRoomId = await createGameRoom(authUser.uid, gameRoomDisplayName, password);
-      console.log("newgamerromid", newGameRoomId);
 
       setCreateRoomLoading(false);
       navigator.navigate("currentRoom", {
@@ -236,6 +235,8 @@ const GameRoomScreen = () => {
                 autoCapitalize="none"
                 placeholderTextColor = {customColors.blackGrey}
                 value={password}
+                keyboardType="visible-password"
+                autoCorrect={true}
                 onChangeText={(text) => {
                   setPassword(text);
                 }}

@@ -47,6 +47,7 @@ import {
 import { customColors } from "../utils/Color";
 import EffectBorder from "../components/EffectBorder";
 import { setBingoInitial } from "../store/reducers/bingo/bingoSlice";
+import React from "react";
 
 const screenHeight = Dimensions.get("window").height;
 const defaultAvatar = require("../assets/images/default1.png");
@@ -68,6 +69,9 @@ const GameWaitingScreen = () => {
   const [exitModalVisible, setExitModalVisible] = useState<boolean>(false);
   const [gameListModalVisible, setGameListModalVisible] =
     useState<boolean>(false);
+
+  const [sortModalVisible, setSortModalVisible] = useState<boolean>(false);
+  const [pressedGameType, setPressedGameType] = useState<GameType>(GameType.Bingo);
 
   const [modalAlertText, setModalAlertText] = useState("");
   const [isExitModal, setIsExitModal] = useState(true);
@@ -216,9 +220,43 @@ const GameWaitingScreen = () => {
     }, [navigator])
   );
 
+  const handleGameStart = () => {
+    const turnPlayerId = sort[0];
+    if (!turnPlayerId) return false;
+
+    if(pressedGameType == GameType.Bingo) {
+      
+      setGameTypeF(gameRoomId, GameType.Penalty);
+      startGamePenalty(gameRoomId);
+
+      try {
+        setGameRoomOpen(gameRoomId, false);
+        navigator.navigate("penalty", { startGame: startBingo_ });
+      } catch (error) {
+        console.log(error);
+      }
+    } else if(pressedGameType == GameType.Tictactoe) {
+      try {
+        setGameTypeF(gameRoomId, GameType.Penalty);
+        startGamePenalty(gameRoomId);
+        setGameRoomOpen(gameRoomId, false);
+        navigator.navigate("penalty", { startGame: startTictactoe_ });
+      } catch (error) {}
+    } else if(pressedGameType == GameType.HighLow) {
+      try {
+        setGameTypeF(gameRoomId, GameType.Penalty);
+        startGamePenalty(gameRoomId);
+        setGameRoomOpen(gameRoomId, false);
+        navigator.navigate("penalty", { startGame: startHighLow_ });
+      } catch (error) {}
+    }
+  }
+
   const startBingo = async () => {
     const turnPlayerId = sort[0];
     if (!turnPlayerId) return false;
+
+    setSortModalVisible(true);
 
     setGameTypeF(gameRoomId, GameType.Penalty);
     startGamePenalty(gameRoomId);
@@ -303,13 +341,16 @@ const GameWaitingScreen = () => {
     const subscribersPlayers = currentGameRoom?.subscribersPlayers;
     const uids = subscribersPlayers?.map((player) => {
       return player.uid;
-    });
+    }) || [];
+    
+    if(uids.length > 1) {
+      while (JSON.stringify(sort) == JSON.stringify(uids)) {
+        const randomSort = () => Math.random() - 0.5;
+        uids?.sort(randomSort);
+      }
+    }
 
-    const randomSort = () => Math.random() - 0.5;
-    uids?.sort(randomSort);
-
-    const uids1 = uids ? uids : [];
-    await setPlayerGameSort(gameRoomId, uids1);
+    await setPlayerGameSort(gameRoomId, uids);
   };
 
   const renderPlayerItem = ({ item }: { item: Player }) => (
@@ -341,6 +382,29 @@ const GameWaitingScreen = () => {
           <Text style={styles.joinBtnText}>　退出　</Text>
         </TouchableOpacity>
       )}
+    </TouchableOpacity>
+  );
+
+  const renderSortPlayerItem = ({ item }: { item: Player }) => (
+    <TouchableOpacity
+      style={[styles.playerItem, { padding: 8 }]}
+      activeOpacity={0.5}
+    >
+      <Avatar
+        rounded
+        size="small"
+        source={
+          item.photoURL
+            ? {
+                uri: item.photoURL,
+              }
+            : defaultAvatar
+        }
+      />
+
+      <View style={{ alignItems: "center" }}>
+        <Text style={styles.nameTitle}>{item.displayName}</Text>
+      </View>
     </TouchableOpacity>
   );
 
@@ -429,7 +493,7 @@ const GameWaitingScreen = () => {
               <EffectBorder style={{ width: "80%" }}>
                 <TouchableOpacity
                   style={styles.modalGameListButton}
-                  onPress={() => startBingo()}
+                  onPress={() => {setPressedGameType(GameType.Bingo), setSortModalVisible(true)}}
                 >
                   <Text style={styles.textTitle}>ビンゴ</Text>
                 </TouchableOpacity>
@@ -450,7 +514,7 @@ const GameWaitingScreen = () => {
               <EffectBorder style={{ width: "80%", marginTop: 10 }}>
                 <TouchableOpacity
                   style={styles.modalGameListButton}
-                  onPress={startHighLow}
+                  onPress={() => {setPressedGameType(GameType.HighLow), setSortModalVisible(true)}}
                 >
                   <Text style={styles.textTitle}>ハイアンドロー</Text>
                 </TouchableOpacity>
@@ -459,11 +523,159 @@ const GameWaitingScreen = () => {
               <EffectBorder style={{ width: "80%", marginTop: 10 }}>
                 <TouchableOpacity
                   style={styles.modalGameListButton}
-                  onPress={startTictactoe}
+                  onPress={() => {setPressedGameType(GameType.Tictactoe), setSortModalVisible(true)}}
                 >
                   <Text style={styles.textTitle}>（O　X）ゲーム</Text>
                 </TouchableOpacity>
               </EffectBorder>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={sortModalVisible}
+        onRequestClose={() => {}}
+      >
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: customColors.modalBackgroundColor,
+          }}
+        >
+          <View
+            style={[
+              styles.modalBody,
+              {
+                flex: 1,
+                width: "100%",
+                borderWidth: 0,
+                borderRadius: 0,
+                paddingTop: 0,
+                paddingBottom: 0
+              },
+            ]}
+          >
+            <View
+              style={[
+                styles.modalGameListContainer,
+                { width: "100%", flex: 1, paddingHorizontal: 0, alignItems: 'center', borderWidth:0, borderColor: 'white' },
+              ]}
+            >
+              <View
+                style={[
+                  styles.topHeader,
+                  {
+                    justifyContent: "center",
+                    // alignSelf: 'flex-start',
+                    width: '100%',
+                    alignItems: 'center',
+
+                  },
+                ]}
+              >
+                <TouchableOpacity
+                  style={{
+                    width: 40,
+                    height: 40,
+                    padding: 10,
+                    borderWidth: 1,
+                    borderColor: customColors.blackGrey,
+                    borderRadius: 25,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    position: 'absolute',
+                    left:0,
+                    display: isHost? 'flex' : 'none'
+                  }}
+                  onPress={() => (setSortModalVisible(false))}
+                >
+                  <Icon
+                    name="arrow-left"
+                    size={16}
+                    color={"white"}
+                    style={{ opacity: 0.8 }}
+                  />
+                </TouchableOpacity>
+                <Text style={[styles.title, {textAlign: 'center', marginLeft: 0}]}>罰ゲーム</Text>
+              </View>
+              {isHost && 
+                <View
+                  style={{
+                    borderWidth: 0,
+                    borderColor: customColors.customLightBlue,
+                    borderRadius: 20,
+                    width: "100%",
+                    padding: 10,
+                    alignItems: "center",
+                  }}
+                >
+                  <TouchableOpacity
+                    style={[styles.successButton, {backgroundColor: '#133a4edb', borderWidth: 1, borderColor: 'grey', flexDirection: 'row'}]}
+                    onPress={() => handleRandomSort()}
+                  >
+                    <Text
+                      style={{
+                        color: "white",
+                        fontSize: 16,
+                        textAlign: "center",
+                      }}
+                    >
+                      順序決定 
+                    </Text>
+                    <View style={{ padding: 5 }}>
+                      <Icon name="sort" size={15} color={"white"} />
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              }
+              <View
+                style={[
+                  styles.FlatListStyle,
+                  { borderWidth: 1, borderColor: "grey", paddingTop: 20, borderRadius: 20, marginTop: 20 },
+                ]}
+              >
+                <FlatList
+                  data={
+                    sortedPlayers && sortedPlayers.length == subscribers.length
+                      ? sortedPlayers
+                      : subscribers
+                  }
+                  renderItem={renderSortPlayerItem}
+                  keyExtractor={(item, index) => index.toString()}
+                />
+              </View>
+              {isHost && 
+                <View
+                  style={{
+                    borderWidth: 0,
+                    borderColor: customColors.customLightBlue,
+                    borderRadius: 20,
+                    width: "100%",
+                    padding: 10,
+                    alignItems: "center",
+                  }}
+                >
+                  <TouchableOpacity
+                    style={[styles.successButton,{paddingHorizontal: 30, paddingVertical: 15}]}
+                    onPress={() => handleGameStart()}
+                  >
+                    <Text
+                      style={{
+                        color: "white",
+                        fontSize: 16,
+                        textAlign: "center",
+                      }}
+                    >
+                      ゲーム開始
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              }
             </View>
           </View>
         </View>
@@ -514,8 +726,8 @@ const GameWaitingScreen = () => {
             }}
             onPress={setGameRoomOpen_}
           >
-            <Text style={{ fontSize: 15, color: "white", marginLeft: 10 }}>
-              {gameRoomOpened ? "部屋を閉じる" : "部屋を開く"}
+            <Text style={{ fontSize: 15, color: "white", letterSpacing: 10 }}>
+              {gameRoomOpened ? "締切" : "募集中"}
             </Text>
           </TouchableOpacity>
         )}
@@ -536,7 +748,7 @@ const GameWaitingScreen = () => {
         >
           <Text style={styles.listTitle}>ゲームメンバー</Text>
         </View>
-        {isHost && (
+        {isHost && false && (
           <TouchableOpacity
             style={{
               position: "absolute",
@@ -580,7 +792,6 @@ const GameWaitingScreen = () => {
           keyExtractor={(item, index) => index.toString()}
         />
       </View>
-
       <View style={[styles.btnList]}>
         <TouchableOpacity
           style={styles.dangeButton}
@@ -637,6 +848,7 @@ const styles = StyleSheet.create({
     marginVertical: 4,
     borderRadius: 6,
   },
+
   successButton: {
     backgroundColor: customColors.customLightBlue,
     paddingVertical: 8,
@@ -719,11 +931,7 @@ const styles = StyleSheet.create({
   FlatListStyle: {
     flex: 1,
     borderWidth: 1,
-    borderTopRightRadius: 30,
-    borderTopLeftRadius: 30,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-
+    borderRadius: 30,
     backgroundColor: customColors.customDarkBlueBackground,
     width: "97%",
     alignItems: "center",
@@ -815,6 +1023,21 @@ const styles = StyleSheet.create({
   outBorder: {
     borderColor: "red",
     borderWidth: 2,
+  },
+
+  topHeader: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
+    marginBottom: 8,
+    marginTop: 10,
+    marginLeft: 10,
+  },
+  title: {
+    color: customColors.white,
+    fontSize: 30,
+    fontWeight: "700",
+    marginLeft: 20,
   },
 });
 

@@ -1,14 +1,16 @@
+import React from 'react';
+
 import { View, SafeAreaView, Text, StyleSheet, TouchableOpacity, Dimensions, Linking, Animated, Easing  } from 'react-native';
 import { UseSelector, useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useEffect } from 'react';
 import { RootState } from '../store';
 import { customColors } from '../utils/Color';
-const screenHeight = Dimensions.get('window').height;
-
 import { useRef } from 'react';
 import { delectDirectory, deleteBingoCollection } from '../utils/firebase/FirebaseUtil';
 import EffectBorder from '../components/EffectBorder';
+const screenHeight = Dimensions.get('window').height;
+import SoundPlayer from 'react-native-sound-player'
 
 const openWebsite = () => {
     const url = 'https://newgate-llc.shop/listener/registration';
@@ -26,18 +28,20 @@ const HomeScreen: React.FC = () => {
         }
     }, [isLoggedIn])
 
+    useEffect(() => {
+        // const playSound = async () => {
+        //     try {    
+        //         await SoundPlayer.playSoundFile('../assets/media/music/penalty.mp3', 'mp3');
+        //     } catch (e) {
+        //         console.log('Cannot play the sound file', e);
+        //     }
+        // };
+    
+        // playSound();
+    }, []);
+
     return (
         <SafeAreaView style={styles.container}>
-            {/* <TouchableOpacity style={styles.button1} activeOpacity={0.6} onPress={() => openWebsite()}>
-                <Text style={styles.textTitle}>アカウント登録</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.button1} activeOpacity={0.6} onPress={() => navigation.navigate('register')}>
-                <Text style={[styles.textTitle, {letterSpacing: 12}]}>　登録　</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.button1} activeOpacity={0.6} onPress={() => navigation.navigate('login')}>
-                <Text style={styles.textTitle}> 　ログイン　 </Text>
-            </TouchableOpacity> */}
-
             <EffectBorder style={{ width: '70%', marginVertical: 20}}>
                 <TouchableOpacity style={styles.gameBtn} onPress={openWebsite}>
                     <Text style={styles.textTitle}>アカウント登録</Text>

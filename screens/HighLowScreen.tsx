@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useEffect } from 'react';
 import { RootState } from '../store';
 import { customColors } from '../utils/Color';
+import React from 'react';
 const screenHeight = Dimensions.get('window').height;
 
 const HighLowScreen: React.FC = () => {

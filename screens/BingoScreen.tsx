@@ -1099,7 +1099,7 @@ const PlayBoard: React.FC = () => {
                                         }
                                         {(penaltyBTitle && isPatternBSet) && 
                                             <View style={{padding:10, borderWidth:1, borderColor: customColors.customLightBlue, borderRadius:10, marginVertical: 10}}>
-                                                <Text style={{color: 'white', textAlign: 'center', fontSize: 18, textDecorationLine: 'underline'}}>共通罰ゲーム  {'  =>  '} {lastPlayerDisplayName}(さん)</Text>
+                                                <Text style={{color: 'white', textAlign: 'center', fontSize: 18, textDecorationLine: 'underline'}}>共通罰ゲーム  {'  =>  '} {lastPlayerDisplayName}(様)</Text>
                                                 <Text style={{color: 'white', textAlign: 'center', fontSize: 15,  marginTop: 10}}>{penaltyBTitle}</Text>
                                             </View>
                                         }

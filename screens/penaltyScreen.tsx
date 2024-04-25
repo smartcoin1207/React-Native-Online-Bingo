@@ -6,12 +6,8 @@ import {
   StyleSheet,
   Text,
   View,
-  TextInput,
   Modal,
   FlatList,
-  Keyboard,
-  Platform,
-  ActivityIndicator,
   BackHandler,
 } from "react-native";
 import { customColors } from "../utils/Color";
@@ -48,7 +44,6 @@ import { RootStackParamList } from "../constants/navigate";
 import { setGameRoomInitial } from "../store/reducers/bingo/gameRoomSlice";
 import { setBingoInitial } from "../store/reducers/bingo/bingoSlice";
 import { setPenaltyInitial } from "../store/reducers/bingo/penaltySlice";
-import { size } from "lodash";
 
 enum PatternType {
   PatternA = "PatternA",
