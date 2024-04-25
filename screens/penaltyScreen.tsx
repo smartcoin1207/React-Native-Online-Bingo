@@ -899,7 +899,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
             }}
           >
             <PatternItem
-              mainTitle="パターンA「全員が罰ゲームを選ぶ」"
+              mainTitle="「全員が罰ゲームを選ぶ」"
               mainColor="#5a6fff"
               toggleBackgroundColor="#25307cde"
               isActive={isPatternASelected}
@@ -914,7 +914,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
             />
 
             <PatternItem
-              mainTitle="パターンB「ホストが共通の罰ゲームを選ぶ」"
+              mainTitle="「ホストが共通の罰ゲームを選ぶ」"
               mainColor="#29ccdc"
               toggleBackgroundColor="#1c5e65c9"
               isActive={isPatternBSelected}
@@ -1025,7 +1025,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
                         fontSize: 18,
                       }}
                     >
-                      パターンAを設定してください。
+                      好きな罰ゲームを設定してください。
                     </Text>
                   </View>
                   <TouchableOpacity
@@ -1253,8 +1253,8 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
                 style={{ fontSize: 24, color: "white", textAlign: "center" }}
               >
                 {isPatternASet
-                  ? "パターンA「全員が罰ゲームを選ぶ」"
-                  : "パターンB「ホストが共通の罰ゲームを選ぶ」"}
+                  ? "「全員が罰ゲームを選ぶ」"
+                  : "「ホストが共通の罰ゲームを選ぶ」"}
               </Text>
             </View>
             <View

@@ -628,7 +628,7 @@ const PlayBoard: React.FC = () => {
 
                     {Array.from({length: bingoRound}, (v, i) => i).map((rank: number, round: number) =>
                         <View key={round + "roundIndex"} style={{ borderLeftWidth:0, borderLeftColor: 'grey', padding: 5, width: ((viewportWidth*0.5-10)/(bingoRound > 3 ? 3: bingoRound)), justifyContent: 'space-between', alignItems: 'center'}}>
-                            <Text style={{color: 'white', textAlign: 'center', letterSpacing: 5, fontSize: 18}}>{(round + 1) + "回"}</Text>
+                            <Text style={{color: 'white', textAlign: 'center', letterSpacing: 5, fontSize: 18}}>{(round + 1) + "戦"}</Text>
                         </View>
                     )}
                 </View>
@@ -1092,14 +1092,14 @@ const PlayBoard: React.FC = () => {
                                     <View style={{borderWidth:1, borderRadius: 5, width: '100%', padding:5, paddingVertical: 10, marginVertical: 10}}>
                                         {(penaltyATitle && isPatternASet) && 
                                             <View style={{ padding:10, borderWidth:1, borderColor: customColors.customLightBlue, borderRadius:10, marginVertical: 10}}>
-                                                <Text style={{color: 'white', textAlign: 'center', fontSize: 18, textDecorationLine: 'underline'}}>{firstPlayerDisplayName}(様) {' => '} {lastPlayerDisplayName}(様)</Text>
+                                                <Text style={{color: 'white', textAlign: 'center', fontSize: 18, textDecorationLine: 'underline'}}>{firstPlayerDisplayName}様 {' => '} {lastPlayerDisplayName}様</Text>
                                                 <Text style={{color: 'white', textAlign: 'center', fontSize: 15, marginTop: 10}}>{penaltyATitle}</Text>
                                                 <View style={{}}></View>
                                             </View>
                                         }
                                         {(penaltyBTitle && isPatternBSet) && 
                                             <View style={{padding:10, borderWidth:1, borderColor: customColors.customLightBlue, borderRadius:10, marginVertical: 10}}>
-                                                <Text style={{color: 'white', textAlign: 'center', fontSize: 18, textDecorationLine: 'underline'}}>共通罰ゲーム  {'  =>  '} {lastPlayerDisplayName}(様)</Text>
+                                                <Text style={{color: 'white', textAlign: 'center', fontSize: 18, textDecorationLine: 'underline'}}>共通罰ゲーム  {'  =>  '} {lastPlayerDisplayName}様</Text>
                                                 <Text style={{color: 'white', textAlign: 'center', fontSize: 15,  marginTop: 10}}>{penaltyBTitle}</Text>
                                             </View>
                                         }
@@ -1108,13 +1108,12 @@ const PlayBoard: React.FC = () => {
                             }
                         </View>
                         
-                        
                         {(isHost && !bingoAllRoundEnd) && (
                             <TouchableOpacity
                                 style={{ padding: 10, borderWidth:1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.customLightBlue, justifyContent: 'center', alignItems: 'center', marginTop: 10}}
                                 onPress={() => startBingoNextRound()}
                             >
-                                <Text style={{fontSize: 18, color: 'white', letterSpacing: 5}}>次の回転</Text>
+                                <Text style={{fontSize: 18, color: 'white', letterSpacing: 5}}>次ゲーム</Text>
                             </TouchableOpacity>
                         )}
                         

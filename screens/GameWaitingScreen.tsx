@@ -98,6 +98,7 @@ const GameWaitingScreen = () => {
   useFocusEffect(
     useCallback(() => {
       setGameListModalVisible(false);
+      setSortModalVisible(false);
     }, [])
   );
 
@@ -351,6 +352,7 @@ const GameWaitingScreen = () => {
     }
 
     await setPlayerGameSort(gameRoomId, uids);
+    handleGameStart();
   };
 
   const renderPlayerItem = ({ item }: { item: Player }) => (
@@ -516,7 +518,7 @@ const GameWaitingScreen = () => {
                   style={styles.modalGameListButton}
                   onPress={() => {setPressedGameType(GameType.HighLow), setSortModalVisible(true)}}
                 >
-                  <Text style={styles.textTitle}>ハイアンドロー</Text>
+                  <Text style={styles.textTitle}>High & Low</Text>
                 </TouchableOpacity>
               </EffectBorder>
 
@@ -525,7 +527,7 @@ const GameWaitingScreen = () => {
                   style={styles.modalGameListButton}
                   onPress={() => {setPressedGameType(GameType.Tictactoe), setSortModalVisible(true)}}
                 >
-                  <Text style={styles.textTitle}>（O　X）ゲーム</Text>
+                  <Text style={styles.textTitle}>〇☓ゲーム</Text>
                 </TouchableOpacity>
               </EffectBorder>
             </View>
@@ -566,7 +568,7 @@ const GameWaitingScreen = () => {
                 { width: "100%", flex: 1, paddingHorizontal: 0, alignItems: 'center', borderWidth:0, borderColor: 'white' },
               ]}
             >
-              <View
+              {/* <View
                 style={[
                   styles.topHeader,
                   {
@@ -601,8 +603,8 @@ const GameWaitingScreen = () => {
                     style={{ opacity: 0.8 }}
                   />
                 </TouchableOpacity>
-                <Text style={[styles.title, {textAlign: 'center', marginLeft: 0}]}>罰ゲーム</Text>
-              </View>
+                <Text style={[styles.title, {textAlign: 'center', marginLeft: 0}]}>順序決定</Text>
+              </View> */}
               {isHost && 
                 <View
                   style={{
@@ -621,19 +623,20 @@ const GameWaitingScreen = () => {
                     <Text
                       style={{
                         color: "white",
-                        fontSize: 16,
+                        fontSize: 20,
                         textAlign: "center",
+                        letterSpacing: 5
                       }}
                     >
                       順序決定 
                     </Text>
-                    <View style={{ padding: 5 }}>
+                    {/* <View style={{ padding: 5 }}>
                       <Icon name="sort" size={15} color={"white"} />
-                    </View>
+                    </View> */}
                   </TouchableOpacity>
                 </View>
               }
-              <View
+              {/* <View
                 style={[
                   styles.FlatListStyle,
                   { borderWidth: 1, borderColor: "grey", paddingTop: 20, borderRadius: 20, marginTop: 20 },
@@ -648,8 +651,8 @@ const GameWaitingScreen = () => {
                   renderItem={renderSortPlayerItem}
                   keyExtractor={(item, index) => index.toString()}
                 />
-              </View>
-              {isHost && 
+              </View> */}
+              {/* {isHost && 
                 <View
                   style={{
                     borderWidth: 0,
@@ -675,7 +678,7 @@ const GameWaitingScreen = () => {
                     </Text>
                   </TouchableOpacity>
                 </View>
-              }
+              } */}
             </View>
           </View>
         </View>
@@ -710,7 +713,7 @@ const GameWaitingScreen = () => {
             style={{ position: "absolute", top: 10, left: 10 }}
           />
 
-          <Text style={{ fontSize: 20, color: "grey" }}>タイトル:</Text>
+          <Text style={{ fontSize: 20, color: "grey" }}>ルーム名：</Text>
           <Text style={{ fontSize: 30, color: "white" }}>
             {gameRoomDisplayName}
           </Text>

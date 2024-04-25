@@ -16,12 +16,10 @@ export const Language = {
         rankString: '位',
         bingoMyTurnTextString: 'あなたの番です。',
         bingoOtherTurnTextString: 'さんの番です。',
-        bingoExitModalTextString: 'ビンゴゲームから退会しますか？',
+        bingoExitModalTextString: '退出しますか？',
         bingoDecisionTextString: '決定',
-        bingoOtherCompletedBingoString: 'にビンゴしました。',
-        bingoOtherMrString: '様が'
-
-
+        bingoOtherCompletedBingoString: 'です！',
+        bingoOtherMrString: '様(自分)は'
         // Add more translations as needed
     }
   };
