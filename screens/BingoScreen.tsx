@@ -41,6 +41,7 @@ import {
     setBingoNextRound,
     getGamePenalty,
     getBingoCompletedHistory,
+    setBingoOneNextRound,
 } from "../utils/firebase/FirebaseUtil";
 import { BingoCellValues, GameType, Player, UnsubscribeOnsnapCallbackFunction } from "../utils/Types";
 import { customColors } from "../utils/Color";
@@ -530,9 +531,13 @@ const PlayBoard: React.FC = () => {
         setSelectedCellValue("");
         setPlayerOrderList([]);
 
-        const remainedBingoSubscribers = sort.filter(playerId => !bingoCompleted.includes(playerId));
-        const bingoCompletedAllRank = [...bingoCompleted, ...remainedBingoSubscribers];
-        setBingoNextRound(gameRoomId, bingoCompletedAllRank, bingoRound + 1, sort[0]);
+        if(isSubPattern3) {
+            const remainedBingoSubscribers = sort.filter(playerId => !bingoCompleted.includes(playerId));
+            const bingoCompletedAllRank = [...bingoCompleted, ...remainedBingoSubscribers];
+            setBingoNextRound(gameRoomId, bingoCompletedAllRank, bingoRound + 1, sort[0]);
+        } else if(isSubPattern2 || isSubPattern1) {
+            setBingoOneNextRound(gameRoomId, bingoRound + 1, sort[0]);
+        }
     }
 
     const setNextTurnPlayerId = (
@@ -626,8 +631,8 @@ const PlayBoard: React.FC = () => {
                         <Text style={{color: 'white', textAlign: 'center', fontSize: 15}}>最下位</Text>
                     </View> */}
 
-                    {Array.from({length: bingoRound}, (v, i) => i).map((rank: number, round: number) =>
-                        <View key={round + "roundIndex"} style={{ borderLeftWidth:0, borderLeftColor: 'grey', padding: 5, width: ((viewportWidth*0.5-10)/(bingoRound > 3 ? 3: bingoRound)), justifyContent: 'space-between', alignItems: 'center'}}>
+                    {Array.from({length: isSubPattern3 ?  bingoRound : 1}, (v, i) => i).map((rank: number, round: number) =>
+                        <View key={round + "roundIndex"} style={{ borderLeftWidth:0, borderLeftColor: 'grey', padding: 5, width: ((viewportWidth*0.5-10)/( isSubPattern3 ? bingoRound : 1 > 3 ? 3: isSubPattern3 ? bingoRound : 1)), justifyContent: 'space-between', alignItems: 'center'}}>
                             <Text style={{color: 'white', textAlign: 'center', letterSpacing: 5, fontSize: 18}}>{(round + 1) + "戦"}</Text>
                         </View>
                     )}
@@ -648,7 +653,7 @@ const PlayBoard: React.FC = () => {
                 </View> */}
 
                 {item.ranks.map((rank: number, rankIndex: number) =>
-                    <View key={rankIndex + "rankIndex"} style={{ borderLeftWidth:0, borderLeftColor: 'grey', padding: 5, width: ((viewportWidth*0.5-10)/(bingoRound > 3 ? 3: bingoRound)), justifyContent: 'space-between', alignItems: 'center'}}>
+                    <View key={rankIndex + "rankIndex"} style={{ borderLeftWidth:0, borderLeftColor: 'grey', padding: 5, width: ((viewportWidth*0.5-10)/(isSubPattern3 ? bingoRound : 1 > 3 ? 3: isSubPattern3 ? bingoRound : 1)), justifyContent: 'space-between', alignItems: 'center'}}>
                         <Text style={{color: 'white', textAlign: 'center'}}>{isNaN(rank) ? '' : rank + 1} 位</Text>
                     </View>
                 )}
@@ -1061,7 +1066,7 @@ const PlayBoard: React.FC = () => {
                 >
                     <View style={[styles.modalBody, {width: '95%', height: '95%', justifyContent: "flex-start", backgroundColor: customColors.black}]}>
 
-                        <View style={{flex: 1, alignItems: 'center', width: '100%'}}>
+                        <View style={{ alignItems: 'center', width: '100%'}}>
                             <View style={{marginVertical: 10}}>
                                 <Text style={{color: 'white', fontSize: 20}}>ゲーム結果</Text>
                             </View>
@@ -1107,16 +1112,46 @@ const PlayBoard: React.FC = () => {
                                 </View>
                             }
                         </View>
-                        
-                        {(isHost && !bingoAllRoundEnd) && (
-                            <TouchableOpacity
-                                style={{ padding: 10, borderWidth:1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.customLightBlue, justifyContent: 'center', alignItems: 'center', marginTop: 10}}
-                                onPress={() => startBingoNextRound()}
-                            >
-                                <Text style={{fontSize: 18, color: 'white', letterSpacing: 5}}>次ゲーム</Text>
-                            </TouchableOpacity>
-                        )}
-                        
+
+                        <View style={{flex: 1, justifyContent: 'center', width: '100%'}}>
+                            {(isSubPattern1 || isSubPattern2) && isHost && (
+                                <View style={{flexDirection: 'row', justifyContent: 'space-around', width: '100%', }}>
+                                    <TouchableOpacity
+                                        style={{ padding: 10, borderWidth:1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.customLightBlue, justifyContent: 'center', alignItems: 'center', marginTop: 10}}
+                                        onPress={() => startBingoNextRound()}
+                                    >
+                                        <Text style={{fontSize: 18, color: 'white', letterSpacing: 5}}>もう1回</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                    style={{ padding: 10, borderWidth:1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.blackRed, justifyContent: 'center', alignItems: 'center', marginTop: 10}}
+                                    onPress={() => {setExitModalVisible(true), setExitModalText(jpLanguage.bingoExitModalTextString);}}
+                                    >
+                                    <Text style={{fontSize: 18, color: 'white', letterSpacing: 5}}>退出する</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+
+                            {(isSubPattern3 && isHost) && (
+                                <View style={{flexDirection: 'row',  justifyContent: 'space-around', width: '100%'}}>
+                                    {!bingoAllRoundEnd && (
+                                        <TouchableOpacity
+                                            style={{ padding: 10, borderWidth:1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.customLightBlue, justifyContent: 'center', alignItems: 'center', marginTop: 10}}
+                                            onPress={() => startBingoNextRound()}
+                                        >
+                                            <Text style={{fontSize: 18, color: 'white', letterSpacing: 5}}>次ラウンド</Text>
+                                        </TouchableOpacity>
+                                    )}
+                                    
+                                    <TouchableOpacity
+                                        style={{ padding: 10, borderWidth:1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.blackRed, justifyContent: 'center', alignItems: 'center', marginTop: 10}}
+                                        onPress={() => {setExitModalVisible(true), setExitModalText(jpLanguage.bingoExitModalTextString);}}
+                                        >
+                                        <Text style={{fontSize: 18, color: 'white', letterSpacing: 5}}>退出する</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+                        </View>
                     </View>
                 </View>
             </Modal>

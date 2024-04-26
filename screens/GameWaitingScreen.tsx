@@ -6,18 +6,14 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
-  Button,
   FlatList,
   BackHandler,
   ActivityIndicator,
-  Modal,
-  TextInput,
+  Modal
 } from "react-native";
-// import DraggableFlatList, {ScaleDecorator} from "react-native-draggable-flatlist";
 import { Avatar, Divider, Image } from "react-native-elements";
 import { useRoute } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/FontAwesome";
-
 import {
   exitGameRoom,
   getGameRoom,
@@ -617,7 +613,7 @@ const GameWaitingScreen = () => {
                   }}
                 >
                   <TouchableOpacity
-                    style={[styles.successButton, {backgroundColor: '#133a4edb', borderWidth: 1, borderColor: 'grey', flexDirection: 'row'}]}
+                    style={[styles.successButton, {backgroundColor: '#133a4edb', borderWidth: 1, borderColor: 'grey', flexDirection: 'row', paddingHorizontal: 10}]}
                     onPress={() => handleRandomSort()}
                   >
                     <Text
@@ -628,7 +624,7 @@ const GameWaitingScreen = () => {
                         letterSpacing: 5
                       }}
                     >
-                      順序決定 
+                      順番を決める 
                     </Text>
                     {/* <View style={{ padding: 5 }}>
                       <Icon name="sort" size={15} color={"white"} />

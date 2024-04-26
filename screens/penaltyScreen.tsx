@@ -914,7 +914,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
             />
 
             <PatternItem
-              mainTitle="「ホストが共通の罰ゲームを選ぶ」"
+              mainTitle="「共通の罰ゲームを選ぶ」"
               mainColor="#29ccdc"
               toggleBackgroundColor="#1c5e65c9"
               isActive={isPatternBSelected}
@@ -1254,7 +1254,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
               >
                 {isPatternASet
                   ? "「全員が罰ゲームを選ぶ」"
-                  : "「ホストが共通の罰ゲームを選ぶ」"}
+                  : "「共通の罰ゲームを選ぶ」"}
               </Text>
             </View>
             <View

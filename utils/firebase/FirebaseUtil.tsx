@@ -535,6 +535,33 @@ export const setBingoNextRound = async (
   }
 };
 
+
+/**
+ * 
+ * @param gameRoomId 
+ */
+export const setBingoOneNextRound = async (
+  gameRoomId: string,
+  bingoRound: number,
+  turnPlayerId: string
+) => {
+  console.log("setBingoNextRound");
+  const docRef = doc(db, bingoTable, gameRoomId);
+
+  try {
+    await updateDoc(docRef, {
+      bingoRound: bingoRound,
+      bingoRoundEnd: false,
+      bingoCompleted: [],
+      bingoCompletedObj: [],
+      turnPlayerId: turnPlayerId,
+      bingoNextNumber: "",
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 /**
  * Desicde who the next player will be
  * @param newTurnPlayerId - next player user id

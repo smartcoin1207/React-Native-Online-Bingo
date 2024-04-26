@@ -19,7 +19,7 @@ export const Language = {
         bingoExitModalTextString: '退出しますか？',
         bingoDecisionTextString: '決定',
         bingoOtherCompletedBingoString: 'です！',
-        bingoOtherMrString: '様(自分)は'
+        bingoOtherMrString: '様が '
         // Add more translations as needed
     }
   };
