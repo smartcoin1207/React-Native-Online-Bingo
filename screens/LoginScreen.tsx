@@ -15,6 +15,8 @@ import { signInAuthUser } from "../utils/firebase/FirebaseUtil";
 import { SignIn } from "../store/reducers/bingo/userSlice";
 import { customColors } from "../utils/Color";
 import { inCorrectUserInfoRequired } from "../utils/ValidationString";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 interface LoginScreenProps {}
 
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
@@ -37,25 +39,33 @@ const Login: React.FC<LoginScreenProps> = () => {
     }
   }, [isLoggedIn]);
 
-  const handleLogin = () => {
-    // Validation
+  const handleLogin = async () => {
     const emailErr = validateEmail(email);
     const passwordErr = validatePassword(password);
-
+  
     setEmailError(emailErr || "");
     setPasswordError(passwordErr || "");
-
+  
     if (!emailErr && !passwordErr) {
-      signInAuthUser(email, password).then((userData: any) => {
+      try {
+        const userData = await signInAuthUser(email, password);
         if (userData) {
           dispatch(SignIn(userData));
           setInCorrectUserInfo("");
-        }
-        if(!userData) {
-          console.log(userData);
+
+          const expirationDate = new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000);
+
+          // Save user's login information to AsyncStorage
+          await AsyncStorage.setItem('username', email);
+          await AsyncStorage.setItem('accessToken', password);
+          await AsyncStorage.setItem('expirationDate', expirationDate.toISOString());
+        } else {
           setInCorrectUserInfo(inCorrectUserInfoRequired);
         }
-      });
+      } catch (error) {
+        console.error('Error signing in user:', error);
+        setInCorrectUserInfo(inCorrectUserInfoRequired);
+      }
     }
   };
 

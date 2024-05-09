@@ -38,7 +38,6 @@ import {
   setCurrentGameRoom,
   setGameRoomIdHost,
   setGameRoomInitial,
-  setGameType,
 } from "../store/reducers/bingo/gameRoomSlice";
 import { customColors } from "../utils/Color";
 import EffectBorder from "../components/EffectBorder";

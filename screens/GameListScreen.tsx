@@ -9,6 +9,7 @@ import { customColors } from "../utils/Color";
 import { deleteBingoCollection, deleteGameCollection } from "../utils/firebase/FirebaseUtil";
 import Language from "../utils/Variables";
 import EffectBorder from "../components/EffectBorder";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const jpLanguage = Language.jp;
 
@@ -16,22 +17,53 @@ interface GameListScreen { }
 
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
 
+interface LoginInfo {
+    username: string;
+    accessToken: string;
+  }
+
 const GameRoom: React.FC<GameListScreen> = () => {
     const navigation = useNavigation();
     const authUser = useSelector((state: RootState) => state.auth.authUser);
     const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
     const dispatch  = useDispatch();
 
+    const [loginInfo, setLoginInfo] = useState<LoginInfo | null>(null);
+
     useEffect(() => {
         if(!isLoggedIn) {
             navigation.navigate('Splash');
         }
+
+        console.log("hello world");
     }, [isLoggedIn])
 
-    const handleSignOut = () => {
+    const handleSignOut = async () => {
         dispatch(SignOut());
+        await AsyncStorage.removeItem('username');
+        await AsyncStorage.removeItem('accessToken');
     }
 
+    useEffect(() => {
+        const loadLoginInfo = async () => {
+          try {
+            const username = await AsyncStorage.getItem('username');
+            const accessToken = await AsyncStorage.getItem('accessToken');
+            console.log(username);
+            console.log(accessToken);
+            if (username && accessToken) {
+              setLoginInfo({ username, accessToken });
+            } else {
+              setLoginInfo(null);
+            }
+          } catch (error) {
+            console.error('Error retrieving login information from AsyncStorage:', error);
+            setLoginInfo(null);
+          }
+        };
+        loadLoginInfo();
+      }, []);
+    
     const handleDeleteBingo = async () => {
         await deleteBingoCollection()
     }

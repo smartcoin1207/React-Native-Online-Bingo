@@ -42,6 +42,7 @@ const GameRoomScreen = () => {
   const [gameRoomDisplayName, setGameRoomDisplayName] = useState<string>("");
   const [passwordError, setPasswordError] = useState<string>("");
   const [titleError, setTitleError] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const authUser = useSelector((state: RootState) => state.auth.authUser);
   const [currentJoinGameRoom, setCurrentJoinGameRoom] = useState<GameRoom | undefined>(undefined);
@@ -293,6 +294,25 @@ const GameRoomScreen = () => {
           <View style={{padding: 5}}><Icon name="plus" size={20} color="white" /></View>
           <Text style={styles.textTitle}> プレイルームを作成</Text>
         </TouchableOpacity>
+      </View>
+
+      <View style={{padding: 10}}>
+        <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+        <TextInput
+          style={[styles.input, {marginTop: 0, width: '70%'}]}
+          placeholder="プレイルーム名"
+          autoCapitalize="none"
+          placeholderTextColor={customColors.blackGrey}
+          value={searchQuery}
+          onChangeText={(text) => {
+            setSearchQuery(text);
+          }}
+        />
+
+        <TouchableOpacity style={{ width: '25%' ,padding: 10, paddingHorizontal: 20, borderWidth:1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.customLightBlue1}} >
+          <Text style={styles.joinBtnText}>検索</Text>
+        </TouchableOpacity>
+        </View>
       </View>
       
       <View style={styles.FlatListStyle}>
