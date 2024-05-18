@@ -1,8 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { SetStateAction, useEffect, useState, useRef } from "react";
 import { useSelector, useDispatch } from 'react-redux';
 
 import { View, Text, StyleSheet,  Dimensions, TouchableOpacity } from "react-native";
 import { useNavigation } from '@react-navigation/native';
+import Roulette from 'react-native-casino-roulette';
+// import Roulette from 'react-native-roulette';
+// import WheelOfFortune, { WheelOfFortuneProps } from 'react-native-casino-roulette';
+
 import { RootState } from "../store";
 import { SignOut } from "../store/reducers/bingo/userSlice";
 import { customColors } from "../utils/Color";
@@ -16,6 +20,9 @@ const jpLanguage = Language.jp;
 interface GameListScreen { }
 
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get('window');
+const numbers = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26]
+const options  = numbers.map((o)=>({index:o}));  
+const { width, height } = Dimensions.get('window');
 
 interface LoginInfo {
     username: string;
@@ -27,9 +34,14 @@ const GameRoom: React.FC<GameListScreen> = () => {
     const authUser = useSelector((state: RootState) => state.auth.authUser);
     const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
     const dispatch  = useDispatch();
-
     const [loginInfo, setLoginInfo] = useState<LoginInfo | null>(null);
 
+    const [selectedOption, setSelectedOption] = useState(null);
+
+    const handleSpin = (option: React.SetStateAction<null>) => {
+      setSelectedOption(option);
+    };
+  
     useEffect(() => {
         if(!isLoggedIn) {
             navigation.navigate('Splash');
@@ -63,7 +75,7 @@ const GameRoom: React.FC<GameListScreen> = () => {
         };
         loadLoginInfo();
       }, []);
-    
+        
     const handleDeleteBingo = async () => {
         await deleteBingoCollection()
     }
@@ -100,6 +112,27 @@ const GameRoom: React.FC<GameListScreen> = () => {
                         <Text style={styles.textTitle}>サインアウト</Text>
                     </TouchableOpacity>
                 </EffectBorder>
+                    {/* <Roulette
+                        enableUserRotate={true}
+                        background={require('../assets/images/wheel.png')}
+                        marker={require('../assets/images/marker.png')}
+                        options={options}
+                        markerWidth={60}
+                        radius={300}
+                        distance={100}
+                        rotateEachElement={30}
+                        centerTop={10}
+                        centerWidth={20} // Center width
+                        onRotate = {(rotate: any) => {console.log(rotate)}}
+                        onRotateChange ={(rotate: any) => {console.log(rotate)}}
+                        onSpin={handleSpin}
+
+                        renderOption={(option: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined, index: React.Key | null | undefined) => (
+                            <View key={index} style={styles.numberContainer}>
+                              <Text style={styles.numberText}>44{option}</Text>
+                            </View>
+                          )}
+                    /> */}
             </View>
     )
 }
@@ -142,6 +175,32 @@ const styles = StyleSheet.create({
         fontFamily: 'serif',
         fontWeight: '700',
         textAlign: 'center',
-    }
+    },
+    selectedOptionContainer: {
+        position: 'absolute',
+        top: height * 0.1,
+        // backgroundColor: customColors,
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 8,
+      },
+      selectedOptionText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: 'white'
+      },
+      numberContainer: {
+        width: 50,
+        height: 50,
+        backgroundColor: 'blue',
+        borderRadius: 25,
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+      numberText: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: 'white',
+      },
 });
 export default GameRoom;

@@ -15,7 +15,12 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "audio"
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -28,7 +33,14 @@
     "plugins": [
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
-      "@react-native-firebase/crashlytics"
+      "@react-native-firebase/crashlytics",
+      "expo-av",
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Allow com.minibase.bingo1 to access your microphone."
+        }
+      ]
     ],
     "extra": {
       "firebase": {
@@ -41,6 +53,12 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "dependencies": {
+      "expo-av": "~13.10.6"
+    },
+    "permissions": [
+      "RECORD_AUDIO"
+    ],
     "react-native": {
       "crashlytics_debug_enabled": true
     },

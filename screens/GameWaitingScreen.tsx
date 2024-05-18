@@ -9,7 +9,7 @@ import {
   FlatList,
   BackHandler,
   ActivityIndicator,
-  Modal
+  Modal,
 } from "react-native";
 import { Avatar, Divider, Image } from "react-native-elements";
 import { useRoute } from "@react-navigation/native";
@@ -43,9 +43,16 @@ import { customColors } from "../utils/Color";
 import EffectBorder from "../components/EffectBorder";
 import { setBingoInitial } from "../store/reducers/bingo/bingoSlice";
 import React from "react";
+import Roulette from "react-native-casino-roulette";
 
 const screenHeight = Dimensions.get("window").height;
 const defaultAvatar = require("../assets/images/default1.png");
+
+const numbers = [
+  0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24,
+  16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26,
+];
+const options = numbers.map((o) => ({ index: o }));
 
 const GameWaitingScreen = () => {
   const navigator = useNavigation();
@@ -66,7 +73,9 @@ const GameWaitingScreen = () => {
     useState<boolean>(false);
 
   const [sortModalVisible, setSortModalVisible] = useState<boolean>(false);
-  const [pressedGameType, setPressedGameType] = useState<GameType>(GameType.Bingo);
+  const [pressedGameType, setPressedGameType] = useState<GameType>(
+    GameType.Bingo
+  );
 
   const [modalAlertText, setModalAlertText] = useState("");
   const [isExitModal, setIsExitModal] = useState(true);
@@ -83,6 +92,12 @@ const GameWaitingScreen = () => {
     (state: RootState) => state.gameRoom.gameRoomId
   );
   const isHost = useSelector((state: RootState) => state.gameRoom.isHost);
+
+  const [selectedOption, setSelectedOption] = useState(null);
+  const handleSpin = (option: React.SetStateAction<null>) => {
+    console.log(option);
+    setSelectedOption(option);
+  };
 
   useEffect(() => {
     dispatch(
@@ -203,9 +218,14 @@ const GameWaitingScreen = () => {
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
-        setModalAlertText("プレイルームから脱退しますか？");
-        setExitModalVisible(true);
-        return true; // Indicate that the back press is handled
+        if (sortModalVisible) {
+          setSortModalVisible(false);
+          return true;
+        } else {
+          setModalAlertText("プレイルームから脱退しますか？");
+          setExitModalVisible(true);
+          return true; // Indicate that the back press is handled
+        }
       };
 
       BackHandler.addEventListener("hardwareBackPress", onBackPress);
@@ -213,15 +233,14 @@ const GameWaitingScreen = () => {
       return () => {
         BackHandler.removeEventListener("hardwareBackPress", onBackPress);
       };
-    }, [navigator])
+    }, [navigator, sortModalVisible])
   );
 
   const handleGameStart = () => {
     const turnPlayerId = sort[0];
     if (!turnPlayerId) return false;
 
-    if(pressedGameType == GameType.Bingo) {
-      
+    if (pressedGameType == GameType.Bingo) {
       setGameTypeF(gameRoomId, GameType.Penalty);
       startGamePenalty(gameRoomId);
 
@@ -231,14 +250,14 @@ const GameWaitingScreen = () => {
       } catch (error) {
         console.log(error);
       }
-    } else if(pressedGameType == GameType.Tictactoe) {
+    } else if (pressedGameType == GameType.Tictactoe) {
       try {
         setGameTypeF(gameRoomId, GameType.Penalty);
         startGamePenalty(gameRoomId);
         setGameRoomOpen(gameRoomId, false);
         navigator.navigate("penalty", { startGame: startTictactoe_ });
       } catch (error) {}
-    } else if(pressedGameType == GameType.HighLow) {
+    } else if (pressedGameType == GameType.HighLow) {
       try {
         setGameTypeF(gameRoomId, GameType.Penalty);
         startGamePenalty(gameRoomId);
@@ -246,7 +265,7 @@ const GameWaitingScreen = () => {
         navigator.navigate("penalty", { startGame: startHighLow_ });
       } catch (error) {}
     }
-  }
+  };
 
   const startBingo = async () => {
     const turnPlayerId = sort[0];
@@ -335,11 +354,12 @@ const GameWaitingScreen = () => {
 
   const handleRandomSort = async () => {
     const subscribersPlayers = currentGameRoom?.subscribersPlayers;
-    const uids = subscribersPlayers?.map((player) => {
-      return player.uid;
-    }) || [];
-    
-    if(uids.length > 1) {
+    const uids =
+      subscribersPlayers?.map((player) => {
+        return player.uid;
+      }) || [];
+
+    if (uids.length > 1) {
       while (JSON.stringify(sort) == JSON.stringify(uids)) {
         const randomSort = () => Math.random() - 0.5;
         uids?.sort(randomSort);
@@ -347,7 +367,7 @@ const GameWaitingScreen = () => {
     }
 
     await setPlayerGameSort(gameRoomId, uids);
-    handleGameStart();
+    // handleGameStart();
   };
 
   const renderPlayerItem = ({ item }: { item: Player }) => (
@@ -490,7 +510,11 @@ const GameWaitingScreen = () => {
               <EffectBorder style={{ width: "80%" }}>
                 <TouchableOpacity
                   style={styles.modalGameListButton}
-                  onPress={() => {setPressedGameType(GameType.Bingo), setSortModalVisible(true)}}
+                  onPress={() => {
+                    setPressedGameType(GameType.Bingo),
+                      setGameListModalVisible(false),
+                      setSortModalVisible(true);
+                  }}
                 >
                   <Text style={styles.textTitle}>ビンゴ</Text>
                 </TouchableOpacity>
@@ -511,7 +535,10 @@ const GameWaitingScreen = () => {
               <EffectBorder style={{ width: "80%", marginTop: 10 }}>
                 <TouchableOpacity
                   style={styles.modalGameListButton}
-                  onPress={() => {setPressedGameType(GameType.HighLow), setSortModalVisible(true)}}
+                  onPress={() => {
+                    setPressedGameType(GameType.HighLow),
+                      setSortModalVisible(true);
+                  }}
                 >
                   <Text style={styles.textTitle}>High & Low</Text>
                 </TouchableOpacity>
@@ -520,7 +547,10 @@ const GameWaitingScreen = () => {
               <EffectBorder style={{ width: "80%", marginTop: 10 }}>
                 <TouchableOpacity
                   style={styles.modalGameListButton}
-                  onPress={() => {setPressedGameType(GameType.Tictactoe), setSortModalVisible(true)}}
+                  onPress={() => {
+                    setPressedGameType(GameType.Tictactoe),
+                      setSortModalVisible(true);
+                  }}
                 >
                   <Text style={styles.textTitle}>〇☓ゲーム</Text>
                 </TouchableOpacity>
@@ -530,40 +560,55 @@ const GameWaitingScreen = () => {
         </View>
       </Modal>
 
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={sortModalVisible}
-        onRequestClose={() => {}}
-      >
+      {sortModalVisible && (
         <View
+          // animationType="fade"
+          // transparent={true}
+          // visible={sortModalVisible}
+          // onRequestClose={() => {setSortModalVisible(false)}}
           style={{
+            position: "absolute",
             flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: customColors.modalBackgroundColor,
+            width: "100%",
+            height: "110%",
+            zIndex: 1000,
           }}
         >
           <View
-            style={[
-              styles.modalBody,
-              {
-                flex: 1,
-                width: "100%",
-                borderWidth: 0,
-                borderRadius: 0,
-                paddingTop: 0,
-                paddingBottom: 0
-              },
-            ]}
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: customColors.modalBackgroundColor,
+            }}
           >
             <View
               style={[
-                styles.modalGameListContainer,
-                { width: "100%", flex: 1, paddingHorizontal: 0, alignItems: 'center', borderWidth:0, borderColor: 'white' },
+                styles.modalBody,
+                {
+                  flex: 1,
+                  width: "100%",
+                  borderWidth: 0,
+                  borderRadius: 0,
+                  paddingTop: 0,
+                  paddingBottom: 0,
+                },
               ]}
             >
-              {/* <View
+              <View
+                style={[
+                  styles.modalGameListContainer,
+                  {
+                    width: "100%",
+                    flex: 1,
+                    paddingHorizontal: 0,
+                    alignItems: "center",
+                    borderWidth: 0,
+                    borderColor: "white",
+                  },
+                ]}
+              >
+                {/* <View
                 style={[
                   styles.topHeader,
                   {
@@ -600,84 +645,145 @@ const GameWaitingScreen = () => {
                 </TouchableOpacity>
                 <Text style={[styles.title, {textAlign: 'center', marginLeft: 0}]}>順序決定</Text>
               </View> */}
-              {isHost && 
-                <View
-                  style={{
-                    borderWidth: 0,
-                    borderColor: customColors.customLightBlue,
-                    borderRadius: 20,
-                    width: "100%",
-                    padding: 10,
-                    alignItems: "center",
-                  }}
-                >
-                  <TouchableOpacity
-                    style={[styles.successButton, {backgroundColor: '#133a4edb', borderWidth: 1, borderColor: 'grey', flexDirection: 'row', paddingHorizontal: 10}]}
-                    onPress={() => handleRandomSort()}
+                {isHost && (
+                  <View
+                    style={{
+                      borderWidth: 0,
+                      borderColor: customColors.customLightBlue,
+                      borderRadius: 20,
+                      width: "100%",
+                      padding: 10,
+                      alignItems: "center",
+                      zIndex: 100,
+                      paddingTop: 30
+                    }}
                   >
-                    <Text
-                      style={{
-                        color: "white",
-                        fontSize: 20,
-                        textAlign: "center",
-                        letterSpacing: 5
-                      }}
+                    {/* <TouchableOpacity
+                      style={[
+                        styles.successButton,
+                        {
+                          backgroundColor: "#133a4edb",
+                          borderWidth: 1,
+                          borderColor: "grey",
+                          flexDirection: "row",
+                          paddingHorizontal: 10,
+                        },
+                      ]}
+                      onPress={() => handleRandomSort()}
                     >
-                      順番を決める 
-                    </Text>
-                    {/* <View style={{ padding: 5 }}>
-                      <Icon name="sort" size={15} color={"white"} />
-                    </View> */}
-                  </TouchableOpacity>
-                </View>
-              }
-              {/* <View
-                style={[
-                  styles.FlatListStyle,
-                  { borderWidth: 1, borderColor: "grey", paddingTop: 20, borderRadius: 20, marginTop: 20 },
-                ]}
-              >
-                <FlatList
-                  data={
-                    sortedPlayers && sortedPlayers.length == subscribers.length
-                      ? sortedPlayers
-                      : subscribers
-                  }
-                  renderItem={renderSortPlayerItem}
-                  keyExtractor={(item, index) => index.toString()}
-                />
-              </View> */}
-              {/* {isHost && 
+                      <Text
+                        style={{
+                          color: "white",
+                          fontSize: 20,
+                          textAlign: "center",
+                          letterSpacing: 5,
+                        }}
+                      >
+                        順番を決める
+                      </Text>
+                    </TouchableOpacity> */}
+
+                    <View style={{ zIndex: 100 }}>
+                      <Roulette
+                        enableUserRotate={true}
+                        background={require("../assets/images/wheel.png")}
+                        marker={require("../assets/images/marker.png")}
+                        options={options}
+                        markerWidth={60}
+                        radius={250}
+                        distance={100}
+                        rotateEachElement={(index: number) => index * 30}
+                        centerTop={10}
+                        centerWidth={20}
+                        onRotate={(rotate: any) => {
+                          console.log("onRotate", rotate?.index);
+                        }}
+                        onRotateChange={(rotate: any) => {
+                          console.log("onRotateChange", rotate);
+                          handleRandomSort();
+                        }}
+                        onSpin={handleSpin}
+                        renderOption={(
+                          option:
+                            | string
+                            | number
+                            | boolean
+                            | React.ReactElement<
+                                any,
+                                string | React.JSXElementConstructor<any>
+                              >
+                            | Iterable<React.ReactNode>
+                            | React.ReactPortal
+                            | null
+                            | undefined,
+                          index: React.Key | null | undefined
+                        ) => (
+                          <View key={index} style={styles.numberContainer}>
+                            <Text style={styles.numberText}>{option}</Text>
+                          </View>
+                        )}
+                      />
+                    </View>
+                  </View>
+                )}
                 <View
-                  style={{
-                    borderWidth: 0,
-                    borderColor: customColors.customLightBlue,
-                    borderRadius: 20,
-                    width: "100%",
-                    padding: 10,
-                    alignItems: "center",
-                  }}
+                  style={[
+                    styles.FlatListStyle,
+                    {
+                      borderWidth: 1,
+                      borderColor: "grey",
+                      paddingTop: 20,
+                      borderRadius: 20,
+                      marginTop: 20,
+                    },
+                  ]}
                 >
-                  <TouchableOpacity
-                    style={[styles.successButton,{paddingHorizontal: 30, paddingVertical: 15}]}
-                    onPress={() => handleGameStart()}
-                  >
-                    <Text
-                      style={{
-                        color: "white",
-                        fontSize: 16,
-                        textAlign: "center",
-                      }}
-                    >
-                      ゲーム開始
-                    </Text>
-                  </TouchableOpacity>
+                  <FlatList
+                    data={
+                      sortedPlayers &&
+                      sortedPlayers.length == subscribers.length
+                        ? sortedPlayers
+                        : subscribers
+                    }
+                    renderItem={renderSortPlayerItem}
+                    keyExtractor={(item, index) => index.toString()}
+                  />
                 </View>
-              } */}
+                {isHost && (
+                  <View
+                    style={{
+                      borderWidth: 0,
+                      borderColor: customColors.customLightBlue,
+                      borderRadius: 20,
+                      width: "100%",
+                      padding: 10,
+                      alignItems: "center",
+                    }}
+                  >
+                    <TouchableOpacity
+                      style={[
+                        styles.successButton,
+                        { paddingHorizontal: 30, paddingVertical: 15 },
+                      ]}
+                      onPress={() => handleGameStart()}
+                    >
+                      <Text
+                        style={{
+                          color: "white",
+                          fontSize: 16,
+                          textAlign: "center",
+                        }}
+                      >
+                        ゲーム開始
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
             </View>
           </View>
         </View>
-      </Modal>
+      )}
 
       <View
         style={{
@@ -701,19 +807,20 @@ const GameWaitingScreen = () => {
             alignItems: "center",
           }}
         >
-          <Icon
+          {/* closed icon */}
+          {/* <Icon
             name={gameRoomOpened ? "unlock" : "lock"}
             size={20}
             color={"white"}
             style={{ position: "absolute", top: 10, left: 10 }}
-          />
+          /> */}
 
           <Text style={{ fontSize: 20, color: "grey" }}>ルーム名：</Text>
           <Text style={{ fontSize: 30, color: "white" }}>
             {gameRoomDisplayName}
           </Text>
         </View>
-        {isHost && (
+        {/* {isHost && (
           <TouchableOpacity
             style={{
               padding: 10,
@@ -728,7 +835,7 @@ const GameWaitingScreen = () => {
               {gameRoomOpened ? "締切" : "募集中"}
             </Text>
           </TouchableOpacity>
-        )}
+        )} */}
       </View>
 
       <View style={styles.FlatListStyle}>
@@ -1036,6 +1143,19 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: "700",
     marginLeft: 20,
+  },
+  numberContainer: {
+    width: 50,
+    height: 50,
+    backgroundColor: "blue",
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  numberText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "white",
   },
 });
 

@@ -50,6 +50,7 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { setPenaltyInitial } from "../store/reducers/bingo/penaltySlice";
 import { setGameRoomInitial } from "../store/reducers/bingo/gameRoomSlice";
 import Language from "../utils/Variables";
+import {Audio} from 'expo-av';
 
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get("window");
 const screenWidth = Dimensions.get("window").width;
@@ -135,6 +136,37 @@ const PlayBoard: React.FC = () => {
     const [penaltyATitle, setPenaltyATitle] = useState("");
     const [penaltyBTitle, setPenaltyBTitle] = useState("");
     const dispatch = useDispatch();
+
+    const [sound, setSound] = useState<Audio.Sound | null>(null);
+
+    const playSound = async () => {
+      console.log('Loading Sound');
+
+      try {
+        const { sound } = await Audio.Sound.createAsync(require('../assets/media/music/penalty.mp3'));
+        setSound(sound);
+    
+        console.log('Playing Sound');
+        await sound.playAsync();
+      } catch (error) {
+        console.log("this is failed.")
+      }
+    }
+  
+    // play sound when screen will be visited
+    useEffect(() => {
+      const loadAndPlaySound = async () => {
+        await playSound();
+      };
+  
+      loadAndPlaySound();
+  
+      return () => {
+        if (sound) {
+          sound.unloadAsync();
+        }
+      };
+    }, []);
 
     useFocusEffect(
         useCallback(() => {
@@ -291,6 +323,7 @@ const PlayBoard: React.FC = () => {
             if(bingoRoundEnded && sort.length > 1) {
                 if(bingoRound >= penaltyRunCount) {
                     setBingoAllRoundEnd(true);
+                    await playSound();
                 }
 
                 const getPlayersBySort = (sort: string[], subscribers: Player[]): Player[] => {

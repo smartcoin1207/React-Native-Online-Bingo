@@ -129,12 +129,23 @@ export const signOutAuthUser = () => {
  * @param {GameRoomsCallBackFunction} callback - callback function to handle data from firestore
  * @returns {void}
  */
-export const getWaitingGameRooms = (callback: GameRoomsCallBackFunction): UnsubscribeOnsnapCallbackFunction => {
+export const getWaitingGameRooms = ( searchQuery: string,  callback: GameRoomsCallBackFunction): UnsubscribeOnsnapCallbackFunction => {
   try {
-    const q = query(
-      collection(db, gameTable),
-      where("gameRoomOpened", "==", true)
-    );
+    let q;
+    if(searchQuery) {
+       q = query(
+        collection(db, gameTable),
+        where("gameRoomOpened", "==", true),
+        where('displayRoomName', ">=", searchQuery),
+        where('displayRoomName', "<=", searchQuery + "~")
+      );
+  
+    } else {
+       q = query(
+        collection(db, gameTable),
+        where("gameRoomOpened", "==", true)
+      );
+    }
 
     return onSnapshot(q, async (snapshot) => {
       const promises = snapshot.docs.map(async (document) => {

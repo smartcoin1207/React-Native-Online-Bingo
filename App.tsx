@@ -19,6 +19,7 @@ const theme = {
   },
 };
 
+
 StatusBar.setBarStyle('dark-content');
 StatusBar.setTranslucent(true);
 StatusBar.setBackgroundColor('transparent');
