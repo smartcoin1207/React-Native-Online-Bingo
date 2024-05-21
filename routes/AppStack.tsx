@@ -14,6 +14,7 @@ import PenaltyEditList from '../screens/penaltyEditList';
 import { RootStackParamList } from '../constants/navigate';
 import HighLowScreen from '../screens/HighLowScreen';
 import TictactoeScreen from '../screens/TictactoeScreen';
+import PenaltyAB from '../screens/penalty/penaltyAB';
 
 // Define the types for the route paramete
 
@@ -29,6 +30,7 @@ const AppNavigator = () => {
       <Stack.Screen name='GameList' component={GameList} options={{ headerShown: false }}/>
       <Stack.Screen name='gameRoomList' component={GameRoom} options={{ headerShown: false }}/>
       <Stack.Screen name='currentRoom' component={GameWaitingScreen} options={{ headerShown: false }}/>
+      <Stack.Screen name='penaltyAB' component={PenaltyAB} options={{headerShown: false}}/>
       <Stack.Screen name='penalty' component={PenaltyScreen} options={{headerShown: false}}/>
       <Stack.Screen name='penaltyEdit' component={PenaltyEditList} options={{ headerShown: false }}/>
       <Stack.Screen name='bingo' component={PlayBoard} options={{ headerShown: false }}/>

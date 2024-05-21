@@ -89,6 +89,9 @@ export interface GameRoomState {
     gameRoomId: string,
     isHost: boolean,
     gameType: GameType,
+    penaltyGameType: GameType,
+    isPenaltyAorB: boolean,
+    mainGameStart: boolean
 }
 
 export interface BingoPlayState {

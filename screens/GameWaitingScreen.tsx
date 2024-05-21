@@ -38,12 +38,14 @@ import {
   setCurrentGameRoom,
   setGameRoomIdHost,
   setGameRoomInitial,
+  setMainGameStart,
+  setPenaltyGameType,
 } from "../store/reducers/bingo/gameRoomSlice";
 import { customColors } from "../utils/Color";
 import EffectBorder from "../components/EffectBorder";
 import { setBingoInitial } from "../store/reducers/bingo/bingoSlice";
 import React from "react";
-import Roulette from "react-native-casino-roulette";
+// import Roulette from "react-native-casino-roulette";
 
 const screenHeight = Dimensions.get("window").height;
 const defaultAvatar = require("../assets/images/default1.png");
@@ -85,6 +87,8 @@ const GameWaitingScreen = () => {
   const currentGameRoom = useSelector(
     (state: RootState) => state.gameRoom.currentGameRoom
   );
+  const penaltyGameType = useSelector((state: RootState) => state.gameRoom.penaltyGameType);
+  const mainGameStart = useSelector((state: RootState) => state.gameRoom.mainGameStart);
 
   const [gameTypeR, setGameTypeR] = useState<GameType>(GameType.Room);
   const [gameRoomOpened, setGameRoomOpened] = useState<boolean>(true);
@@ -98,6 +102,12 @@ const GameWaitingScreen = () => {
     console.log(option);
     setSelectedOption(option);
   };
+
+  useEffect(() => {
+    console.log(mainGameStart, "=======")
+    dispatch(setMainGameStart(false));
+    dispatch(setPenaltyGameType(GameType.Bingo))
+  }, [])
 
   useEffect(() => {
     dispatch(
@@ -172,23 +182,8 @@ const GameWaitingScreen = () => {
             }
 
             if (gameRoom?.gameType == GameType.Penalty && !isHost) {
-              navigator.navigate("penalty", { startGame: () => {} });
+              navigator.navigate("penalty");
             }
-
-            // if (gameRoom ?.gameStarted == true && gameRoom ?.gameType == GameType.Bingo) {
-            //     dispatch(setBingoInitial(null));
-            //     navigator.navigate("bingo");
-            // }
-
-            // if (gameRoom ?.gameStarted == true && gameRoom ?.gameType == GameType.HighLow) {
-            //   // dispatch(setBingoInitial(null));
-            //   navigator.navigate("highlow");
-            // }
-
-            // if (gameRoom ?.gameStarted == true && gameRoom ?.gameType == GameType.Tictactoe) {
-            //   // dispatch(setBingoInitial(null));
-            //   navigator.navigate("tictactoe");
-            // }
 
             setGameRoomOpened(gameRoom?.gameRoomOpened || false);
             setGameTypeR(gameRoom?.gameType || GameType.Exit);
@@ -210,6 +205,16 @@ const GameWaitingScreen = () => {
       }
     }, [gameRoomId])
   );
+
+  useEffect(() => {
+    if(penaltyGameType == GameType.Bingo) {
+      startBingo_();
+    } else if(penaltyGameType == GameType.Tictactoe) {
+      startTictactoe_();
+    } else if(penaltyGameType == GameType.HighLow) {
+      startHighLow_();
+    }
+  }, [penaltyGameType, mainGameStart])
 
   useEffect(() => {
     console.log(" Game Room was changed", gameRoomId);
@@ -240,29 +245,26 @@ const GameWaitingScreen = () => {
     const turnPlayerId = sort[0];
     if (!turnPlayerId) return false;
 
-    if (pressedGameType == GameType.Bingo) {
-      setGameTypeF(gameRoomId, GameType.Penalty);
-      startGamePenalty(gameRoomId);
+    setGameRoomOpen(gameRoomId, false);
+    startGamePenalty(gameRoomId);
+    setGameTypeF(gameRoomId, GameType.Penalty);
 
+    if (pressedGameType == GameType.Bingo) {
       try {
-        setGameRoomOpen(gameRoomId, false);
-        navigator.navigate("penalty", { startGame: startBingo_ });
+        dispatch(setPenaltyGameType(GameType.Bingo));
+        navigator.navigate("penaltyAB");
       } catch (error) {
         console.log(error);
       }
     } else if (pressedGameType == GameType.Tictactoe) {
       try {
-        setGameTypeF(gameRoomId, GameType.Penalty);
-        startGamePenalty(gameRoomId);
-        setGameRoomOpen(gameRoomId, false);
-        navigator.navigate("penalty", { startGame: startTictactoe_ });
+        dispatch(setPenaltyGameType(GameType.Tictactoe))
+        navigator.navigate("penaltyAB");
       } catch (error) {}
     } else if (pressedGameType == GameType.HighLow) {
-      try {
-        setGameTypeF(gameRoomId, GameType.Penalty);
-        startGamePenalty(gameRoomId);
-        setGameRoomOpen(gameRoomId, false);
-        navigator.navigate("penalty", { startGame: startHighLow_ });
+      try {        
+        dispatch(setPenaltyGameType(GameType.HighLow));
+        navigator.navigate("penaltyAB");
       } catch (error) {}
     }
   };
@@ -278,7 +280,8 @@ const GameWaitingScreen = () => {
 
     try {
       setGameRoomOpen(gameRoomId, false);
-      navigator.navigate("penalty", { startGame: startBingo_ });
+      dispatch(setPenaltyGameType(GameType.Bingo));
+      navigator.navigate("penaltyAB");
     } catch (error) {
       console.log(error);
     }
@@ -298,7 +301,8 @@ const GameWaitingScreen = () => {
       setGameTypeF(gameRoomId, GameType.Penalty);
       startGamePenalty(gameRoomId);
       setGameRoomOpen(gameRoomId, false);
-      navigator.navigate("penalty", { startGame: startTictactoe_ });
+      dispatch(setPenaltyGameType(GameType.Tictactoe));
+      navigator.navigate("penaltyAB");
     } catch (error) {}
   };
 
@@ -311,7 +315,8 @@ const GameWaitingScreen = () => {
       setGameTypeF(gameRoomId, GameType.Penalty);
       startGamePenalty(gameRoomId);
       setGameRoomOpen(gameRoomId, false);
-      navigator.navigate("penalty", { startGame: startHighLow_ });
+      dispatch(setPenaltyGameType(GameType.HighLow));
+      navigator.navigate("penaltyAB");
     } catch (error) {}
   };
   const startHighLow_ = async () => {
@@ -658,7 +663,7 @@ const GameWaitingScreen = () => {
                       paddingTop: 30
                     }}
                   >
-                    {/* <TouchableOpacity
+                    <TouchableOpacity
                       style={[
                         styles.successButton,
                         {
@@ -669,7 +674,11 @@ const GameWaitingScreen = () => {
                           paddingHorizontal: 10,
                         },
                       ]}
-                      onPress={() => handleRandomSort()}
+                      onPress={() => {
+                        handleRandomSort(); 
+                        setTimeout(() => {
+                        handleGameStart();
+                      }, 3000);}}
                     >
                       <Text
                         style={{
@@ -681,9 +690,9 @@ const GameWaitingScreen = () => {
                       >
                         順番を決める
                       </Text>
-                    </TouchableOpacity> */}
+                    </TouchableOpacity>
 
-                    <View style={{ zIndex: 100 }}>
+                    {/* <View style={{ zIndex: 100 }}>
                       <Roulette
                         enableUserRotate={true}
                         background={require("../assets/images/wheel.png")}
@@ -723,10 +732,10 @@ const GameWaitingScreen = () => {
                           </View>
                         )}
                       />
-                    </View>
+                    </View> */}
                   </View>
                 )}
-                <View
+                {/* <View
                   style={[
                     styles.FlatListStyle,
                     {
@@ -778,7 +787,7 @@ const GameWaitingScreen = () => {
                       </Text>
                     </TouchableOpacity>
                   </View>
-                )}
+                )} */}
               </View>
             </View>
           </View>

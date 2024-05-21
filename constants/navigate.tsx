@@ -15,7 +15,8 @@ export type RootStackParamList = {
   GameList: undefined;
   gameRoomList: undefined;
   currentRoom: {isHostParam: boolean, gameRoomIdParam: string};
-  penalty: { startGame: () => void };
+  penaltyAB: undefined;
+  penalty: undefined;
   penaltyEdit: undefined;
   highlow: undefined,
   tictactoe: undefined

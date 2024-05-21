@@ -7,6 +7,9 @@ const INITIAL_STATE: GameRoomState = {
     isHost: false,
     gameRoomId: '',
     gameType: GameType.Exit,
+    penaltyGameType: GameType.Bingo,
+    isPenaltyAorB: true,
+    mainGameStart: false
 };
 
 export const gameRoomSlice = createSlice({
@@ -38,9 +41,18 @@ export const gameRoomSlice = createSlice({
         },
         setGameType: (state, action) => {
             state.gameType = action.payload
+        },
+        setPenaltyGameType: (state, action) => {
+            state.penaltyGameType = action.payload
+        },
+        setMainGameStart: (state, action) => {
+            state.mainGameStart = action.payload
+        }, 
+        setPenaltyAorB: (state, action) => {
+            state.isPenaltyAorB = action.payload;
         }
     },
 });
 
-export const { setGameRooms, addGameRooms, setCurrentGameRoom, setGameRoomIdHost, setGameType,setGameRoomInitial } = gameRoomSlice.actions;
+export const { setGameRooms, addGameRooms, setCurrentGameRoom, setGameRoomIdHost, setGameType,setGameRoomInitial, setPenaltyGameType, setMainGameStart ,setPenaltyAorB } = gameRoomSlice.actions;
 export default gameRoomSlice.reducer;

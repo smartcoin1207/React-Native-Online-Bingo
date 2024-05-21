@@ -790,7 +790,7 @@ export const setPatternASetFirestore = async (gameRoomId: string, patternAset: b
   }
 };
 
-export const publicPatternAFirestore = async (
+export const publicPatternFirestore = async (
   gameRoomId: string,
   uid: string,
   penalty: Penalty,
@@ -798,33 +798,61 @@ export const publicPatternAFirestore = async (
   subPattern2: boolean,
   subPattern3: boolean,
   penaltyRunCount: number,
-  isHost: boolean
+  isHost: boolean,
+  isPatternA: boolean
 ) => {
   if (!gameRoomId) {
     return false;
   }
 
-  try {
-    const docRef = doc(collection(db, gamePenaltyTable), gameRoomId);
-    const docData = await getDoc(docRef);
-
-    let exist = false;
-    if(docData.exists()) {
-      const patternAList: PenaltyAType[] = docData.data().patternAList;
-      const existPatternA = patternAList.find(pattern => pattern.uid == uid);
-
-      if(existPatternA) {
-        exist = true;
-
-        const updatedPatternAList = patternAList.map(pattern => {
-          if (pattern.uid === uid) {
-            return { ...pattern, penaltyId: penalty?.id, penaltyTitle: penalty?.title };
+  console.log("ssss")
+  if(isPatternA) {
+    try {
+      const docRef = doc(collection(db, gamePenaltyTable), gameRoomId);
+      const docData = await getDoc(docRef);
+  
+      let exist = false;
+      if(docData.exists()) {
+        const patternAList: PenaltyAType[] = docData.data().patternAList;
+        const existPatternA = patternAList.find(pattern => pattern.uid == uid);
+  
+        if(existPatternA) {
+          exist = true;
+  
+          const updatedPatternAList = patternAList.map(pattern => {
+            if (pattern.uid === uid) {
+              return { ...pattern, penaltyId: penalty?.id, penaltyTitle: penalty?.title };
+            }
+            return pattern;
+          });
+  
+          if(isHost) {
+            await updateDoc(docRef, {
+              patternAList: updatedPatternAList,
+              subPattern1: subPattern1,
+              subPattern2: subPattern2,
+              subPattern3: subPattern3,
+              penaltyRunCount: penaltyRunCount
+            })
+          } else {
+            await updateDoc(docRef, {
+              patternAList: updatedPatternAList
+            })
           }
-          return pattern;
-        });
+        }
+      }
+  
+      if(!exist) {
+        console.log("no exist")
+        const newPenaltyA = {
+          uid: uid,
+          penaltyId: penalty?.id ,
+          penaltyTitle: penalty?.title
+        };
+  
         if(isHost) {
           await updateDoc(docRef, {
-            patternAList: updatedPatternAList,
+            patternAList: arrayUnion(newPenaltyA),
             subPattern1: subPattern1,
             subPattern2: subPattern2,
             subPattern3: subPattern3,
@@ -832,33 +860,31 @@ export const publicPatternAFirestore = async (
           })
         } else {
           await updateDoc(docRef, {
-            patternAList: updatedPatternAList
+            patternAList: arrayUnion(newPenaltyA),
           })
         }
       }
-    } 
-    if(!exist) {
-      const newPenaltyA = {
+    } catch (error) {}
+  } else {
+    try {
+      const docRef = doc(collection(db, gamePenaltyTable), gameRoomId);
+      const newPenalty = {
         uid: uid,
         penaltyId: penalty?.id ,
         penaltyTitle: penalty?.title
       };
 
-      if(isHost) {
-        await updateDoc(docRef, {
-          patternAList: arrayUnion(newPenaltyA),
-          subPattern1: subPattern1,
-          subPattern2: subPattern2,
-          subPattern3: subPattern3,
-          penaltyRunCount: penaltyRunCount
-        })
-      } else {
-        await updateDoc(docRef, {
-          patternAList: arrayUnion(newPenaltyA),
-        })
-      }
+      await updateDoc(docRef, {
+        penaltyB: newPenalty,
+        subPattern1: subPattern1,
+        subPattern2: subPattern2,
+        subPattern3: subPattern3,
+        penaltyRunCount: penaltyRunCount
+      });
+    } catch (error) {
+      
     }
-  } catch (error) {}
+  }
 };
 
 export const setPenaltyAInitialFirestore = async (gameRoomId: string) => {
@@ -911,20 +937,6 @@ export const deletePenaltyAListItem = async (
   } catch (error) {}
 };
 
-export const setPenaltyBInitialFirestore = async ( gameRoomId: string ) => {
-  if (!gameRoomId) return false;
-
-  try {
-    const docRef = doc(collection(db, gamePenaltyTable), gameRoomId);
-
-    await updateDoc(docRef, {
-      penaltyB: null,
-      patternBSet: false
-    });
-  } catch (error) {
-    console.log(error);
-  }
-};
 
 export const setpatternBSetFirestore = async (gameRoomId: string, patternBSet: boolean) => {
   if (!gameRoomId) return false;
@@ -938,31 +950,6 @@ export const setpatternBSetFirestore = async (gameRoomId: string, patternBSet: b
     console.log(error);
   }
 };
-
-export const publicPatternBFirestore = async ( gameRoomId: string, penalty: Penalty, subPattern1: boolean, subPattern2: boolean, subPattern3: boolean, penaltyRunCount: number) => {
-  if (!gameRoomId) return false;
-
-  try {
-    const docRef = doc(collection(db, gamePenaltyTable), gameRoomId);
-    const penaltyB = {
-      penaltyId: penalty?.id,
-      penaltyTitle: penalty?.title
-    };
-    await updateDoc(docRef, {
-      patternBSet: true,
-      penaltyB: penaltyB,
-      subPattern1: subPattern1,
-      subPattern2: subPattern2,
-      subPattern3: subPattern3,
-      penaltyRunCount: penaltyRunCount
-    });
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-
-
 
 //
 export const getGamePenaltyRealtime = (gameRoomId: string, callback: any): UnsubscribeOnsnapCallbackFunction => {
