@@ -42,6 +42,7 @@ import {
     getGamePenalty,
     getBingoCompletedHistory,
     setBingoOneNextRound,
+    setMoveGameRoom,
 } from "../utils/firebase/FirebaseUtil";
 import { BingoCellValues, GameType, Player, UnsubscribeOnsnapCallbackFunction } from "../utils/Types";
 import { customColors } from "../utils/Color";
@@ -154,19 +155,19 @@ const PlayBoard: React.FC = () => {
     }
   
     // play sound when screen will be visited
-    useEffect(() => {
-      const loadAndPlaySound = async () => {
-        await playSound();
-      };
+    // useEffect(() => {
+    //   const loadAndPlaySound = async () => {
+    //     await playSound();
+    //   };
   
-      loadAndPlaySound();
+    //   loadAndPlaySound();
   
-      return () => {
-        if (sound) {
-          sound.unloadAsync();
-        }
-      };
-    }, []);
+    //   return () => {
+    //     if (sound) {
+    //       sound.unloadAsync();
+    //     }
+    //   };
+    // }, []);
 
     useFocusEffect(
         useCallback(() => {
@@ -526,10 +527,9 @@ const PlayBoard: React.FC = () => {
         }, [])
     )
 
-
     const exitScreen = () => {
         if (isHost) {
-            setGameTypeF(gameRoomId, GameType.Room);
+            setMoveGameRoom(gameRoomId, GameType.Room);
             dispatch(setPenaltyInitial(null));
             dispatch(setBingoInitial(null));
             navigation.navigate("currentRoom", { isHostParam: isHost, gameRoomIdParam: gameRoomId });
@@ -1150,23 +1150,30 @@ const PlayBoard: React.FC = () => {
                             {(isSubPattern1 || isSubPattern2) && isHost && (
                                 <View style={{flexDirection: 'row', justifyContent: 'space-around', width: '100%', }}>
                                     <TouchableOpacity
-                                        style={{ padding: 10, borderWidth:1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.customLightBlue, justifyContent: 'center', alignItems: 'center', marginTop: 10}}
-                                        onPress={() => startBingoNextRound()}
-                                    >
-                                        <Text style={{fontSize: 18, color: 'white', letterSpacing: 5}}>もう1回</Text>
-                                    </TouchableOpacity>
-
-                                    <TouchableOpacity
                                     style={{ padding: 10, borderWidth:1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.blackRed, justifyContent: 'center', alignItems: 'center', marginTop: 10}}
                                     onPress={() => {setExitModalVisible(true), setExitModalText(jpLanguage.bingoExitModalTextString);}}
                                     >
                                     <Text style={{fontSize: 18, color: 'white', letterSpacing: 5}}>退出する</Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity
+                                        style={{ padding: 10, borderWidth:1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.customLightBlue, justifyContent: 'center', alignItems: 'center', marginTop: 10}}
+                                        onPress={() => startBingoNextRound()}
+                                    >
+                                        <Text style={{fontSize: 18, color: 'white', letterSpacing: 5}}>もう1回</Text>
                                     </TouchableOpacity>
                                 </View>
                             )}
 
                             {(isSubPattern3 && isHost) && (
                                 <View style={{flexDirection: 'row',  justifyContent: 'space-around', width: '100%'}}>
+                                    <TouchableOpacity
+                                        style={{ padding: 10, borderWidth:1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.blackRed, justifyContent: 'center', alignItems: 'center', marginTop: 10}}
+                                        onPress={() => {setExitModalVisible(true), setExitModalText(jpLanguage.bingoExitModalTextString);}}
+                                        >
+                                        <Text style={{fontSize: 18, color: 'white', letterSpacing: 5}}>退出する</Text>
+                                    </TouchableOpacity>
+
                                     {!bingoAllRoundEnd && (
                                         <TouchableOpacity
                                             style={{ padding: 10, borderWidth:1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.customLightBlue, justifyContent: 'center', alignItems: 'center', marginTop: 10}}
@@ -1175,13 +1182,6 @@ const PlayBoard: React.FC = () => {
                                             <Text style={{fontSize: 18, color: 'white', letterSpacing: 5}}>次ラウンド</Text>
                                         </TouchableOpacity>
                                     )}
-                                    
-                                    <TouchableOpacity
-                                        style={{ padding: 10, borderWidth:1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.blackRed, justifyContent: 'center', alignItems: 'center', marginTop: 10}}
-                                        onPress={() => {setExitModalVisible(true), setExitModalText(jpLanguage.bingoExitModalTextString);}}
-                                        >
-                                        <Text style={{fontSize: 18, color: 'white', letterSpacing: 5}}>退出する</Text>
-                                    </TouchableOpacity>
                                 </View>
                             )}
                         </View>

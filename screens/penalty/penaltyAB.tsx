@@ -1,13 +1,14 @@
-import React, { SetStateAction, useEffect, useState, useRef } from "react";
+import React, { SetStateAction, useEffect, useState, useRef, useCallback } from "react";
 import { useSelector, useDispatch } from 'react-redux';
-import { View, Text, StyleSheet,  Dimensions, TouchableOpacity } from "react-native";
-import { useNavigation } from '@react-navigation/native';
+import { View, Text, StyleSheet,  Dimensions, TouchableOpacity, BackHandler } from "react-native";
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { RootState } from "../../store";
 import EffectBorder from "../../components/EffectBorder";
 import { customColors } from "../../utils/Color";
 import { setPenaltyAorB } from "../../store/reducers/bingo/gameRoomSlice";
-import { setPatternASetFirestore, setpatternBSetFirestore } from "../../utils/firebase/FirebaseUtil";
+import { setMoveGameRoom, setPatternASetFirestore, setpatternBSetFirestore } from "../../utils/firebase/FirebaseUtil";
 import { current } from "@reduxjs/toolkit";
+import { GameType } from "../../utils/Types";
 
 interface PenaltyABPros { }
 
@@ -28,6 +29,23 @@ const PenaltyAB: React.FC<PenaltyABPros> = () => {
         console.log("hello world");
     }, [isLoggedIn])
 
+    useFocusEffect(
+        useCallback(() => {
+          const onBackPress = () => {
+            if(currentGameRoom?.gameRoomId)
+            setMoveGameRoom(currentGameRoom?.gameRoomId, GameType.Room);
+
+            return false; // Indicate that the back press is handled
+          };
+    
+          BackHandler.addEventListener("hardwareBackPress", onBackPress);
+    
+          return () => {
+            BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+          };
+        }, [navigator])
+      );
+
     const handlePenaltyA = async () => {
         if(currentGameRoom?.gameRoomId) {
             await setPatternASetFirestore(currentGameRoom?.gameRoomId, true);
@@ -46,18 +64,23 @@ const PenaltyAB: React.FC<PenaltyABPros> = () => {
 
     return (
         <View style={styles.container}>
+                <View style={{alignItems:"center", marginBottom: 50}}>
+                    <Text style={{color: 'white', fontSize: 30, textAlign: 'center'}}>
+                        罰ゲームの決め方
+                    </Text>
+                </View>
                 <EffectBorder style={{width: '80%', marginVertical: 10}}>
                     <TouchableOpacity 
                         style={styles.gameBtn}
                         onPress={handlePenaltyA}
                     >
-                        <Text style={styles.textTitle}>Pattern A</Text>
+                        <Text style={styles.textTitle}>全員で決める</Text>
                     </TouchableOpacity>
                 </EffectBorder>
                 
                 <EffectBorder style={{width : '80%', marginVertical: 10}}>
                     <TouchableOpacity style={styles.signBtn} onPress={handlePenaltyB}>
-                        <Text style={styles.textTitle}>Pattern B</Text>
+                        <Text style={styles.textTitle}>ホストが決める</Text>
                     </TouchableOpacity>
                 </EffectBorder>
             </View>

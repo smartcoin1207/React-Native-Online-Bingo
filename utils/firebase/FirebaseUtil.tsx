@@ -378,6 +378,20 @@ export const setGameTypeF = async (gameRoomId: string, gameType: GameType) => {
   } catch (error) {}
 };
 
+export const setMoveGameRoom = async(gameRoomId: string, gameType:GameType) => {
+  if(!gameRoomId) return false;
+
+  try {
+    const docRef = doc(db, gameTable, gameRoomId);
+    await updateDoc(docRef, {
+      gameType: gameType,
+      sorted: false
+    })
+  } catch (error) {
+    
+  }
+}
+
 //
 export const startGameBingo = async (
   gameRoomId: string,
@@ -419,8 +433,10 @@ export const setPlayerGameSort = async (gameRoomId: string, uids: string[]) => {
 
   try {
     const docRef = doc(collection(db, gameTable), gameRoomId);
+    
     await updateDoc(docRef, {
       sort: uids,
+      sorted: true
     });
   } catch (error) {
     console.log("game error");

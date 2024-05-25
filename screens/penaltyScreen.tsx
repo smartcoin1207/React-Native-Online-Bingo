@@ -8,6 +8,7 @@ import {
   Modal,
   FlatList,
   BackHandler,
+  ActivityIndicator 
 } from "react-native";
 import { customColors } from "../utils/Color";
 import SwitchToggle from "react-native-switch-toggle";
@@ -22,6 +23,8 @@ import {
   getGamePenaltyRealtime,
   getGameRoom,
   setGameTypeF,
+  setGameRoomOpen,
+  setMoveGameRoom,
 } from "../utils/firebase/FirebaseUtil";
 import {
   GameType,
@@ -218,11 +221,16 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
     }, [])
   );
 
-
   useEffect(() => {
     const subscribers_ = currentGameRoom?.subscribersPlayers || [];
     setSubscribers(subscribers_);
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(setMainGameStart(false));
+    }, [])
+  )
 
   useEffect(() => {
     const fetchPenalties = async () => {
@@ -277,7 +285,10 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
     }
 
     await handlePublicPattern();
-    dispatch(setMainGameStart(true));
+    setTimeout(() => {
+      dispatch(setMainGameStart(true));
+      console.log("xxxx")
+    }, 3000);
   };
 
   const handlePublicPattern = async () => {
@@ -371,7 +382,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
 
   const exitScreen = () => {
     if (isHost) {
-      setGameTypeF(gameRoomId, GameType.Room);
+      setMoveGameRoom(gameRoomId, GameType.Room);
       dispatch(setPenaltyInitial(null));
       deleteGamePenalty(gameRoomId);
       navigation.navigate("currentRoom", {
@@ -534,7 +545,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
           />
         </View>
 
-        <View
+        {/* <View
           style={{
             borderWidth: 1,
             // borderColor: mainColor,
@@ -553,7 +564,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
             isToggle={isSubPattern2 }
             switchToggle={toggleSubPattern2Switch}
           />
-        </View>
+        </View> */}
 
         <View
           style={{
@@ -657,23 +668,39 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
           {(
             !penalty
           ) ? (
-            <TouchableOpacity
-              style={{
-                width: 50,
-                height: 50,
-                borderRadius: 50,
-                borderWidth: 1,
-                borderColor: mainColor,
-                padding: 10,
-                margin: 10,
-                paddingHorizontal: 12,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-              onPress={handlePenaltyPlusBtnClick}
-            >
-              <Icon name="plus" size={25} color={mainColor} />
-            </TouchableOpacity>
+            <View style={{alignItems: 'center', marginTop: 10}}>
+              <View
+                style={{
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    color: "white",
+                    fontSize: 18,
+                  }}
+                >
+                  好きな罰ゲームを設定してください。
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 50,
+                  borderWidth: 1,
+                  borderColor: mainColor,
+                  padding: 10,
+                  margin: 10,
+                  paddingHorizontal: 12,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+                onPress={handlePenaltyPlusBtnClick}
+              >
+                <Icon name="plus" size={25} color={mainColor} />
+              </TouchableOpacity>
+            </View>
           ) : (
             <View
               style={{
@@ -790,13 +817,13 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
               alignItems: 'center'
             }}
           >
-            { isPenaltyAorB && subscribers.length >1 && 
+            {/* { isPenaltyAorB && subscribers.length >1 && 
               <View style={{flexDirection:'row', marginBottom: 35}}>
                 {subscribers.map((player,  index) => (
                   <View key={index} style={{width: 12, height:12, backgroundColor: (penaltyList.length > index) ? 'white' : '#413c3c', borderRadius: 12, marginHorizontal: 10}}></View>
                 ))}
               </View>
-            }
+            } */}
             <TouchableOpacity
               activeOpacity={0.2}
               style={{
@@ -833,8 +860,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
               </Text>
               <View>
                 {!penaltySetAvailable
-                  ? // <ActivityIndicator size="large" color="#007AFF" />
-                    ""
+                  ?  <ActivityIndicator size="large" color="#007AFF" />
                   : ""}
               </View>
             </View>
@@ -956,7 +982,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
                     <Text
                       style={{ fontSize: 20, color: "white", display: "flex" }}
                     >
-                      確認
+                      決定
                     </Text>
                   </TouchableOpacity>
 
@@ -975,8 +1001,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
                         }}
                       >
                         {true
-                          ? // <ActivityIndicator size="large" color="#007AFF" />
-                            ""
+                          ? <ActivityIndicator size="large" color="#007AFF" />
                           : ""}
                       </View>
                     </View>

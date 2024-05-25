@@ -132,10 +132,13 @@ const GameRoomScreen = () => {
   };
 
   const joinRoomModal = async (item: GameRoom) => {
+    console.log(item, "----------------------")
     if(item.password == '') {
       console.log("without password");
       setCurrentJoinGameRoom(item);
-      await joinRoom();
+      if(item) {
+        await joinRoom(item);
+      }
     } else {
       if (item) {
         setCurrentJoinGameRoom(item);
@@ -146,28 +149,33 @@ const GameRoomScreen = () => {
     }
   };
 
-  const joinRoom = async () => {
-    if(currentJoinGameRoom?.password) {
+  const joinRoom = async (gameRoomItem: GameRoom | undefined) => {
+    console.log("--0")
+
+    if(gameRoomItem?.password) {
       const passwordErr = validateRoomPassword(password);
       setPasswordError(passwordErr || "");
       if (passwordErr) {
         return false;
       }
     }
-
-    const gameRoomItem: GameRoom | undefined = currentJoinGameRoom;
+    console.log("--1");
 
     if (!gameRoomItem) return false;
+    console.log("--2")
 
     if (createRoomLoading) return false;
+    console.log("--3")
 
     if (password != gameRoomItem.password) {
       setRoomModalVisible(false);
       return false;
     }
+    console.log("--4")
 
     if (authUser.uid) {
       setCreateRoomLoading(true);
+      console.log("-------------32323233");
       await joinGameRoom(authUser.uid, gameRoomItem.gameRoomId);
       setCreateRoomLoading(false);
 
@@ -279,19 +287,19 @@ const GameRoomScreen = () => {
           }}
         >
           <View style={styles.modalBody}>
-            <Text style={{color: 'white', fontSize: 20, textAlign: 'center'}}>パスワードを付けます？ or 付けない！</Text>
+            <Text style={{color: 'white', fontSize: 20, textAlign: 'center'}}>パスワードを設定しますか？</Text>
             <View style={{flexDirection: 'row', justifyContent: 'space-evenly', width: '100%', marginTop: 20}}>
               <TouchableOpacity
                 style={styles.modalCancelBtn}
                 onPress={() => handleCreateModalWithPassword(false)}
               >
-                <Text style={styles.roomModalButtonText}>　 はい 　</Text>
+                <Text style={styles.roomModalButtonText}>　 いいえ 　</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.modalOkBtn}
                 onPress={() => handleCreateModalWithPassword(true)}
               >
-                <Text style={styles.roomModalButtonText}>　 いいえ 　</Text>
+                <Text style={styles.roomModalButtonText}>　 はい 　</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -394,7 +402,7 @@ const GameRoomScreen = () => {
                   <Text style={styles.roomModalButtonText}>　 作成 　</Text>
                 </TouchableOpacity>
               ) : (
-                <TouchableOpacity style={styles.modalOkBtn} onPress={joinRoom}>
+                <TouchableOpacity style={styles.modalOkBtn} onPress={() => {joinRoom(currentJoinGameRoom)}}>
                   <Text
                     style={[
                       styles.roomModalButtonText,
