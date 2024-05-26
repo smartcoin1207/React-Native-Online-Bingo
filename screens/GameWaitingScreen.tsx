@@ -45,6 +45,8 @@ import { customColors } from "../utils/Color";
 import EffectBorder from "../components/EffectBorder";
 import { setBingoInitial } from "../store/reducers/bingo/bingoSlice";
 import React from "react";
+import * as Progress from 'react-native-progress';
+
 // import Roulette from "react-native-casino-roulette";
 
 const screenHeight = Dimensions.get("window").height;
@@ -64,12 +66,14 @@ const GameWaitingScreen = () => {
     route.params as GameWaitingRouteParams;
 
   const [gameRoomDisplayName, setGameRoomDisplayName] = useState("");
+  const loadingBarDuration = 3;
 
   const [subscribers, setSubscribers] = useState<Player[]>([]);
   const [sortedPlayers, setSortedPlayers] = useState<Player[]>([]);
   const [sort, setSort] = useState<string[]>([]);
   const [sorted, setSorted]  = useState<boolean>(false);
   const [hostSortingLoading, setHostSortingLoading] = useState<boolean>(false);
+  const [progressRate, setProgressRate] = useState(0);
 
   const [listLoading, setListLoading] = useState<boolean>(false);
   const [exitModalVisible, setExitModalVisible] = useState<boolean>(false);
@@ -180,6 +184,12 @@ const GameWaitingScreen = () => {
             //sorted
             const sorted:boolean = gameRoom?.sorted || false;
             setSorted(sorted);
+
+            if(sorted) {
+              progressInterval();
+            } else {
+              setProgressRate(0)
+            }
             
             if (gameRoom?.gameType == GameType.Penalty && !isHost) {
               navigator.navigate("penalty");
@@ -247,7 +257,21 @@ const GameWaitingScreen = () => {
     if(sorted && !isHost) {
       setSortModalVisible(true);
     }
-  }, [sorted])
+  }, [sorted]);
+
+  const progressInterval = () => {
+    const interval = setInterval(() => {
+      setProgressRate((prevProgress) => {
+        if (prevProgress >= 1) {
+          clearInterval(interval);
+          return 1;
+        }
+        return prevProgress +  (isHost ? 0.05 :  0.05);
+      });
+    }, 100);
+
+    return () => clearInterval(interval);
+  }
 
   const handleGameStart = () => {
     const turnPlayerId = sort[0];
@@ -381,10 +405,11 @@ const GameWaitingScreen = () => {
     
     setHostSortingLoading(true);
     await setPlayerGameSort(gameRoomId, uids);
+    setHostSortingLoading(false);
 
     setTimeout(() => {
       handleGameStart();
-  }, 3000);
+    }, 2000);
   };
 
   const renderPlayerItem = ({ item }: { item: Player }) => (
@@ -588,6 +613,7 @@ const GameWaitingScreen = () => {
         <View
           style={{
             flex: 1,
+            width: '100%',
             justifyContent: "center",
             alignItems: "center",
             backgroundColor: customColors.modalBackgroundColor,
@@ -655,27 +681,30 @@ const GameWaitingScreen = () => {
               </TouchableOpacity>
               <Text style={[styles.title, {textAlign: 'center', marginLeft: 0}]}>順序決定</Text>
             </View> */}
-              {isHost && (
+              {isHost && !sorted && (
                 <View
                   style={{
-                    borderWidth: 1,
+                    borderWidth: 0,
                     borderColor: customColors.customLightBlue,
                     borderRadius: 20,
                     width: "100%",
                     padding: 10,
                     alignItems: "center",
                     zIndex: 100,
+                    
                   }}
                 >
                   <TouchableOpacity
                     style={[
                       styles.successButton,
                       {
+                        // width: '100%',
+                        maxWidth: '100%',
                         backgroundColor: "#133a4edb",
                         borderWidth: 1,
                         borderColor: "grey",
                         flexDirection: "row",
-                        paddingHorizontal: 10,
+                        paddingHorizontal: 20,
                       },
                     ]}
                     onPress={() => {
@@ -692,6 +721,14 @@ const GameWaitingScreen = () => {
                     >
                       順番を決める
                     </Text>
+                    {hostSortingLoading && (
+                      <View style={{position:'absolute', }}>
+                        <ActivityIndicator
+                          size="large"
+                          color="#007AFF"
+                        />
+                      </View>
+                    )}
                   </TouchableOpacity>
 
                   {/* <View style={{ zIndex: 100 }}>
@@ -738,7 +775,7 @@ const GameWaitingScreen = () => {
                 </View>
               )}
 
-              {isHost && sorted && (
+              {sorted && (
                 <View
                   style={[
                     styles.FlatListStyle,
@@ -766,6 +803,7 @@ const GameWaitingScreen = () => {
                     renderItem={renderSortPlayerItem}
                     keyExtractor={(item, index) => index.toString()}
                   />
+                  <Progress.Bar progress={progressRate} width={300}  />
                 </View>
               )}
               
