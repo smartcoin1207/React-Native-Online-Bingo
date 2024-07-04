@@ -52,7 +52,7 @@ const PenaltyAB: React.FC<PenaltyABPros> = () => {
         }
         navigation.navigate('penalty');
         dispatch(setPenaltyAorB(true));
-    } 
+    }
 
     const handlePenaltyB = async () => {
         if(currentGameRoom?.gameRoomId) {

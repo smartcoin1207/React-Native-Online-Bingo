@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Modal,
   TextInput,
+  Dimensions,
 } from "react-native";
 import { Avatar } from "react-native-elements";
 import {
@@ -33,8 +34,10 @@ import {
   validateRoomTitle,
 } from "../utils/ValidtionUtils";
 import Icon from "react-native-vector-icons/FontAwesome";
+import { Tooltip } from "react-native-elements";
 
 const defaultAvatar = require("../assets/images/default1.png");
+const { width: viewportWidth, height: viewportHeight } = Dimensions.get("window");
 
 const GameRoomScreen = () => {
   const navigator: NavigatorType = useNavigation();
@@ -58,17 +61,20 @@ const GameRoomScreen = () => {
     GameRoom | undefined
   >(undefined);
 
-  //data from redux
   const gameRooms = useSelector((state: RootState) => state.gameRoom.gameRooms);
 
   const dispatch = useDispatch();
   
   useFocusEffect(
     useCallback(() => {
+      const uid = authUser.uid;
+      if(!uid) {
+        return () => {}
+      };
       setListLoading(true);
 
       const unsubscribe: UnsubscribeOnsnapCallbackFunction =
-        getWaitingGameRooms( searchQuery, (gameRooms: GameRoom[]) => {
+        getWaitingGameRooms( uid ,searchQuery,  (gameRooms: GameRoom[]) => {
           dispatch(setGameRooms(gameRooms || []));
           setListLoading(false);
         });
@@ -76,6 +82,13 @@ const GameRoomScreen = () => {
       return () => unsubscribe();
     }, [searchQuery])
   );
+
+  useEffect(() => {
+    if(!roomModalVisible) {
+      setGameRoomDisplayName('');
+      setPassword('')
+    }
+  }, [roomModalVisible])
 
 
   const createRoomPasswordSet = () => {
@@ -175,7 +188,6 @@ const GameRoomScreen = () => {
 
     if (authUser.uid) {
       setCreateRoomLoading(true);
-      console.log("-------------32323233");
       await joinGameRoom(authUser.uid, gameRoomItem.gameRoomId);
       setCreateRoomLoading(false);
 
@@ -212,6 +224,31 @@ const GameRoomScreen = () => {
         </Text>
         <Text style={styles.nameTitle}>{item.displayName}</Text>
       </View>
+      <View style={{alignItems: 'center'}}>
+        <Text
+          style={[
+            styles.nameTitle,
+            { opacity: 0.5, fontSize: 12, textAlign: "center" },
+          ]}
+        >
+          ルーム名
+        </Text>
+        
+        <Tooltip
+          popover={
+            <Text style={styles.tooltipText}>
+              {item.displayRoomName}
+            </Text>
+          }
+          backgroundColor="#333"
+          withOverlay={false}
+          highlightColor="#000"
+        >
+          <Text style={[styles.nameTitle, {maxWidth: viewportWidth - 280, textAlign: 'center'}]} numberOfLines={1}>{item.displayRoomName}</Text>
+        </Tooltip>
+          
+      </View>
+
       <View>
         <Text
           style={[
@@ -219,15 +256,11 @@ const GameRoomScreen = () => {
             { opacity: 0.5, fontSize: 12, textAlign: "center" },
           ]}
         >
-          タイトル
+          人数
         </Text>
-        <View style={{ flexDirection: "row" }}>
-          <Text style={styles.nameTitle}>{item.displayRoomName}</Text>
-          <Text style={[styles.nameTitle, { opacity: 0.5 }]}>
-            {" "}
-            ({item.subscriberNum})
-          </Text>
-        </View>
+        <Text style={[styles.nameTitle, { opacity: 1, textAlign: 'center' }]}>
+          {item.subscriberNum}
+        </Text>
       </View>
 
       <TouchableOpacity
@@ -715,6 +748,10 @@ const styles = StyleSheet.create({
   errText: {
     color: customColors.blackRed,
     fontSize: 16,
+  },
+  tooltipText: {
+    fontSize: 14,
+    color: 'white',
   },
 });
 

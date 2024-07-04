@@ -19,7 +19,8 @@ export type RootStackParamList = {
   penalty: undefined;
   penaltyEdit: undefined;
   highlow: undefined,
-  tictactoe: undefined
+  tictactoe: undefined,
+  plusminus: undefined
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> =

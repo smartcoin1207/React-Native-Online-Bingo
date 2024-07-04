@@ -22,8 +22,6 @@ import {
   getAllPenalty,
   getGamePenaltyRealtime,
   getGameRoom,
-  setGameTypeF,
-  setGameRoomOpen,
   setMoveGameRoom,
 } from "../utils/firebase/FirebaseUtil";
 import {
@@ -67,7 +65,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
   const currentGameRoom = useSelector(
     (state: RootState) => state.gameRoom.currentGameRoom
   );
-  const isPenaltyAorB = useSelector((state: RootState) => state.gameRoom.isPenaltyAorB);
+  const isPenaltyAorBFromRedux = useSelector((state: RootState) => state.gameRoom.isPenaltyAorB);
 
   // ---------------------------------Redux Data End----------------------------------------
 
@@ -83,7 +81,8 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
   const [isSubPattern1, setIsSubPattern1] = useState<boolean>(false);
   const [isSubPattern2, setIsSubPattern2] = useState<boolean>(false);
   const [isSubPattern3, setIsSubPattern3] = useState<boolean>(false);
-  const [penaltyRunCount, setPenaltyRunCount] = useState<number>(0);
+  const [penaltyRunCount, setPenaltyRunCount] = useState<number>(1);
+  const [isPenaltyAorB, setIsPenaltyAorB] = useState<boolean>(true);
 
   //common datasetPenaltyA
   const [subscribers, setSubscribers] = useState<Player[]>([]);
@@ -104,9 +103,13 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
       const unsubscribe: UnsubscribeOnsnapCallbackFunction =
         getGamePenaltyRealtime(gameRoomId, (penalty: any) => {
           if (penalty?.patternASet) {
+            setIsPenaltyAorB(true)
             setPenaltySetAvailable(true);
             setIsPatternASet(true);
           } else {
+            if(penalty?.penaltyBSet) {
+              setIsPenaltyAorB(false);
+            }
             setPenaltySetAvailable(false);
             setPenalty(undefined);
             setPenaltySelected(false);
@@ -132,7 +135,6 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
             const p: Penalty = {id: penaltyB1?.penaltyId, title: penaltyB1?.penaltyTitle};
             setPenalty(p);
             setPenaltyPublicModalVisible(true);
-            console.log("BBB")
           }
 
           if (
@@ -194,7 +196,6 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
             gameRoom?.gameStarted == true &&
             gameRoom?.gameType == GameType.Tictactoe
           ) {
-            // dispatch(setBingoInitial(null));
             navigation.navigate("tictactoe");
           }
 
@@ -202,8 +203,14 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
             gameRoom?.gameStarted == true &&
             gameRoom?.gameType == GameType.HighLow
           ) {
-            // dispatch(setBingoInitial(null));
             navigation.navigate("highlow");
+          }
+
+          if (
+            gameRoom?.gameStarted == true &&
+            gameRoom?.gameType == GameType.PlusMinus
+          ) {
+            navigation.navigate("plusminus");
           }
 
           if (gameRoom?.gameType == GameType.Room && !isHost) {
@@ -225,6 +232,10 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
     const subscribers_ = currentGameRoom?.subscribersPlayers || [];
     setSubscribers(subscribers_);
   }, []);
+
+  useEffect(() => {
+    setIsPenaltyAorB(isPenaltyAorBFromRedux);
+  }, [isPenaltyAorBFromRedux])
 
   useFocusEffect(
     useCallback(() => {
@@ -279,11 +290,14 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
 
   const startGamPenalty = async (isPenalty: boolean) => {
     console.log(penaltyList.length)
-
     if (isPenaltyAorB && penaltyList.length < subscribers.length - 1) {
       return false;
     }
 
+    if(!penalty || !(isSubPattern1 || isSubPattern2 || isSubPattern3) || (isSubPattern3 && !penaltyRunCount)) {
+      return false;
+    }
+    
     await handlePublicPattern();
     setTimeout(() => {
       dispatch(setMainGameStart(true));
@@ -294,7 +308,6 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
   const handlePublicPattern = async () => {
     if (gameRoomId && authUser?.uid && penalty?.id) {
       if (isHost) {
-        console.log("sss111s")
         const subPattern1 = isSubPattern1;
         const subPattern2 = isSubPattern2;
         const subPattern3 = isSubPattern3;
@@ -603,7 +616,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
             ></View>
             <View style={{ padding: 10, width: "100%", borderTopColor: 'black', borderTopWidth: 1 }}>
               <InputSpinner
-                max={10}
+                max={100}
                 min={1}
                 step={1}
                 colorMax={"#f04048"}
@@ -1252,37 +1265,6 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
               )}
             </View>
           </View>
-          {/* <View
-            style={{
-              padding: 10,
-              alignItems: "center",
-            }}
-          >
-            <TouchableOpacity
-              style={{
-                padding: 10,
-                justifyContent: "center",
-                backgroundColor: "#2d1d2a",
-                borderRadius: 20,
-                borderWidth: 1,
-                borderColor: "#623c34",
-                width: "40%",
-              }}
-              onPress={() => {
-                setPenaltyPublicModalVisible(false);
-              }}
-            >
-              <Text
-                style={{
-                  color: "white",
-                  fontSize: 16,
-                  textAlign: "center",
-                }}
-              >
-                閉じる
-              </Text>
-            </TouchableOpacity>
-          </View> */}
         </View>
       </Modal>
 
@@ -1557,15 +1539,7 @@ const styles = StyleSheet.create({
   icon: {
     marginRight: 5,
   },
-  // label: {
-  //   position: 'absolute',
-  //   backgroundColor: 'black',
-  //   left: 22,
-  //   top: 0,
-  //   // zIndex: 999,
-  //   paddingHorizontal: 8,
-  //   fontSize: 14,
-  // },
+
   placeholderStyle: {
     fontSize: 16,
     color: "grey",

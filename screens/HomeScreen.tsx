@@ -9,8 +9,6 @@ import { customColors } from '../utils/Color';
 import { useRef } from 'react';
 import { delectDirectory, deleteBingoCollection } from '../utils/firebase/FirebaseUtil';
 import EffectBorder from '../components/EffectBorder';
-const screenHeight = Dimensions.get('window').height;
-import SoundPlayer from 'react-native-sound-player'
 
 const openWebsite = () => {
     const url = 'https://newgate-llc.shop/listener/registration';

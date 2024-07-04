@@ -80,7 +80,8 @@ export enum GameType {
     Bingo = "Bingo",
     Penalty = "Penalty",
     Tictactoe = "Tactactoe",
-    HighLow = "HighLow"
+    HighLow = "HighLow",
+    PlusMinus = "PlusMinus"
 }
 
 export interface GameRoomState {
@@ -124,6 +125,10 @@ export interface PenaltySliceType {
     patternC: number
 }
 
+export interface PlusMinusResultType {
+    uid: string, 
+    result: string
+}
 
 //Firebase Util Functions Parameters type
 

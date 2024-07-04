@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   Modal,
 } from "react-native";
-import { Avatar, Divider, Image } from "react-native-elements";
+import { Avatar, Divider, Image, Tooltip } from "react-native-elements";
 import { useRoute } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import {
@@ -23,6 +23,7 @@ import {
   startGameBingo,
   startGameHighLow,
   startGamePenalty,
+  startGamePlusMinus,
   startGameTictactoe,
 } from "../utils/firebase/FirebaseUtil";
 import {
@@ -46,8 +47,6 @@ import EffectBorder from "../components/EffectBorder";
 import { setBingoInitial } from "../store/reducers/bingo/bingoSlice";
 import React from "react";
 import * as Progress from 'react-native-progress';
-
-// import Roulette from "react-native-casino-roulette";
 
 const screenHeight = Dimensions.get("window").height;
 const defaultAvatar = require("../assets/images/default1.png");
@@ -216,6 +215,12 @@ const GameWaitingScreen = () => {
     }, [gameRoomId])
   );
 
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(setMainGameStart(false));
+    }, [])
+  )
+
   useEffect(() => {
     if(mainGameStart) {
       if(penaltyGameType == GameType.Bingo) {
@@ -224,6 +229,8 @@ const GameWaitingScreen = () => {
         startTictactoe_();
       } else if(penaltyGameType == GameType.HighLow) {
         startHighLow_();
+      } else if(penaltyGameType == GameType.PlusMinus) {
+        startPlusMinus_();
       }
     }
   }, [penaltyGameType, mainGameStart])
@@ -298,6 +305,13 @@ const GameWaitingScreen = () => {
         dispatch(setPenaltyGameType(GameType.HighLow));
         navigator.navigate("penaltyAB");
       } catch (error) {}
+    } else if (pressedGameType == GameType.PlusMinus) {
+      try {
+        dispatch(setPenaltyGameType(GameType.PlusMinus));
+        navigator.navigate("penaltyAB");
+      } catch (error) {
+        console.log(error);
+      }
     }
   };
 
@@ -324,7 +338,6 @@ const GameWaitingScreen = () => {
     if (!turnPlayerId) return false;
 
     dispatch(setBingoInitial(null));
-
     await startGameBingo(gameRoomId, turnPlayerId);
   };
 
@@ -354,6 +367,10 @@ const GameWaitingScreen = () => {
   const startHighLow_ = async () => {
     await startGameHighLow(gameRoomId);
   };
+
+  const startPlusMinus_ = async () => {
+    startGamePlusMinus(gameRoomId)
+  }
 
   const setGameRoomOpen_ = async () => {
     setGameRoomOpen(gameRoomId, !gameRoomOpened);
@@ -569,7 +586,13 @@ const GameWaitingScreen = () => {
               </EffectBorder>
 
               <EffectBorder style={{ width: "80%", marginTop: 10 }}>
-                <TouchableOpacity style={styles.modalGameListButton}>
+                <TouchableOpacity style={styles.modalGameListButton}
+                  onPress={() => {
+                    setPressedGameType(GameType.PlusMinus);
+                    setGameListModalVisible(false);
+                    setSortModalVisible(true);
+                  }}
+                >
                   <Text style={styles.textTitle}>足し算引き算</Text>
                 </TouchableOpacity>
               </EffectBorder>
@@ -790,7 +813,7 @@ const GameWaitingScreen = () => {
                 >
                   <View style={{marginBottom: 20}}>
                     <Text style={{color:'white', fontSize: 20}}>
-                      順番が決まりました1。
+                      順番が決まりました。
                     </Text>
                   </View>
                   <FlatList
@@ -873,9 +896,22 @@ const GameWaitingScreen = () => {
           /> */}
 
           <Text style={{ fontSize: 20, color: "grey" }}>ルーム名：</Text>
-          <Text style={{ fontSize: 30, color: "white" }}>
-            {gameRoomDisplayName}
-          </Text>
+          <Tooltip
+          width={300}
+            popover={
+              <Text style={styles.tooltipText}>
+                {gameRoomDisplayName}
+              </Text>
+            }
+            backgroundColor="#333"
+            withOverlay={false}
+            highlightColor="#000"
+          >
+            <Text style={{ fontSize: 30, color: "white" }} numberOfLines={1}>
+              {gameRoomDisplayName}
+            </Text>
+          </Tooltip>
+          
         </View>
         {/* {isHost && (
           <TouchableOpacity
@@ -1217,6 +1253,10 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "white",
+  },
+  tooltipText: {
+    fontSize: 14,
+    color: 'white',
   },
 });
 

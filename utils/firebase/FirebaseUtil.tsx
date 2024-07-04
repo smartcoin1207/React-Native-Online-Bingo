@@ -39,7 +39,7 @@ import {
   updateProfile,
   signOut,
 } from "firebase/auth";
-import { isArray, update } from "lodash";
+import { isArray, result, update } from "lodash";
 import { cloneElement } from "react";
 import { PerfLogger } from "metro-config";
 
@@ -48,6 +48,7 @@ const gameTable = "games";
 const bingoTable = "bingos";
 const penaltyTable = "penalty";
 const gamePenaltyTable = "gamepenalty";
+const plusMinusTable = "plusminus";
 
 //SignIn to Firebase
 export const signInAuthUser = (email: string, password: string) => {
@@ -129,7 +130,7 @@ export const signOutAuthUser = () => {
  * @param {GameRoomsCallBackFunction} callback - callback function to handle data from firestore
  * @returns {void}
  */
-export const getWaitingGameRooms = ( searchQuery: string,  callback: GameRoomsCallBackFunction): UnsubscribeOnsnapCallbackFunction => {
+export const getWaitingGameRooms = ( authUid: string, searchQuery: string,  callback: GameRoomsCallBackFunction): UnsubscribeOnsnapCallbackFunction => {
   try {
     let q;
     if(searchQuery) {
@@ -143,18 +144,18 @@ export const getWaitingGameRooms = ( searchQuery: string,  callback: GameRoomsCa
     } else {
        q = query(
         collection(db, gameTable),
-        where("gameRoomOpened", "==", true)
+        where("gameRoomOpened", "==", true),
       );
     }
 
     return onSnapshot(q, async (snapshot) => {
-      const promises = snapshot.docs.map(async (document) => {
+      const promises = snapshot.docs.filter((document) => document.data().uid !== authUid)
+      .map(async (document) => {
         // document id of bingo collection
         const gameRoomId = document.id;
 
         // user id of the bingo game host
         const uid = document.data().uid;
-
         const hostRef = doc(collection(db, userTable), uid);
         const hostUser = await getDoc(hostRef);
         const hostUserInfo = hostUser.data();
@@ -201,6 +202,16 @@ export const createGameRoom = async (
   password: string
 ) => {
   try {
+    // Check if a game room exists for the given uid
+    const existingGameRoom = await getDocs(query(collection(db, gameTable), where("uid", "==", uid)));
+
+    // If an existing game room is found, delete it
+    if (!existingGameRoom.empty) {
+      existingGameRoom.forEach(async (doc) => {
+        await deleteDoc(doc.ref);
+      });
+    }
+
     const subscribers = [uid];
     const subscriberPromises = subscribers.map((subscriberId) =>
       doc(collection(db, userTable), subscriberId)
@@ -416,6 +427,8 @@ export const startGameBingo = async (
       bingoCompleted: [],
     });
 
+    
+
     console.log(
       'New document added to "bingos" collection with ID:',
       newBingoDocRef.id
@@ -515,7 +528,6 @@ export const setBingoNextNumberUpdate = async (
  */
 export const setBingoRoundEnd = async (
   gameRoomId: string,
-  // : string
 ) => {
   console.log("setBingoRioundEnd");
   const docRef = doc(db, bingoTable, gameRoomId);
@@ -549,10 +561,10 @@ export const setBingoNextRound = async (
 
   try {
     await updateDoc(docRef, {
+      bingoCompleted: [],
       bingoCompletedHistory: arrayUnion(JSON.stringify(newHistory)),
       bingoRound: bingoRound,
       bingoRoundEnd: false,
-      bingoCompleted: [],
       bingoCompletedObj: [],
       turnPlayerId: turnPlayerId,
       bingoNextNumber: "",
@@ -561,7 +573,6 @@ export const setBingoNextRound = async (
     console.log(error);
   }
 };
-
 
 /**
  * 
@@ -1041,3 +1052,103 @@ export const startGameHighLow = async (
     console.log("game error");
   }
 };
+
+/** ------------------plus minus firestore functions------------------------ */
+export const getPlusMinusFirestore = (gameRoomId: string, callback: any) : UnsubscribeOnsnapCallbackFunction => {
+  if (!gameRoomId) {
+    return () => {};
+  }
+
+  const docRef = doc(db, plusMinusTable, gameRoomId);
+
+  return onSnapshot(docRef, {
+    next: (document) => {
+      if (document.exists()) {
+        const plusMinus = document.data();
+        callback(plusMinus);
+      } else {
+        console.log("in getPlusMinusFirestore Function() Document does not exist");
+        callback(false);
+      }
+    },
+    error: (error) => {
+      console.error("In getPlusMinusFirestore() Function, Error fetching bingo:", error);
+      callback(false); // Pass the error to the callback function
+    },
+  });
+};
+
+export const setPlusMinusNewProblemFirestore = async (
+  gameRoomId: string, firstNum: number, secondNum: number, operator: string, resultPattern: string, proNum: number, resultOptions: Array<number> ) => {
+  if (!gameRoomId) return false;
+
+  const docRef = doc(db, plusMinusTable, gameRoomId);
+  try {
+    await updateDoc(docRef, {
+      firstNum: firstNum,
+      secondNum: secondNum,
+      operator: operator,
+      resultPattern: resultPattern,
+      problemResult: [],
+      proNum: proNum,
+      resultOptions: resultOptions,
+    });
+    console.log("setPlusMinusNewProblemFirestore")
+  } catch (error) {
+
+  }
+};
+
+export const setPlusMinusSubmitResultFirestore = async (
+  gameRoomId: string, uid:string, resultValue: number ) => {
+  if (!gameRoomId) return false;
+
+  const docRef = doc(db, plusMinusTable, gameRoomId);
+  const result = {
+    uid: uid,
+    result: resultValue,
+  };
+  try {
+    await updateDoc(docRef, {
+      problemResult: arrayUnion(result)
+    });
+  } catch (error) {
+    console.log("game error1");
+  }
+};
+
+export const startGamePlusMinus = async (
+  gameRoomId: string,
+) => {
+  if (!gameRoomId) return false;
+
+  const docRef = doc(db, gameTable, gameRoomId);
+  try {
+    await updateDoc(docRef, {
+      gameStarted: true,
+      gameType: GameType.PlusMinus,
+      gameRoomOpened: false,
+    });
+  } catch (error) {
+    console.log("game error");
+  }
+};
+
+export const startPlusMinusFirestore = async (
+  gameRoomId: string
+) => {
+  if(!gameRoomId) return false;
+
+  try {
+    const newGamePlusMinusDocRef = doc(
+      collection(db, plusMinusTable),
+      gameRoomId
+    );
+
+    await setDoc(newGamePlusMinusDocRef, {
+      proNum: 0
+    });
+  } catch (error) {
+    
+  }
+}
