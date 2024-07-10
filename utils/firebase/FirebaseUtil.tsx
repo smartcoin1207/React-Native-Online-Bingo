@@ -1093,7 +1093,6 @@ export const setPlusMinusNewProblemFirestore = async (
       proNum: proNum,
       resultOptions: resultOptions,
     });
-    console.log("setPlusMinusNewProblemFirestore")
   } catch (error) {
 
   }
