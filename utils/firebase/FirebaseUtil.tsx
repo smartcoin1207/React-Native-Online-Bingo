@@ -32,6 +32,9 @@ import {
   UnsubscribeOnsnapCallbackFunction,
   User,
   setBingoCompletedPlayerParams,
+  PlusMinusCurrentProblem,
+  Operator,
+  ResultPattern,
 } from "../Types";
 import {
   createUserWithEmailAndPassword,
@@ -42,6 +45,7 @@ import {
 import { isArray, result, update } from "lodash";
 import { cloneElement } from "react";
 import { PerfLogger } from "metro-config";
+import { async } from "@firebase/util";
 
 const userTable = "users";
 const gameTable = "games";
@@ -1079,19 +1083,25 @@ export const getPlusMinusFirestore = (gameRoomId: string, callback: any) : Unsub
 };
 
 export const setPlusMinusNewProblemFirestore = async (
-  gameRoomId: string, firstNum: number, secondNum: number, operator: string, resultPattern: string, proNum: number, resultOptions: Array<number> ) => {
+  gameRoomId: string, firstNum: number, secondNum: number, operator: Operator, resultPattern: ResultPattern, proNum: number, resultOptions: Array<number> ) => {
   if (!gameRoomId) return false;
 
   const docRef = doc(db, plusMinusTable, gameRoomId);
+  
+  const currentProblem: PlusMinusCurrentProblem = {
+    proNum: proNum,
+    firstNum: firstNum,
+    secondNum: secondNum,
+    operator: operator,
+    resultPattern: resultPattern,
+    resultOptions: resultOptions,
+  }
+
   try {
     await updateDoc(docRef, {
-      firstNum: firstNum,
-      secondNum: secondNum,
-      operator: operator,
-      resultPattern: resultPattern,
-      problemResult: [],
+      currentProblem: currentProblem,
       proNum: proNum,
-      resultOptions: resultOptions,
+      currentProblemScores: []
     });
   } catch (error) {
 
@@ -1109,7 +1119,7 @@ export const setPlusMinusSubmitResultFirestore = async (
   };
   try {
     await updateDoc(docRef, {
-      problemResult: arrayUnion(result)
+      currentProblemScores: arrayUnion(result)
     });
   } catch (error) {
     console.log("game error1");
@@ -1149,5 +1159,19 @@ export const startPlusMinusFirestore = async (
     });
   } catch (error) {
     
+  }
+}
+
+export const deletePlusMinusFirestore = async (
+  gameRoomId: string
+) => {
+  if(!gameRoomId) return false;
+
+  try {
+    const docRef = doc(collection(db, plusMinusTable), gameRoomId);
+
+    await deleteDoc(docRef);
+  } catch (error) {
+    console.log(error)
   }
 }

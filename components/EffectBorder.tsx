@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { View } from "react-native";
 import { customColors } from "../utils/Color";
+import React from "react";
 
 interface EffectBorderProps {
     style: any;

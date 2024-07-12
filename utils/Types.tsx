@@ -130,5 +130,23 @@ export interface PlusMinusResultType {
     result: string
 }
 
+export enum Operator {
+    plus = "+",
+    minus = "-",
+  }
+
+export enum ResultPattern {
+    input = 'input',
+    option = 'option'
+  }
+
+export interface PlusMinusCurrentProblem {
+    proNum: number,
+    firstNum: number, 
+    secondNum: number,
+    operator: Operator,
+    resultPattern: ResultPattern,
+    resultOptions: number[],
+}
 //Firebase Util Functions Parameters type
 

@@ -4,15 +4,18 @@ import { Text } from "react-native-elements";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { exitGameRoom, getGamePenalty, getGameRoom, getPlusMinusFirestore, setMoveGameRoom, setPlusMinusNewProblemFirestore, setPlusMinusSubmitResultFirestore, startPlusMinusFirestore } from "../utils/firebase/FirebaseUtil";
+import { deletePlusMinusFirestore, exitGameRoom, getGamePenalty, getGameRoom, getPlusMinusFirestore, setMoveGameRoom, setPlusMinusNewProblemFirestore, setPlusMinusSubmitResultFirestore, startPlusMinusFirestore } from "../utils/firebase/FirebaseUtil";
 import { setGameRoomInitial } from "../store/reducers/bingo/gameRoomSlice";
-import { GameType, Player, PlusMinusResultType, UnsubscribeOnsnapCallbackFunction } from "../utils/Types";
-import { generateRandomNumber, generateRandomNumber01 } from "../utils/Utils";
+import { GameType, Player, PlusMinusCurrentProblem, PlusMinusResultType, UnsubscribeOnsnapCallbackFunction } from "../utils/Types";
+import { generateRandomNumber, generateRandomNumber01, generateResultOptionValues } from "../utils/Utils";
 import { first, result } from "lodash";
 import { customColors } from "../utils/Color";
 import { setPenaltyInitial } from "../store/reducers/bingo/penaltySlice";
 import * as Progress from 'react-native-progress';
 import InputSpinner from "react-native-input-spinner";
+import { styles } from "../utils/Styles";
+import PlusMinusSettingModal from "../components/plusminus/PlusMinusSettingModal";
+import PlusMinusValueButton from "../components/plusminus/PlusMinusValueButton";
 
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get("window");
 
@@ -45,12 +48,22 @@ const PlusMinusScreen: React.FC = () => {
   const [secondNum, setSecondNum] = useState<number>(0);
   const [operator, setOperator] = useState<Operator>(Operator.plus);
   const [resultPattern, setResultPattern] = useState<ResultPattern>(ResultPattern.input);
-  const [totalProNum, setTotalProNum] = useState<number>(0);
-  const [timing, setTiming] = useState<number>(5); // limit time by second
+  const [resultOptions, setResultOptions] = useState<number[]>([]);
+
+  const [timing, setTiming] = useState<number>(10);
+  const [autoNextProblemActive, setAutoNextProblemActive] = useState<boolean>(false);
+  const [problemTypeOptionActive, setProblemTypeOptionActive] = useState<boolean>(false);
+
+  const [nextProblemButtonDisplay, setNextProblemButtonDisplay] = useState<boolean>(false);
+  const [problemScoreStyle, setProblemScoreStyle] = useState<any>(null);
+
   const [proNum, setProNum] = useState<number>(0);
-  const [currentProblemResult, setCurrentProblemResult] = useState<PlusMinusResultType[]>([]);
+  const [currentProblemScores, setCurrentProblemScores] = useState<PlusMinusResultType[]>([]);
   const [submited, setSubmited] = useState<boolean>(false);
   const submitedRef = useRef(submited);
+
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [progressRate, setProgressRate] = useState(0);
 
   const [calResult, setCalResult] = useState<string>('');
 
@@ -58,22 +71,22 @@ const PlusMinusScreen: React.FC = () => {
   const [subscribers, setSubscribers] = useState<Player[]>([]);
 
   const [exitModalVisible, setExitModalVisible] = useState<boolean>(false);
-  const [progressRate, setProgressRate] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [waitModalVisible, setWaitModalVisible] = useState<boolean>(true);
 
+  //pelanty variables
   const [penaltyAList, setPenaltyAList] = useState<any[]>([]);
   const [penaltyB, setPenaltyB] = useState<any>();
   const [isPatternASet, setIsPatternASet] = useState<boolean>(false);
   const [isPatternBSet, setIsPatternBSet] = useState<boolean>(false);
   const [isSubPattern1, setIsSubPattern1] = useState<boolean>(false);
   const [isSubPattern3, setIsSubPattern3] = useState<boolean>(false);
-  const [penaltyRunCount, setPenaltyRunCount] = useState<number>(1);
+  const [penaltyRunCount, setPenaltyRunCount] = useState<number>(20);
 
   /** ------------------------------useEffect functions------------------------------------  */
   //gameRoom monitoring
   useFocusEffect(
     useCallback(() => {
-      const unsubscribe: UnsubscribeOnsnapCallbackFunction = getGameRoom(gameRoomId, (gameRoom: any) => {
+      const unsubscribe1: UnsubscribeOnsnapCallbackFunction = getGameRoom(gameRoomId, (gameRoom: any) => {
         if (!gameRoom) {
           dispatch(setGameRoomInitial(null));
           navigation.navigate("gameRoomList");
@@ -97,43 +110,59 @@ const PlusMinusScreen: React.FC = () => {
         }
       })
 
-      return unsubscribe;
+      return unsubscribe1;
     }, [])
   )
 
   //realtime monitoring for plusminus 
   useFocusEffect(
     useCallback(() => {
-      const unsubscribe: UnsubscribeOnsnapCallbackFunction = getPlusMinusFirestore(gameRoomId, (plusMinus: any) => {
-        const firstNum = plusMinus?.firstNum;
-        const secondNum = plusMinus?.secondNum;
-        const operator = plusMinus?.operator;
-        const resultPattern = plusMinus?.resultPattern;
-        const proNum1 = plusMinus?.proNum;
-        const problemResult: PlusMinusResultType[] = plusMinus?.problemResult || [];
+      const unsubscribe2: UnsubscribeOnsnapCallbackFunction = getPlusMinusFirestore(gameRoomId, (plusMinus: any) => {
+        const proNum = plusMinus?.proNum as number;
+        if (proNum) {
+          setWaitModalVisible(false);
+        }
+
+        const currentProblem: PlusMinusCurrentProblem = plusMinus?.currentProblem || null;
+        const firstNum = currentProblem?.firstNum;
+        const secondNum = currentProblem?.secondNum;
+        const operator: Operator = currentProblem?.operator;
+        const resultPattern: ResultPattern = currentProblem?.resultPattern;
+        const resultOptions: number[] = currentProblem?.resultOptions;
+        const currentProblemScores: PlusMinusResultType[] = plusMinus?.currentProblemScores || [];
 
         setFirstNum(firstNum);
         setSecondNum(secondNum);
         setOperator(operator);
         setResultPattern(resultPattern);
-        setProNum(proNum1);
-        setCurrentProblemResult(problemResult);
-        console.log("unsubscribe:", proNum1)
+        setResultOptions(resultOptions);
+        setProNum(proNum);
+        setCurrentProblemScores(currentProblemScores);
+        console.log("unsubscribe:", proNum)
 
-        if (isHost && subscribers.length == problemResult.length) {
-          if (proNum1 >= penaltyRunCount) {
-            handleFinishedGame();
+        if (isHost && subscribers.length == currentProblemScores.length) {
+          if(isHost) {
+            if (proNum >= penaltyRunCount) {
+              handleFinishedGame();
+            } else {
+              if (autoNextProblemActive) {
+                setNextProblemButtonDisplay(false);
+                handleNextProblem(proNum);
+              } else {
+                setNextProblemButtonDisplay(true);
+              }
+            }
           } else {
-            handleNextProblem(proNum1);
-          }
+            // setNextProblemButtonDisplay(true);
+          }         
         }
       })
 
-      return unsubscribe;
+      return unsubscribe2;
     }, [subscribers, penaltyRunCount])
   )
 
-  //get penalty 
+  // //get penalty 
   useEffect(() => {
     const fetchGamePenaltyData = async () => {
       const gamePenaltyData = await getGamePenalty(gameRoomId);
@@ -163,10 +192,10 @@ const PlusMinusScreen: React.FC = () => {
   }, [JSON.stringify(currentGameRoom)]);
 
   useEffect(() => {
-    if (isHost) {
-      startPlusMinusFirestore(gameRoomId);
-      handleNextProblem(0);
-    }
+    // if (isHost) {
+    //   startPlusMinusFirestore(gameRoomId);
+    //   handleNextProblem(0);
+    // }
   }, [])
 
   useEffect(() => {
@@ -174,10 +203,13 @@ const PlusMinusScreen: React.FC = () => {
   }, [submited]);
 
   useEffect(() => {
+    setProblemScoreStyle({ borderColor: '', borderWidth: 0 });
+
     if (proNum > 0) {
       setSubmited(false);
       setCalResult('');
       progressInterval();
+      setNextProblemButtonDisplay(false);
 
       // Set new timer
       const newTimerId = setTimeout(() => {
@@ -206,28 +238,21 @@ const PlusMinusScreen: React.FC = () => {
   )
 
   /** ----------------------------- Functions ------------------------------ */
-  // const 
-  const generateResultOptionValues = (num1: number, num2: number, operator: Operator) => {
-    // Calculate the correct result
-    let correctResult;
-    if (operator === '+') {
-      correctResult = num1 + num2;
-    } else {
-      correctResult = num1 - num2;
-    }
+  const handleGameStart = (timingNumber: number, autoNextProblemActive: boolean, problemTypeOptionActive: boolean) => {
+    setTiming(timingNumber);
+    setAutoNextProblemActive(autoNextProblemActive);
+    setProblemTypeOptionActive(problemTypeOptionActive);
 
-    // Generate two similar incorrect results
-    const incorrectResult1_temp = correctResult + Math.floor(Math.random() * 10) - 5; // Close to correct result
-    const incorrectResult1 = incorrectResult1_temp == correctResult ? correctResult + 1 : incorrectResult1_temp;
+    console.log(timingNumber, autoNextProblemActive, problemTypeOptionActive);
 
-    const incorrectResult2_temp = correctResult + Math.floor(Math.random() * 10) - 5; // Close to correct result
-    const incorrectResult2 = (incorrectResult2_temp == correctResult || incorrectResult2_temp == incorrectResult1) ? correctResult + 1 : incorrectResult2_temp;
+    startPlusMinusFirestore(gameRoomId);
+    handleNextProblem(0);
+  }
 
-    // Shuffle the result values
-    const resultValues = [correctResult, incorrectResult1, incorrectResult2].sort(() => Math.random() - 0.5);
-
-    return resultValues;
-  };
+  //only host
+  const handleNextProblem = (proNum: number) => {
+    createNewProblemByRandom(proNum);
+  }
 
   //only host
   const createNewProblemByRandom = (proNum_: number) => {
@@ -243,33 +268,46 @@ const PlusMinusScreen: React.FC = () => {
     setPlusMinusNewProblemFirestore(gameRoomId, num1, num2, operator, resultPattern, proNum_ + 1, resultOptions);
   }
 
-  //only host
-  const handleNextProblem = (proNum_: number) => {
-    createNewProblemByRandom(proNum_);
-  }
-
   //will be called by all user
-  const handleSubmitResult = (auto: boolean) => {
-    const currentDate = new Date();
-    const hours = currentDate.getHours();
-    const minutes = currentDate.getMinutes();
-    const seconds = currentDate.getSeconds();
-    const formattedTime = `${hours}:${minutes}:${seconds}`;
+  const handleSubmitResult = (auto: boolean, value?: number) => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
 
     if (!submitedRef.current) {
       let x = 0;
       let resultValue = 0;
 
-      if (!auto) {
-        if (operator == Operator.plus) {
-          x = firstNum + secondNum
-        } else {
-          x = firstNum - secondNum
+      if (operator == Operator.plus) {
+        x = firstNum + secondNum
+      } else {
+        x = firstNum - secondNum
+      }
+
+      if (value) {
+        if (value == x) {
+          resultValue = 1;
+        }
+      } else if (!auto) {
+        if (parseInt(calResult, 10) == x) {
+          resultValue = 1;
+        }
+      }
+
+      if (resultValue == 1) {
+        const style = {
+          borderColor: customColors.customLightBlue1,
+          borderWidth: 2
         }
 
-        if (parseInt(calResult, 10) == x) {
-          resultValue = 1
+        setProblemScoreStyle(style);
+      } else {
+        const style = {
+          borderColor: customColors.blackRed,
+          borderWidth: 2
         }
+
+        setProblemScoreStyle(style)
       }
 
       const uid = authUser.uid;
@@ -281,13 +319,13 @@ const PlusMinusScreen: React.FC = () => {
   }
 
   const handleFinishedGame = () => {
-
+    console.log("game finished")
   }
 
   const progressInterval = () => {
     setProgressRate(0);
 
-    if(intervalRef.current) {
+    if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
 
@@ -295,7 +333,7 @@ const PlusMinusScreen: React.FC = () => {
       setProgressRate((prevProgress) => {
         const newProgress = prevProgress + (0.2 / timing);
         if (newProgress >= 1) {
-          if(intervalRef.current) {
+          if (intervalRef.current) {
             clearInterval(intervalRef.current);
           }
 
@@ -306,7 +344,7 @@ const PlusMinusScreen: React.FC = () => {
     }, 200);
 
     return () => {
-      if(intervalRef.current) {
+      if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
     }
@@ -314,6 +352,7 @@ const PlusMinusScreen: React.FC = () => {
 
   const exitGame = () => {
     if (isHost) {
+      deletePlusMinusFirestore(gameRoomId);
       setMoveGameRoom(gameRoomId, GameType.Room);
       dispatch(setPenaltyInitial(null));
       navigation.navigate("currentRoom", { isHostParam: isHost, gameRoomIdParam: gameRoomId });
@@ -345,7 +384,7 @@ const PlusMinusScreen: React.FC = () => {
       <View
         style={{
           width: "97%",
-          padding: 10,
+          // padding: 10,
           borderRadius: 20,
           backgroundColor: customColors.customDarkBlueBackground,
           alignItems: "center",
@@ -353,78 +392,129 @@ const PlusMinusScreen: React.FC = () => {
           flex: 1,
         }}
       >
-        <Progress.Bar progress={progressRate} width={viewportWidth - 20} style={{ position: 'absolute', top: 10 }} />
-        <View>
-          <View style={{ flexDirection: "row", justifyContent: 'space-around', width: '100%' }}>
-            <View
-              style={{
-                borderColor: "white",
-                borderWidth: 1,
-                borderRadius: 40,
-                width: 80,
-                height: 80,
-                justifyContent: 'center'
-              }}
-            >
-              <Text style={[styles.numberText]}>{firstNum}</Text>
-            </View>
-            <View
-              style={{
-                justifyContent: 'center'
-              }}
-            >
-              <Text style={[styles.numberText, { fontSize: 40 }]}>{operator}</Text>
-            </View>
-            <View
-              style={{
-                borderColor: "white",
-                borderWidth: 1,
-                borderRadius: 40,
-                width: 80,
-                height: 80,
-                justifyContent: 'center'
-              }}
-            >
-              <Text style={styles.numberText}>{secondNum}</Text>
-            </View>
-            <View
-              style={{
-                justifyContent: 'center'
-              }}
-            >
-              <Text style={[styles.numberText, { fontSize: 40 }]}>=</Text>
-            </View>
-            <View
-              style={{
-                borderColor: "white",
-                borderWidth: 1,
-                borderRadius: 40,
-                width: 80,
-                height: 80,
-                justifyContent: 'center'
-              }}
-            >
-              <TextInput
-                style={styles.input}
-                placeholderTextColor={customColors.blackGrey}
-                value={calResult}
-                onChangeText={(text) => {
-                  setCalResult(text);
+        <View style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: "space-evenly",
+          flex: 1,
+          borderRadius: 10,
+          borderColor: problemScoreStyle?.borderColor || '#00000000',
+          borderWidth: problemScoreStyle?.borderWidth || 0
+        }}>
+          <View
+            style={{
+              display: problemScoreStyle?.borderWidth ? "flex" : "none",
+              backgroundColor: '#0000004a',
+              flex: 1,
+              position: "absolute",
+              top: 0,
+              bottom: 0,
+              left: 0,
+              right: 0,
+              zIndex: 10,
+            }}
+          ></View>
+          <View>
+            <Text style={{ color: 'white', fontSize: 20, fontWeight: '500' }}>
+              問題番号{proNum}
+            </Text>
+          </View>
+          <Progress.Bar progress={progressRate} width={viewportWidth - 25} height={5} style={{ position: 'absolute', top: 10 }} />
+          <View>
+            <View style={{ flexDirection: "row", justifyContent: 'space-between', width: '100%', paddingHorizontal: 10 }}>
+              <View
+                style={{
+                  borderColor: "white",
+                  borderWidth: 1,
+                  borderRadius: 40,
+                  width: 80,
+                  height: 80,
+                  justifyContent: 'center'
                 }}
-                keyboardType="numeric"
-              />
+              >
+                <Text style={[styles.numberText]}>{firstNum}</Text>
+              </View>
+              <View
+                style={{
+                  justifyContent: 'center'
+                }}
+              >
+                <Text style={[styles.numberText, { fontSize: 40 }]}>{operator}</Text>
+              </View>
+              <View
+                style={{
+                  borderColor: "white",
+                  borderWidth: 1,
+                  borderRadius: 40,
+                  width: 80,
+                  height: 80,
+                  justifyContent: 'center'
+                }}
+              >
+                <Text style={styles.numberText}>{secondNum}</Text>
+              </View>
+              <View
+                style={{
+                  justifyContent: 'center'
+                }}
+              >
+                <Text style={[styles.numberText, { fontSize: 40 }]}>=</Text>
+              </View>
+              <View
+                style={{
+                  borderColor: "white",
+                  borderWidth: 1,
+                  borderRadius: 40,
+                  width: 80,
+                  height: 80,
+                  justifyContent: 'center'
+                }}
+              >
+                <TextInput
+                  style={styles.input}
+                  placeholderTextColor={customColors.blackGrey}
+                  value={calResult}
+                  onChangeText={(text) => {
+                    setCalResult(text);
+                  }}
+                  keyboardType="numeric"
+                />
+              </View>
             </View>
           </View>
+          {resultPattern == ResultPattern.input ? (
+            <View>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => handleSubmitResult(false)}
+              >
+                <Text style={styles.textTitle}>決定</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', width: '100%' }}>
+              {
+                resultOptions?.map((option, index) => {
+                  return <PlusMinusValueButton key={index} value={option} onButtonClick={handleSubmitResult} />
+                })
+              }
+            </View>
+          )}
         </View>
 
-        <View>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => handleSubmitResult(false)}
-          >
-            <Text style={styles.textTitle}>決定</Text>
-          </TouchableOpacity>
-        </View>
+
+        {(isHost && nextProblemButtonDisplay) && (
+          <View style={{ marginVertical: 20 }}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => { handleNextProblem(proNum);  }}
+            >
+              <Text style={styles.textTitle}>次の問題</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
       </View>
 
       <Modal
@@ -465,217 +555,10 @@ const PlusMinusScreen: React.FC = () => {
           </View>
         </View>
       </Modal>
+
+      <PlusMinusSettingModal isHost={isHost} visible={waitModalVisible} handleGameStart={handleGameStart} />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: customColors.black,
-    paddingTop: 35,
-    width: "100%",
-  },
-
-  profile: {
-    justifyContent: "center",
-    textAlign: "center",
-    alignItems: "center",
-    backgroundColor: "black",
-    borderRadius: 20,
-    padding: 10,
-    paddingHorizontal: 20,
-  },
-
-  button: {
-    backgroundColor: customColors.customDarkBlue1,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    marginHorizontal: 4,
-    borderRadius: 30,
-    borderWidth: 0.8,
-    borderColor: customColors.customLightBlue1,
-  },
-
-  textTitle: {
-    fontSize: 25,
-    color: customColors.white,
-    fontFamily: "serif",
-    fontWeight: "700",
-    textAlign: "center",
-    letterSpacing: 10
-  },
-
-  playerItem: {
-    display: "flex",
-    position: "relative",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "100%",
-    marginVertical: 3,
-    padding: 10,
-    paddingHorizontal: 10,
-    backgroundColor: customColors.customDarkBlue,
-    borderWidth: 0.8,
-    borderColor: customColors.customDarkGreen1,
-    borderRadius: 10,
-  },
-
-  nameTitle: {
-    color: customColors.white,
-    fontSize: 20,
-  },
-
-  ItemStatus: {
-    fontSize: 15,
-    color: customColors.white,
-  },
-
-  joinBtn: {
-    display: "flex",
-    backgroundColor: customColors.customLightBlue,
-    padding: 6,
-    marginVertical: 4,
-    borderRadius: 6,
-  },
-
-  joinBtnText: {
-    fontSize: 16,
-    color: customColors.white,
-    fontFamily: "serif",
-    fontWeight: "700",
-    textAlign: "center",
-  },
-
-  listTitle: {
-    fontSize: 25,
-    color: "white",
-    fontFamily: "serif",
-    fontWeight: "700",
-    textAlign: "center",
-  },
-
-  FlatListStyle: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: customColors.customLightBlue1,
-    borderRadius: 20,
-    backgroundColor: customColors.customDarkBlueBackground,
-    alignItems: "center",
-    paddingTop: 30,
-    paddingBottom: 5,
-    paddingHorizontal: 6,
-    marginTop: 30,
-    width: "96%",
-  },
-
-  divider: {
-    borderBottomColor: customColors.blackGrey,
-    borderBottomWidth: 1,
-    marginVertical: 10,
-    width: "100%",
-  },
-  modalBody: {
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: customColors.modalContainerBackgroundColor,
-    paddingHorizontal: 15,
-    paddingVertical: 50,
-    borderWidth: 1,
-    borderColor: customColors.blackGrey,
-    borderRadius: 20,
-    width: "80%",
-  },
-  modalRoomTitleText: {
-    fontSize: 22,
-    color: customColors.white,
-    fontFamily: "serif",
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  modalOkBtn: {
-    backgroundColor: customColors.customLightBlue,
-    paddingVertical: 8,
-    paddingHorizontal: 6,
-    padding: 4,
-    marginHorizontal: 4,
-    marginVertical: 4,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: customColors.white,
-  },
-  modalCancelBtn: {
-    backgroundColor: customColors.blackGrey,
-    paddingVertical: 8,
-    paddingHorizontal: 6,
-    padding: 4,
-    marginHorizontal: 4,
-    marginVertical: 4,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: customColors.white,
-  },
-  roomModalButtonText: {
-    fontSize: 16,
-    color: customColors.white,
-    fontFamily: "serif",
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  completedText: {
-    fontSize: 30,
-    color: customColors.white,
-    width: "90%",
-    fontFamily: "serif",
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  roomModalBtns: {
-    flexDirection: "row",
-    width: "80%",
-    justifyContent: "space-between",
-  },
-  input: {
-    fontSize: 30,
-    color: customColors.white,
-    fontWeight: '700',
-    width: 80,
-    height: 80,
-    textAlign: 'center'
-  },
-  modalText: {
-    fontSize: 16,
-    color: customColors.white,
-    fontFamily: "serif",
-    alignItems: "flex-start",
-    marginBottom: 5,
-  },
-  errText: {
-    color: customColors.blackRed,
-    fontSize: 16,
-  },
-  tooltipText: {
-    fontSize: 14,
-    color: 'white',
-  },
-
-  modalOkText: {
-    fontSize: 16,
-    color: "white",
-    fontFamily: "serif",
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  numberText: {
-    fontSize: 30,
-    color: 'white',
-    textAlign: 'center',
-    fontWeight: '700'
-  }
-});
 
 export default PlusMinusScreen;

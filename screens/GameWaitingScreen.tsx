@@ -1006,6 +1006,7 @@ const GameWaitingScreen = () => {
           <TouchableOpacity
             style={styles.successButton}
             onPress={() => {
+              // navigator.navigate("plusminus");
               setGameListModalVisible(true);
             }}
           >
