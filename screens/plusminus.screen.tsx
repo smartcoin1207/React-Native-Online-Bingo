@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { BackHandler, Dimensions, Modal, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import { BackHandler, Dimensions, TextInput, TouchableOpacity, View } from "react-native";
 import { Text } from "react-native-elements";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { deletePlusMinusFirestore, exitGameRoom, getGamePenalty, getGameRoom, getPlusMinusFirestore, setMoveGameRoom, setPlusMinusNewProblemFirestore, setPlusMinusSubmitResultFirestore, startPlusMinusFirestore } from "../utils/firebase/FirebaseUtil";
+import { addPlusMinusHistoryFirestore, deletePlusMinusFirestore, exitGameRoom, getGamePenalty, getGameRoom, getPlusMinusFirestore, getPlusMinusHistoriesFirestore, setMoveGameRoom, setPlusMinusNewProblemFirestore, setPlusMinusSubmitResultFirestore, startPlusMinusFirestore } from "../utils/firebase/FirebaseUtil";
 import { setGameRoomInitial } from "../store/reducers/bingo/gameRoomSlice";
 import { GameType, Player, PlusMinusCurrentProblem, PlusMinusResultType, UnsubscribeOnsnapCallbackFunction } from "../utils/Types";
 import { generateRandomNumber, generateRandomNumber01, generateResultOptionValues } from "../utils/Utils";
@@ -16,6 +16,7 @@ import InputSpinner from "react-native-input-spinner";
 import { styles } from "../utils/Styles";
 import PlusMinusSettingModal from "../components/plusminus/PlusMinusSettingModal";
 import PlusMinusValueButton from "../components/plusminus/PlusMinusValueButton";
+import ConfirmModal from "../components/ConfirmModal";
 
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get("window");
 
@@ -49,6 +50,8 @@ const PlusMinusScreen: React.FC = () => {
   const [operator, setOperator] = useState<Operator>(Operator.plus);
   const [resultPattern, setResultPattern] = useState<ResultPattern>(ResultPattern.input);
   const [resultOptions, setResultOptions] = useState<number[]>([]);
+  const [problemHistory, setProblemHistory] = useState<any>(null);
+  const [problemHistories, setProblemHistories] = useState<any[]>([]);
 
   const [timing, setTiming] = useState<number>(10);
   const [autoNextProblemActive, setAutoNextProblemActive] = useState<boolean>(false);
@@ -123,6 +126,13 @@ const PlusMinusScreen: React.FC = () => {
           setWaitModalVisible(false);
         }
 
+        const finished: boolean = plusMinus?.finished;
+        if(finished) {
+          handleFinishedGame();
+
+          return false;
+        }
+
         const currentProblem: PlusMinusCurrentProblem = plusMinus?.currentProblem || null;
         const firstNum = currentProblem?.firstNum;
         const secondNum = currentProblem?.secondNum;
@@ -140,11 +150,22 @@ const PlusMinusScreen: React.FC = () => {
         setCurrentProblemScores(currentProblemScores);
         console.log("unsubscribe:", proNum)
 
-        if (isHost && subscribers.length == currentProblemScores.length) {
-          if(isHost) {
-            if (proNum >= penaltyRunCount) {
-              handleFinishedGame();
-            } else {
+        if (subscribers.length == currentProblemScores.length) {
+          const history = {
+            proNum: proNum,
+            problem: currentProblem,
+            problemScores: currentProblemScores
+          };
+
+          if(proNum >= penaltyRunCount) {
+            if(isHost) {
+              setProblemHistory(history);
+              handleFinishedGameHost(history);
+            } 
+          } else {
+            if(isHost) {
+              setProblemHistory(history);
+              
               if (autoNextProblemActive) {
                 setNextProblemButtonDisplay(false);
                 handleNextProblem(proNum);
@@ -152,9 +173,7 @@ const PlusMinusScreen: React.FC = () => {
                 setNextProblemButtonDisplay(true);
               }
             }
-          } else {
-            // setNextProblemButtonDisplay(true);
-          }         
+          }
         }
       })
 
@@ -265,7 +284,7 @@ const PlusMinusScreen: React.FC = () => {
     const resultPattern = number_01_1 == 1 ? ResultPattern.input : ResultPattern.option;
     const resultOptions = resultPattern == 'input' ? [] : generateResultOptionValues(num1, num2, operator);
     console.log("-----> :", gameRoomId, num1, num2, operator, resultPattern, proNum_ + 1, resultOptions);
-    setPlusMinusNewProblemFirestore(gameRoomId, num1, num2, operator, resultPattern, proNum_ + 1, resultOptions);
+    setPlusMinusNewProblemFirestore(gameRoomId, num1, num2, operator, resultPattern, proNum_ + 1, resultOptions, problemHistory);
   }
 
   //will be called by all user
@@ -318,9 +337,23 @@ const PlusMinusScreen: React.FC = () => {
     }
   }
 
-  const handleFinishedGame = () => {
-    console.log("game finished")
+  const handleFinishedGameHost = async (history: any) => {
+    console.log("finished game")
+    addPlusMinusHistoryFirestore(gameRoomId, history)
+    .then(() => {
+      console.log("xxxx")
+    }).catch((error) => {
+      console.log("error finished")
+    });
   }
+
+  const handleFinishedGame = async () => {
+    console.log("all finished game.");
+    const histories = await getPlusMinusHistoriesFirestore(gameRoomId);
+    console.log(histories, "---");
+  }
+
+
 
   const progressInterval = () => {
     setProgressRate(0);
@@ -366,6 +399,14 @@ const PlusMinusScreen: React.FC = () => {
     }
   }
 
+  const handleWaitModalVisible = (isVisible: boolean) => {
+    setWaitModalVisible(isVisible);
+  }
+
+  const handleExitModalVisible = (isVisible: boolean) => {
+    setExitModalVisible(isVisible);
+  }
+
   return (
     <View style={[styles.container]}>
       <View
@@ -384,7 +425,6 @@ const PlusMinusScreen: React.FC = () => {
       <View
         style={{
           width: "97%",
-          // padding: 10,
           borderRadius: 20,
           backgroundColor: customColors.customDarkBlueBackground,
           alignItems: "center",
@@ -517,46 +557,20 @@ const PlusMinusScreen: React.FC = () => {
 
       </View>
 
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={exitModalVisible}
-        onRequestClose={() => {
-          setExitModalVisible(false);
-        }}
-      >
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: customColors.modalBackgroundColor,
-          }}
-        >
-          <View style={styles.modalBody}>
-            <Text style={styles.modalText}>
-              {isHost
-                ? "足し算引き算ゲームをやめますか?"
-                : "プレイルームから脱退しますか？"}
-            </Text>
+      <ConfirmModal 
+        isVisible={exitModalVisible}
+        setVisible={handleExitModalVisible}
+        messageText={isHost
+          ? "足し算引き算ゲームをやめますか?"
+          : "プレイルームから脱退しますか？"}
+        confirmText="は い"
+        cancelText="キャンセル"
+        onConfirm={exitGame}
+        onCancel={() => {}}
+        confirmBackgroundColor={customColors.blackRed}
+      />
 
-            <View style={styles.roomModalBtns}>
-              <TouchableOpacity
-                style={styles.modalCancelBtn}
-                onPress={() => setExitModalVisible(false)}
-              >
-                <Text style={styles.modalOkText}> キャンセル </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.modalOkBtn} onPress={exitGame}>
-                <Text style={styles.modalOkText}> は い </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      <PlusMinusSettingModal isHost={isHost} visible={waitModalVisible} handleGameStart={handleGameStart} />
+      <PlusMinusSettingModal isHost={isHost} isVisible={waitModalVisible} setVisible={handleWaitModalVisible}  handleGameStart={handleGameStart} />
     </View>
   );
 }

@@ -8,32 +8,36 @@ import {
 
 import { styles } from "../../utils/Styles";
 import { customColors } from "../../utils/Color";
+import { Operator, ResultPattern } from "../../utils/Types";
 
-interface PlusMinusSettingModalProps {
+interface PlusMinusPenaltyModalProps {
     isHost: boolean;
-    isVisible: boolean;
-    setVisible: (isVisible: boolean) => void;
+    visible: boolean;
     handleGameStart: (timingNumber: number, autoNextProblemActive: boolean, problemTypeOptionActive: boolean) => void;
 }
 
-const PlusMinusSettingModal: React.FC<PlusMinusSettingModalProps> = ({ isHost, isVisible, setVisible, handleGameStart }) => {
-    const [timing, setTiming] = useState<number>(10);
-    const [timingNumber, setTimingNumber] = useState<number>(0);
-    const [autoNextProblemActive, setAutoNextProblemActive] = useState<boolean>(false);
-    const [problemTypeOptionActive, setProblemTypeOptionActive] = useState<boolean>(false);
+const PlusMinusPenaltyModal: React.FC<PlusMinusPenaltyModalProps> = ({ isHost, visible, handleGameStart }) => {
+    const [waitModalVisible, setWaitModalVisible] = useState<boolean>(false);
+
+    const [firstNum, setFirstNum] = useState<number>(0);
+    const [secondNum, setSecondNum] = useState<number>(0);
+    const [operator, setOperator] = useState<Operator>(Operator.plus);
+    const [resultPattern, setResultPattern] = useState<ResultPattern>(ResultPattern.input);
+    const [resultOptions, setResultOptions] = useState<number[]>([]);
+    const [problemHistory, setProblemHistory] = useState<any>(null);
+
 
     useEffect(() => {
-        console.log(timing);
-        setTimingNumber(Math.floor(timing))
-    }, [timing])
+        setWaitModalVisible(visible)
+    }, [visible])
 
     return (
         <Modal
             animationType="fade"
             transparent={true}
-            visible={isVisible}
+            visible={waitModalVisible}
             onRequestClose={() => {
-                setVisible(false);
+                setWaitModalVisible(false);
             }}
         >
             <View
@@ -71,7 +75,6 @@ const PlusMinusSettingModal: React.FC<PlusMinusSettingModalProps> = ({ isHost, i
                             },
                         ]}
                     >
-
                         {isHost && (
                             <>
                                 <View
@@ -131,7 +134,6 @@ const PlusMinusSettingModal: React.FC<PlusMinusSettingModalProps> = ({ isHost, i
                                     </Text>
                                 </TouchableOpacity>
                             </>
-
                         )}
                     </View>
                 </View>
@@ -142,9 +144,7 @@ const PlusMinusSettingModal: React.FC<PlusMinusSettingModalProps> = ({ isHost, i
 
 const Divider:React.FC = () => {
     return (
-        <View style={innerStyles.divider}>
-
-        </View>
+        <View style={innerStyles.divider}></View>
     )
 }
 
@@ -166,4 +166,4 @@ const innerStyles = StyleSheet.create({
       },
 });
 
-export default PlusMinusSettingModal;
+export default PlusMinusPenaltyModal;

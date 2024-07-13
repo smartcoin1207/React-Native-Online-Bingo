@@ -40,6 +40,7 @@ import { RootStackParamList } from "../constants/navigate";
 import { setGameRoomInitial, setMainGameStart } from "../store/reducers/bingo/gameRoomSlice";
 import { setBingoInitial } from "../store/reducers/bingo/bingoSlice";
 import { setPenaltyInitial } from "../store/reducers/bingo/penaltySlice";
+import ConfirmModal from "../components/ConfirmModal";
 
 enum PatternType {
   PatternA = "PatternA",
@@ -412,6 +413,10 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
       }
     }
   };
+
+  const handleExitModalVisible = (isVisible: boolean) => {
+    setExitModalVisible(isVisible)
+  }
 
   const renderPenaltyItem = ({
     item,
@@ -1268,82 +1273,16 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
         </View>
       </Modal>
 
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={exitModalVisible}
-        onRequestClose={() => {
-          setExitModalVisible(false);
-        }}
-      >
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: customColors.modalBackgroundColor,
-          }}
-        >
-          <View
-            style={{
-              justifyContent: "center",
-              alignItems: "center",
-              backgroundColor: customColors.modalContainerBackgroundColor,
-              paddingHorizontal: 15,
-              paddingVertical: 50,
-              borderWidth: 1,
-              borderColor: "grey",
-              borderRadius: 20,
-              width: "80%",
-            }}
-          >
-            <Text style={{ fontSize: 20, color: "white", textAlign: "center" }}>
-              {exitModalAlertText}
-            </Text>
-
-            <View
-              style={{
-                flexDirection: "row",
-                marginTop: 20,
-                justifyContent: "space-evenly",
-                width: "100%",
-              }}
-            >
-              <TouchableOpacity
-                style={{
-                  padding: 10,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  borderWidth: 1,
-                  borderRadius: 10,
-                  borderColor: customColors.blackGrey,
-                  backgroundColor: customColors.blackGrey,
-                }}
-                onPress={() => setExitModalVisible(false)}
-              >
-                <Text style={{ color: "white", fontSize: 16 }}>
-                  {" "}
-                  キャンセル{" "}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={{
-                  padding: 10,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  borderWidth: 1,
-                  borderRadius: 10,
-                  borderColor: customColors.blackGrey,
-                  backgroundColor: customColors.blackRed,
-                }}
-                onPress={exitScreen}
-              >
-                <Text style={{ color: "white", fontSize: 16 }}> は い </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <ConfirmModal 
+        isVisible={exitModalVisible}
+        setVisible={handleExitModalVisible}
+        messageText={exitModalAlertText}
+        confirmText="は い"
+        cancelText="キャンセル"
+        confirmBackgroundColor={customColors.blackRed}
+        onConfirm={exitScreen}
+        onCancel={() => {}}
+      />
     </View>
   );
 };

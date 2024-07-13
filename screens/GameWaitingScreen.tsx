@@ -47,6 +47,7 @@ import EffectBorder from "../components/EffectBorder";
 import { setBingoInitial } from "../store/reducers/bingo/bingoSlice";
 import React from "react";
 import * as Progress from 'react-native-progress';
+import ConfirmModal from "../components/ConfirmModal";
 
 const screenHeight = Dimensions.get("window").height;
 const defaultAvatar = require("../assets/images/default1.png");
@@ -405,6 +406,12 @@ const GameWaitingScreen = () => {
     setCurrentRemoveUserId(uid);
     setModalAlertText("このユーザーをエクスポートしますか？");
   };
+
+
+  
+  const handleExitModalVisible = (isVisible: boolean) => {
+    setExitModalVisible(isVisible);
+  }
   
   const handleRandomSort = async () => {
     const subscribersPlayers = currentGameRoom?.subscribersPlayers;
@@ -486,48 +493,16 @@ const GameWaitingScreen = () => {
 
   return (
     <View style={[styles.container]}>
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={exitModalVisible}
-        onRequestClose={() => {
-          setExitModalVisible(false);
-        }}
-      >
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: customColors.modalBackgroundColor,
-          }}
-        >
-          <View style={styles.modalBody}>
-            <Text style={styles.modalText}>{modalAlertText}</Text>
-
-            <View style={styles.roomModalBtns}>
-              <TouchableOpacity
-                style={styles.modalCancelBtn}
-                onPress={() => setExitModalVisible(false)}
-              >
-                <Text style={styles.modalOkText}> キャンセル </Text>
-              </TouchableOpacity>
-              {isExitModal ? (
-                <TouchableOpacity style={styles.modalOkBtn} onPress={exitRoom}>
-                  <Text style={styles.modalOkText}> は い </Text>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  style={styles.modalOkBtn}
-                  onPress={() => removeUser(currentRemoveUserId)}
-                >
-                  <Text style={styles.modalOkText}> は い </Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <ConfirmModal 
+        isVisible={exitModalVisible}
+        setVisible={handleExitModalVisible}
+        messageText={modalAlertText}
+        confirmText="は い"
+        cancelText="キャンセル"
+        confirmBackgroundColor={customColors.blackRed}
+        onConfirm={() => isExitModal ? exitRoom()  : removeUser(currentRemoveUserId)}
+        onCancel={() => {}}
+      />
 
       <Modal
         animationType="fade"

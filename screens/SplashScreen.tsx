@@ -72,6 +72,8 @@ const SplashScreen: React.FC<Props> = ({navigation: {navigate}}) => {
         } else {
             navigate('Home');
         }
+
+        // navigate("testscreen");
     }
 
     const handleLogin = async (email: string, password: string) => {

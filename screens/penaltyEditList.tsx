@@ -27,6 +27,7 @@ import {
   setPenaltyList,
 } from "../store/reducers/bingo/penaltySlice";
 import Language from "../utils/Variables";
+import ConfirmModal from "../components/ConfirmModal";
 const { width: viewportWidth, height: viewportHeight } =
   Dimensions.get("window");
 
@@ -98,6 +99,14 @@ const PenaltyEditList = () => {
     const penaltyList = await getAllPenalty();
     dispatch(setPenaltyList(penaltyList));
     setConfirmDeleteModalVisible(false);
+  }
+
+  const handleConfirmDeleteModalVisible = (isVisible: boolean) => {
+    setConfirmDeleteModalVisible(isVisible);
+  }
+
+  const handleEditModalVisible = (isVisible: boolean) => {
+    setModalVisible(isVisible);
   }
 
   const renderPenaltyItem = ({
@@ -199,115 +208,39 @@ const PenaltyEditList = () => {
         </View>
       </View>
 
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => {
-          setModalVisible(false);
-        }}
-      >
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: customColors.modalBackgroundColor,
-          }}
-        >
-          <View style={styles.modalBody}>
-            <>
-              <TextInput
+      <ConfirmModal 
+        isVisible={modalVisible}
+        setVisible={handleEditModalVisible}
+        messageText="罰ゲームを入力してください。"
+        confirmText={jpLanguage.addString}
+        cancelText={jpLanguage.cancelString}
+        onConfirm={() => isCreateModal ? addPenaltyHandle() : updatePenaltyHandle()}
+        onCancel={() => {}}
+        
+        middleElement={
+          <TextInput
                 style={styles.input}
                 placeholder={jpLanguage.penaltyTitleString}
                 autoCapitalize="none"
                 placeholderTextColor={customColors.blackGrey}
-                value={inputText}
+                value={inputText}                
                 onChangeText={(text) => {
                   setInputText(text);
                 }}
               />
-            </>
+        }
+      />
 
-            <View style={styles.roomModalBtns}>
-              <TouchableOpacity
-                style={styles.modalCancelBtn}
-                onPress={() => setModalVisible(false)}
-              >
-                <Text style={styles.roomModalButtonText}>
-                  {" "}
-                  {jpLanguage.cancelString}{" "}
-                </Text>
-              </TouchableOpacity>
-              {isCreateModal ? (
-                <TouchableOpacity
-                  style={styles.modalOkBtn}
-                  onPress={addPenaltyHandle}
-                >
-                  <Text style={styles.roomModalButtonText}>
-                    {jpLanguage.addString}
-                  </Text>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  style={styles.modalOkBtn}
-                  onPress={updatePenaltyHandle}
-                >
-                  <Text style={styles.roomModalButtonText}>
-                    {" "}
-                    {jpLanguage.editString}{" "}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <ConfirmModal 
+        isVisible={confirmDeleteModalVisible}
+        setVisible={handleConfirmDeleteModalVisible}
+        messageText="選択した罰ゲームを削除してもよろしいですか？"
+        confirmText={jpLanguage.addString}
+        cancelText={jpLanguage.cancelString}
+        onConfirm={()=>deleteConfirmPress(deleteId)}
+        onCancel={() => {}}
+      />
 
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={confirmDeleteModalVisible}
-        onRequestClose={() => {
-          setConfirmDeleteModalVisible(false);
-        }}
-      >
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: customColors.modalBackgroundColor,
-          }}
-        >
-          <View style={styles.modalBody}>
-            <Text style={{color: 'white', fontSize: 18}}>
-              選択した罰ゲームを削除してもよろしいですか？
-            </Text>
-
-            <View style={styles.roomModalBtns}>
-              <TouchableOpacity
-                style={styles.modalCancelBtn}
-                onPress={() => setConfirmDeleteModalVisible(false)}
-              >
-                <Text style={styles.roomModalButtonText}>
-                  {" "}
-                  {jpLanguage.cancelString}{" "}
-                </Text>
-              </TouchableOpacity>
-                <TouchableOpacity
-                  activeOpacity={0.6}
-                  style={styles.modalOkBtn}
-                  onPress={()=>deleteConfirmPress(deleteId)}
-                >
-                  <Text style={styles.roomModalButtonText}>
-                    {jpLanguage.addString}
-                  </Text>
-                </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 };
@@ -375,83 +308,19 @@ const styles = StyleSheet.create({
     position: "relative",
     paddingTop: 10,
   },
-  modalBody: {
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: customColors.modalContainerBackgroundColor,
-    paddingHorizontal: 15,
-    paddingVertical: 20,
-    borderWidth: 1,
-    borderColor: customColors.blackGrey,
-    borderRadius: 20,
-    width: "80%",
-  },
-
-  modalRoomTitleText: {
-    fontSize: 20,
-    color: customColors.white,
-    fontFamily: "serif",
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  modalOkBtn: {
-    backgroundColor: customColors.customDarkGreen1,
-    paddingVertical: 8,
-    paddingHorizontal: 6,
-    padding: 4,
-    marginHorizontal: 4,
-    marginVertical: 4,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: customColors.customLightBlue,
-  },
-  modalCancelBtn: {
-    backgroundColor: customColors.blackGrey,
-    paddingVertical: 8,
-    paddingHorizontal: 6,
-    padding: 4,
-    marginHorizontal: 4,
-    marginVertical: 4,
-    borderRadius: 6,
-    borderWidth: 1,
-    // borderColor: customColors.white,
-  },
-  roomModalButtonText: {
-    fontSize: 16,
-    color: customColors.white,
-    fontFamily: "serif",
-    fontWeight: "700",
-    textAlign: "center",
-    letterSpacing: 5,
-  },
+  
 
   input: {
     width: "80%",
-    fontSize: 15,
+    fontSize: 20,
     color: customColors.white,
-    padding: 5,
+    padding: 6,
     paddingHorizontal: 20,
-    borderRadius: 25,
+    borderRadius: 15,
     borderWidth: 1,
     borderColor: customColors.blackGrey,
-    marginBottom: 20,
   },
-  modalText: {
-    fontSize: 16,
-    color: customColors.white,
-    fontFamily: "serif",
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 20,
-  },
-
-  roomModalBtns: {
-    flexDirection: "row",
-    justifyContent: 'space-evenly',
-    width: '100%',
-    marginTop:20
-  },
+  
 
   editIconBtn: {
     // position: 'absolute',

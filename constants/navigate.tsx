@@ -20,7 +20,8 @@ export type RootStackParamList = {
   penaltyEdit: undefined;
   highlow: undefined,
   tictactoe: undefined,
-  plusminus: undefined
+  plusminus: undefined,
+  testscreen: undefined
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> =

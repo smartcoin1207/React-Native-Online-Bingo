@@ -16,6 +16,7 @@ import HighLowScreen from '../screens/HighLowScreen';
 import TictactoeScreen from '../screens/TictactoeScreen';
 import PenaltyAB from '../screens/penalty/penaltyAB';
 import PlusMinusScreen from '../screens/plusminus.screen';
+import TestScreen from '../screens/testscreen';
 
 // Define the types for the route paramete
 
@@ -38,6 +39,8 @@ const AppNavigator = () => {
       <Stack.Screen name='highlow' component={HighLowScreen} options={{ headerShown: false }}/>
       <Stack.Screen name='tictactoe' component={TictactoeScreen} options={{ headerShown: false }}/>
       <Stack.Screen name='plusminus' component={PlusMinusScreen} options={{ headerShown: false }}/>
+      <Stack.Screen name='testscreen' component={TestScreen} options={{ headerShown: false }}/>
+
     </Stack.Navigator>
   );
 };

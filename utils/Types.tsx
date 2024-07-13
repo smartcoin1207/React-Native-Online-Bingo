@@ -148,5 +148,17 @@ export interface PlusMinusCurrentProblem {
     resultPattern: ResultPattern,
     resultOptions: number[],
 }
+
+export interface TableColumn {
+    key: string;
+    title: string;
+    width?: number;
+    type?: 'text' | 'button' | 'avatar' | 'image' | 'icon' | 'reactnode' | 'function';
+    clickFunction?: (item: TableRow) => void;
+}
+
+export interface TableRow {
+    [key: string]: any;
+  }
 //Firebase Util Functions Parameters type
 

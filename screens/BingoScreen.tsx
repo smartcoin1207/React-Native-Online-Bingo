@@ -51,6 +51,7 @@ import { setPenaltyInitial } from "../store/reducers/bingo/penaltySlice";
 import { setGameRoomInitial } from "../store/reducers/bingo/gameRoomSlice";
 import Language from "../utils/Variables";
 import {Audio} from 'expo-av';
+import ConfirmModal from "../components/ConfirmModal";
 
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get("window");
 const screenWidth = Dimensions.get("window").width;
@@ -542,6 +543,10 @@ const PlayBoard: React.FC = () => {
         }
     }
 
+    const handleExitModalVisible = (isVisible: boolean) => {
+        setExitModalVisible(isVisible)
+    }
+
     const startBingoNextRound = () => {
         const newSort = [...sort.slice(1), sort[0]];
         setSort(newSort);
@@ -951,51 +956,16 @@ const PlayBoard: React.FC = () => {
                 ))}
             </View>
 
-            <Modal
-                animationType="fade"
-                transparent={true}
-                visible={exitModalVisible}
-                onRequestClose={() => {
-                    setExitModalVisible(false);
-                }}
-            >
-                <View
-                    style={{
-                        flex: 1,
-                        justifyContent: "center",
-                        alignItems: "center",
-                        backgroundColor: customColors.modalBackgroundColor,
-                    }}
-                >
-                    <View style={{
-                        justifyContent: "center",
-                        alignItems: "center",
-                        backgroundColor: customColors.modalContainerBackgroundColor,
-                        paddingHorizontal: 15,
-                        paddingVertical: 50,
-                        borderWidth: 1,
-                        borderColor: "grey",
-                        borderRadius: 20,
-                        width: "80%",
-                    }}>
-                        <Text style={{ fontSize: 20, color: 'white', textAlign: 'center', }}>{exitModalText}</Text>
-
-                        <View style={{ flexDirection: 'row', marginTop: 20, justifyContent: 'space-evenly', width: '100%' }}>
-                            <TouchableOpacity
-                                style={{ padding: 10, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderRadius: 10, borderColor: customColors.blackGrey, backgroundColor: customColors.blackGrey }}
-                                onPress={() => setExitModalVisible(false)}
-                            >
-                                <Text style={{ color: 'white', fontSize: 16 }}> {jpLanguage.cancelString} </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={{ padding: 10, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderRadius: 10, borderColor: customColors.blackGrey, backgroundColor: customColors.blackRed }}
-                                onPress={exitScreen}>
-                                <Text style={{ color: 'white', fontSize: 16 }}> {jpLanguage.yesString} </Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
+            <ConfirmModal 
+                isVisible={exitModalVisible}
+                setVisible={handleExitModalVisible}
+                messageText={exitModalText}
+                confirmText={jpLanguage.yesString}
+                cancelText={jpLanguage.cancelString}
+                confirmBackgroundColor={customColors.blackRed}
+                onConfirm={exitScreen}
+                onCancel={() => {}}
+            />
 
             <Modal
                 animationType="fade"
