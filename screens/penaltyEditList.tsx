@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
   penaltyAddBtnText: {
     fontSize: 20,
     fontWeight: "700",
-    fontFamily: "serif",
+    fontFamily: "NotoSansJP_400Regular",
     letterSpacing: 5,
     color: "white",
     textAlign: "center",

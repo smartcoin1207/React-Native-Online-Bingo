@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     modalMainMessageText: {
         fontSize: 20,
         color: customColors.white,
-        fontFamily: "serif",
+        fontFamily: "NotoSansJP_400Regular",
         alignItems: "flex-start",
     },
     modalOkBtn: {
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     modalOkText: {
         fontSize: 16,
         color: "white",
-        fontFamily: "serif",
+        fontFamily: "NotoSansJP_400Regular",
         fontWeight: "700",
         textAlign: "center",
     },

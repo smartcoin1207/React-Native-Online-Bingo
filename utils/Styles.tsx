@@ -34,7 +34,7 @@ export const styles = StyleSheet.create({
     textTitle: {
       fontSize: 25,
       color: customColors.white,
-      fontFamily: "serif",
+      fontFamily: "NotoSansJP_400Regular",
       fontWeight: "700",
       textAlign: "center",
       letterSpacing: 10
@@ -77,7 +77,7 @@ export const styles = StyleSheet.create({
     joinBtnText: {
       fontSize: 16,
       color: customColors.white,
-      fontFamily: "serif",
+      fontFamily: "NotoSansJP_400Regular",
       fontWeight: "700",
       textAlign: "center",
     },
@@ -85,7 +85,7 @@ export const styles = StyleSheet.create({
     listTitle: {
       fontSize: 25,
       color: "white",
-      fontFamily: "serif",
+      fontFamily: "NotoSansJP_400Regular",
       fontWeight: "700",
       textAlign: "center",
     },
@@ -124,7 +124,7 @@ export const styles = StyleSheet.create({
     modalRoomTitleText: {
       fontSize: 22,
       color: customColors.white,
-      fontFamily: "serif",
+      fontFamily: "NotoSansJP_400Regular",
       fontWeight: "700",
       textAlign: "center",
       marginBottom: 20,
@@ -154,7 +154,7 @@ export const styles = StyleSheet.create({
     roomModalButtonText: {
       fontSize: 16,
       color: customColors.white,
-      fontFamily: "serif",
+      fontFamily: "NotoSansJP_400Regular",
       fontWeight: "700",
       textAlign: "center",
     },
@@ -162,7 +162,7 @@ export const styles = StyleSheet.create({
       fontSize: 30,
       color: customColors.white,
       width: "90%",
-      fontFamily: "serif",
+      fontFamily: "NotoSansJP_400Regular",
       fontWeight: "700",
       textAlign: "center",
     },
@@ -182,7 +182,7 @@ export const styles = StyleSheet.create({
     modalText: {
       fontSize: 16,
       color: customColors.white,
-      fontFamily: "serif",
+      fontFamily: "NotoSansJP_400Regular",
       alignItems: "flex-start",
       marginBottom: 5,
     },
@@ -198,12 +198,13 @@ export const styles = StyleSheet.create({
     modalOkText: {
       fontSize: 16,
       color: "white",
-      fontFamily: "serif",
+      fontFamily: "NotoSansJP_400Regular",
       fontWeight: "700",
       textAlign: "center",
     },
     numberText: {
       fontSize: 30,
+      fontFamily: "NotoSansJP_400Regular",
       color: 'white',
       textAlign: 'center',
       fontWeight: '700'

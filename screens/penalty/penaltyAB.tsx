@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
     textTitle: {
         fontSize: 20,
         color: 'white',
-        fontFamily: 'serif',
+        fontFamily: 'NotoSansJP_400Regular',
         fontWeight: '700',
         textAlign: 'center',
     },

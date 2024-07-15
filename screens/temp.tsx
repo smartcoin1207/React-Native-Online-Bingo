@@ -512,7 +512,7 @@ const styles = StyleSheet.create({
     pressBtnText: {
         fontSize: 16,
         color: 'white',
-        fontFamily: 'serif',
+        fontFamily: 'NotoSansJP_400Regular',
         fontWeight: '700',
         textAlign: 'center',
     },

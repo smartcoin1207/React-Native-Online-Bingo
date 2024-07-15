@@ -281,7 +281,7 @@
 //     modalOkText: {
 //         fontSize: 16,
 //         color: 'white',
-//         fontFamily:'serif',
+//         fontFamily:'NotoSansJP_400Regular',
 //         fontWeight: '700',
 //         textAlign: 'center',
 //         width: 150
@@ -300,7 +300,7 @@
 //         fontSize: 25,
 //         color: 'white',
 //         width: '90%',
-//         fontFamily:'serif',
+//         fontFamily:'NotoSansJP_400Regular',
 //         fontWeight: '700',
 //         textAlign: 'center',
 //     }

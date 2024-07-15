@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     textTitle: {
         fontSize: 20,
         color: 'black',
-        fontFamily: 'serif',
+        fontFamily: 'NotoSansJP_400Regular',
         fontWeight: '700',
     }
 });

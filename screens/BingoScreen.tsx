@@ -1279,14 +1279,14 @@ const styles = StyleSheet.create({
     randomText: {
         fontSize: 16,
         color: customColors.white,
-        fontFamily: "serif",
+        fontFamily: "NotoSansJP_400Regular",
         fontWeight: "700",
         textAlign: "center",
     },
     turnText: {
         fontSize: 16,
         color: customColors.white,
-        fontFamily: "serif",
+        fontFamily: "NotoSansJP_400Regular",
         fontWeight: "700",
         textAlign: "center",
         marginBottom: 20,
@@ -1328,21 +1328,21 @@ const styles = StyleSheet.create({
     modalOkText: {
         fontSize: 20,
         color: customColors.white,
-        fontFamily: "serif",
+        fontFamily: "NotoSansJP_400Regular",
         fontWeight: "700",
         textAlign: "center",
     },
     completedText: {
         fontSize: viewportWidth * 0.15,
         color: customColors.white,
-        fontFamily: "serif",
+        fontFamily: "NotoSansJP_400Regular",
         fontWeight: "900",
         textAlign: "center",
     },
     completedTextNumber: {
         fontSize: viewportWidth * 0.25,
         color: customColors.white,
-        fontFamily: "serif",
+        fontFamily: "NotoSansJP_400Regular",
         fontWeight: "900",
         textAlign: "center",
     },
@@ -1352,7 +1352,7 @@ const styles = StyleSheet.create({
     modalText: {
         fontSize: 20,
         color: customColors.white,
-        fontFamily: "serif",
+        fontFamily: "NotoSansJP_400Regular",
         fontWeight: "700",
         textAlign: "center",
         marginBottom: 20,
@@ -1374,7 +1374,7 @@ const styles = StyleSheet.create({
     passBtnText: {
         fontSize: 20,
         color: customColors.white,
-        fontFamily: "serif",
+        fontFamily: "NotoSansJP_400Regular",
         fontWeight: "700",
         textAlign: "center",
         letterSpacing: 10

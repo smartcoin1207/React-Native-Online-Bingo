@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Slider from '@react-native-community/slider';
 import {
-    RoundedCheckbox,
     PureRoundedCheckbox,
   } from "react-native-rounded-checkbox";
 

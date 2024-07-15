@@ -305,6 +305,8 @@ const GameWaitingScreen = () => {
     setGameRoomOpen(gameRoomId, false);
     startGamePenalty(gameRoomId);
     setGameTypeF(gameRoomId, GameType.Penalty);
+    
+    setSortModalVisible(false)
 
     console.log(pressedGameType); 
 
@@ -329,7 +331,6 @@ const GameWaitingScreen = () => {
       try {
         dispatch(setPenaltyGameType(GameType.PlusMinus));
         navigator.navigate("penaltyAB");
-        console.log("W#434343434")
       } catch (error) {
         console.log(error);
       }
@@ -968,7 +969,7 @@ const styles = StyleSheet.create({
   textTitle: {
     fontSize: 20,
     color: "white",
-    fontFamily: "serif",
+    fontFamily: "NotoSansJP_400Regular",
     fontWeight: "700",
     textAlign: "center",
   },
@@ -1010,14 +1011,14 @@ const styles = StyleSheet.create({
   joinBtnText: {
     fontSize: 16,
     color: "white",
-    fontFamily: "serif",
+    fontFamily: "NotoSansJP_400Regular",
     fontWeight: "700",
     textAlign: "center",
   },
   listTitle: {
     fontSize: 25,
     color: "white",
-    fontFamily: "serif",
+    fontFamily: "NotoSansJP_400Regular",
     fontWeight: "700",
     textAlign: "center",
   },
@@ -1071,7 +1072,7 @@ const styles = StyleSheet.create({
   modalOkText: {
     fontSize: 16,
     color: "white",
-    fontFamily: "serif",
+    fontFamily: "NotoSansJP_400Regular",
     fontWeight: "700",
     textAlign: "center",
   },
@@ -1080,7 +1081,7 @@ const styles = StyleSheet.create({
     fontSize: 30,
     color: "white",
     width: "90%",
-    fontFamily: "serif",
+    fontFamily: "NotoSansJP_400Regular",
     fontWeight: "700",
     textAlign: "center",
   },
@@ -1090,7 +1091,7 @@ const styles = StyleSheet.create({
   modalText: {
     fontSize: 20,
     color: "white",
-    fontFamily: "serif",
+    fontFamily: "NotoSansJP_400Regular",
     fontWeight: "700",
     textAlign: "center",
     marginBottom: 20,

@@ -22,14 +22,15 @@ const styles = StyleSheet.create({
     button: {
         display: "flex",
         backgroundColor: customColors.customLightBlue,
-        padding: 15,
+        padding: 5,
+        paddingHorizontal: 15,
         borderRadius: 6,
       },
     
     buttonText: {
         fontSize: 20,
         color: customColors.white,
-        fontFamily: "serif",
+        fontFamily: "NotoSansJP_400Regular",
         fontWeight: "500",
         textAlign: "center",
     },

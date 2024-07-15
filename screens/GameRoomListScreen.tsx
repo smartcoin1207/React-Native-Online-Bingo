@@ -532,7 +532,7 @@ const styles = StyleSheet.create({
   textTitle: {
     fontSize: 16,
     color: customColors.white,
-    fontFamily: "serif",
+    fontFamily: "NotoSansJP_400Regular",
     fontWeight: "700",
     textAlign: "center",
   },
@@ -574,7 +574,7 @@ const styles = StyleSheet.create({
   joinBtnText: {
     fontSize: 16,
     color: customColors.white,
-    fontFamily: "serif",
+    fontFamily: "NotoSansJP_400Regular",
     fontWeight: "700",
     textAlign: "center",
   },
@@ -582,7 +582,7 @@ const styles = StyleSheet.create({
   listTitle: {
     fontSize: 25,
     color: "white",
-    fontFamily: "serif",
+    fontFamily: "NotoSansJP_400Regular",
     fontWeight: "700",
     textAlign: "center",
   },
@@ -612,7 +612,7 @@ const styles = StyleSheet.create({
     fontSize: 30,
     color: customColors.white,
     width: "90%",
-    fontFamily: "serif",
+    fontFamily: "NotoSansJP_400Regular",
     fontWeight: "700",
     textAlign: "center",
   },

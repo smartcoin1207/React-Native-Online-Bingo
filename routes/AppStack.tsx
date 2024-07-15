@@ -45,7 +45,7 @@ const AppNavigator = () => {
           headerTitleStyle: {
             fontSize: 20,
             fontWeight: 'bold',
-            fontFamily: 'serif'
+            fontFamily: 'NotoSansJP_400Regular'
           },
           headerTintColor: 'white',
           }}/>
@@ -74,7 +74,7 @@ const AppNavigator = () => {
           headerTitleStyle: {
             fontSize: 20,
             fontWeight: 'bold',
-            // fontFamily: 'serif'
+            // fontFamily: 'NotoSansJP_400Regular'
           }
         }}/>
         <Stack.Screen name='bingo' component={PlayBoard} options={{ 

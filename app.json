@@ -40,7 +40,8 @@
         {
           "microphonePermission": "Allow com.minibase.bingo1 to access your microphone."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "extra": {
       "firebase": {
