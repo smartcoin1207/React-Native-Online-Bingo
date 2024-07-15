@@ -173,9 +173,6 @@ const PenaltyEditList = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.topHeader}>
-        <Text style={styles.title}>{jpLanguage.penaltyListTitleString}</Text>
-      </View>
       <View
         style={{
             flex: 1, 

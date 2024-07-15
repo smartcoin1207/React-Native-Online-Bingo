@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import {
   TouchableOpacity,
   ScrollView,
@@ -13,7 +13,7 @@ import {
 import { customColors } from "../utils/Color";
 import SwitchToggle from "react-native-switch-toggle";
 import { RouteProp, useFocusEffect } from "@react-navigation/native";
-import Icon from "react-native-vector-icons/FontAwesome";
+import Icon from "react-native-vector-icons/Ionicons";
 import {
   publicPatternFirestore,
   deleteGamePenalty,
@@ -274,6 +274,22 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
       };
     }, [navigator])
   );
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <Icon name="chevron-back-sharp" size={30} color="white" style={{marginRight: 20, marginLeft: -10 }} onPress={() => {
+          if (!isHost) {
+            setExitModalAlertText("プレイルームから脱退しますか？");
+          } else {
+            setExitModalAlertText("罰ゲームから退会しますか？");
+          }
+          
+          setExitModalVisible(true);
+        }} />
+      ),
+    })
+  }, [navigation])
 
   const getPlayerDisplayName = (uid: string) => {
     const player = subscribers.find((item: Player) => item.uid == uid);
@@ -716,7 +732,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
                 }}
                 onPress={handlePenaltyPlusBtnClick}
               >
-                <Icon name="plus" size={25} color={mainColor} />
+                <Icon name="add-sharp" size={25} color={mainColor} />
               </TouchableOpacity>
             </View>
           ) : (
@@ -770,7 +786,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.topHeader}>
+      {/* <View style={styles.topHeader}>
         <TouchableOpacity
           style={{
             width: 44,
@@ -792,7 +808,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
           />
         </TouchableOpacity>
         <Text style={styles.title}>罰ゲーム</Text>
-      </View>
+      </View> */}
       {isHost && (
           <View
             style={{
@@ -931,7 +947,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
                       handlePatternPlusBtnClick();
                     }}
                   >
-                    <Icon name="plus" size={25} color={"#5a6fff"} />
+                    <Icon name="add-sharp" size={25} color={"#5a6fff"} />
                   </TouchableOpacity>
                 </>
               ) : (

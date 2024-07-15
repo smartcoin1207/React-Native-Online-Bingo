@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import React from "react";
 
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -33,7 +33,7 @@ import {
   validateRoomPassword,
   validateRoomTitle,
 } from "../utils/ValidtionUtils";
-import Icon from "react-native-vector-icons/FontAwesome";
+import Icon from "react-native-vector-icons/Ionicons";
 import { Tooltip } from "react-native-elements";
 import ConfirmModal from "../components/ConfirmModal";
 
@@ -41,8 +41,7 @@ const defaultAvatar = require("../assets/images/default1.png");
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get("window");
 
 const GameRoomScreen = () => {
-  const navigator: NavigatorType = useNavigation();
-  // const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const navigation = useNavigation();
 
   const [listLoading, setListLoading] = useState<boolean>(false);
   const [createRoomLoading, setCreateRoomLoading] = useState<boolean>(false);
@@ -91,6 +90,13 @@ const GameRoomScreen = () => {
     }
   }, [roomModalVisible])
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <Icon name="chevron-back-sharp" size={30} color="white" style={{marginRight: 20, marginLeft: -10 }} onPress={() => {navigation.goBack()}} />
+      ),
+    })
+  }, [navigation])
 
   const createRoomPasswordSet = () => {
     setPasswordSetModalVisible(true);
@@ -136,7 +142,7 @@ const GameRoomScreen = () => {
       );
 
       setCreateRoomLoading(false);
-      navigator.navigate("currentRoom", {
+      navigation.navigate("currentRoom", {
         isHostParam: true,
         gameRoomIdParam: newGameRoomId as string,
       });
@@ -192,7 +198,7 @@ const GameRoomScreen = () => {
       await joinGameRoom(authUser.uid, gameRoomItem.gameRoomId);
       setCreateRoomLoading(false);
 
-      navigator.navigate("currentRoom", {
+      navigation.navigate("currentRoom", {
         isHostParam: false,
         gameRoomIdParam: gameRoomItem.gameRoomId,
       });
@@ -413,7 +419,7 @@ const GameRoomScreen = () => {
           onPress={createRoomPasswordSet}
         >
           <View style={{ padding: 5 }}>
-            <Icon name="plus" size={20} color="white" />
+            <Icon name="add-sharp" size={20} color="white" />
           </View>
           <Text style={styles.textTitle}> プレイルームを作成</Text>
         </TouchableOpacity>
@@ -498,8 +504,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: customColors.black,
-    paddingTop: 35,
+    // backgroundColor: customColors.black,
+    // paddingTop: 35,
     width: "100%",
   },
 

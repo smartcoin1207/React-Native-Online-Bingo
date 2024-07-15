@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { BackHandler, Dimensions, TextInput, TouchableOpacity, View } from "react-native";
 import { Text } from "react-native-elements";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,6 +17,7 @@ import { styles } from "../utils/Styles";
 import PlusMinusSettingModal from "../components/plusminus/PlusMinusSettingModal";
 import PlusMinusValueButton from "../components/plusminus/PlusMinusValueButton";
 import ConfirmModal from "../components/ConfirmModal";
+import Icon from "react-native-vector-icons/Ionicons";
 
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get("window");
 
@@ -256,6 +257,16 @@ const PlusMinusScreen: React.FC = () => {
     }, [navigation])
   )
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <Icon name="chevron-back-sharp" size={30} color="white" style={{marginRight: 20, marginLeft: -10 }} onPress={() => {
+          setExitModalVisible(true);
+        }} />
+      ),
+    })
+  }, [navigation])
+
   /** ----------------------------- Functions ------------------------------ */
   const handleGameStart = (timingNumber: number, autoNextProblemActive: boolean, problemTypeOptionActive: boolean) => {
     setTiming(timingNumber);
@@ -409,19 +420,7 @@ const PlusMinusScreen: React.FC = () => {
 
   return (
     <View style={[styles.container]}>
-      <View
-        style={{
-          backgroundColor: "black",
-          width: "60%",
-          padding: 15,
-          borderRadius: 20,
-          alignItems: "center",
-        }}
-      >
-        <Text style={{ fontSize: 30, color: "white" }} numberOfLines={1}>
-          足し算引き算
-        </Text>
-      </View>
+     
       <View
         style={{
           width: "97%",

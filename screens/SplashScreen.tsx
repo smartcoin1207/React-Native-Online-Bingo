@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { UseSelector, useDispatch, useSelector } from "react-redux";
-import { View, ImageBackground, Text, StyleSheet, Pressable, Dimensions, Image } from 'react-native';
+import { View, ImageBackground, Text, StyleSheet, Pressable, Dimensions, Image, StatusBar } from 'react-native';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from '../constants/navigate';
 import { RootState } from '../store';

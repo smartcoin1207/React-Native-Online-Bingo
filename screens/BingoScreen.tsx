@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import React, { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
     StyleSheet,
     Text,
@@ -13,7 +13,7 @@ import {
     ScrollView,
     FlatList,
 } from "react-native";
-import Icon from "react-native-vector-icons/FontAwesome";
+import Icon from "react-native-vector-icons/Ionicons";
 import { useDispatch, useSelector } from "react-redux";
 import {
     setBingoCellStatus,
@@ -526,6 +526,17 @@ const PlayBoard: React.FC = () => {
         }, [])
     )
 
+    useLayoutEffect(() => {
+        navigation.setOptions({
+          headerLeft: () => (
+            <Icon name="chevron-back-sharp" size={30} color="white" style={{marginRight: 20, marginLeft: -10 }} onPress={() => {
+                setExitModalText(jpLanguage.bingoExitModalTextString);
+                setExitModalVisible(true);
+            }} />
+          ),
+        })
+      }, [navigation]) 
+
     const exitScreen = () => {
         if (isHost) {
             setMoveGameRoom(gameRoomId, GameType.Room);
@@ -633,7 +644,7 @@ const PlayBoard: React.FC = () => {
                         </Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={onPress} style={styles.notifierButton}>
-                        <Icon name="times" size={20} color="white" />
+                        <Icon name="close-outline" size={20} color="white" />
                     </TouchableOpacity>
 
                     {(notifyExpand && notifyExpandKey == item ?.rank) &&
@@ -1014,7 +1025,7 @@ const PlayBoard: React.FC = () => {
                             onPress={() => setModalCompletedVisible(false)}
                         >
                             <View style={styles.buttonContainer}>
-                                <Icon name="times" size={20} color="white" />
+                                <Icon name="close-outline" size={20} color="white" />
                             </View>
                         </TouchableOpacity>
                     </View>
@@ -1134,7 +1145,7 @@ const PlayBoard: React.FC = () => {
                 </View>
             </Modal>
 
-            <Text style={styles.title}>BINGO</Text>
+            {/* <Text style={styles.title}>BINGO</Text> */}
             {/* <ShowOrder /> */}
 
             <View style={styles.container}>

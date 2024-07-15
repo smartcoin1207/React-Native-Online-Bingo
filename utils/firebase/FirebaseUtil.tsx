@@ -442,7 +442,7 @@ export const startGameBingo = async (
   }
 };
 
-export const setPlayerGameSort = async (gameRoomId: string, uids: string[]) => {
+export const setPlayerGameSort = async (gameRoomId: string, uids: string[], sort: boolean) => {
   console.log("setPlayerGameSort");
   if (!gameRoomId) {
     return false;
@@ -453,7 +453,7 @@ export const setPlayerGameSort = async (gameRoomId: string, uids: string[]) => {
     
     await updateDoc(docRef, {
       sort: uids,
-      sorted: true
+      sorted: sort
     });
   } catch (error) {
     console.log("game error");

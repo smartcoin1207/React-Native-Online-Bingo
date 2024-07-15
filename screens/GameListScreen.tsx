@@ -1,9 +1,8 @@
-import React, { SetStateAction, useEffect, useState, useRef } from "react";
+import React, { SetStateAction, useEffect, useState, useRef, useLayoutEffect } from "react";
 import { useSelector, useDispatch } from 'react-redux';
 
 import { View, Text, StyleSheet,  Dimensions, TouchableOpacity } from "react-native";
 import { useNavigation } from '@react-navigation/native';
-import Roulette from 'react-native-casino-roulette';
 // import Roulette from 'react-native-roulette';
 // import WheelOfFortune, { WheelOfFortuneProps } from 'react-native-casino-roulette';
 
@@ -14,6 +13,7 @@ import { deleteBingoCollection, deleteGameCollection } from "../utils/firebase/F
 import Language from "../utils/Variables";
 import EffectBorder from "../components/EffectBorder";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const jpLanguage = Language.jp;
 
@@ -75,6 +75,16 @@ const GameRoom: React.FC<GameListScreen> = () => {
         };
         loadLoginInfo();
       }, []);
+
+    useLayoutEffect(() => {
+      navigation.setOptions({
+        headerLeft: () => (
+          <Icon name="chevron-back-sharp" size={30} color="white" style={{marginRight: 20, marginLeft: -10 }} onPress={() => {navigation.goBack()}} />
+        ),
+        
+      })
+    }, [navigation])
+    
         
     const handleDeleteBingo = async () => {
         await deleteBingoCollection()

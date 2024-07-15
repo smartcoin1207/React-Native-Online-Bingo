@@ -1,4 +1,4 @@
-import React, { SetStateAction, useEffect, useState, useRef, useCallback } from "react";
+import React, { SetStateAction, useEffect, useState, useRef, useCallback, useLayoutEffect } from "react";
 import { useSelector, useDispatch } from 'react-redux';
 import { View, Text, StyleSheet,  Dimensions, TouchableOpacity, BackHandler } from "react-native";
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -9,6 +9,7 @@ import { setPenaltyAorB } from "../../store/reducers/bingo/gameRoomSlice";
 import { setMoveGameRoom, setPatternASetFirestore, setpatternBSetFirestore } from "../../utils/firebase/FirebaseUtil";
 import { current } from "@reduxjs/toolkit";
 import { GameType } from "../../utils/Types";
+import Icon from "react-native-vector-icons/Ionicons";
 
 interface PenaltyABPros { }
 
@@ -46,6 +47,14 @@ const PenaltyAB: React.FC<PenaltyABPros> = () => {
         }, [navigator])
       );
 
+      useLayoutEffect(() => {
+        navigation.setOptions({
+          headerLeft: () => (
+            <Icon name="chevron-back-sharp" size={30} color="white" style={{marginRight: 20, marginLeft: -10 }} onPress={() => {navigation.goBack()}} />
+          ),
+        })
+      }, [navigation])
+
     const handlePenaltyA = async () => {
         if(currentGameRoom?.gameRoomId) {
             await setPatternASetFirestore(currentGameRoom?.gameRoomId, true);
@@ -64,11 +73,11 @@ const PenaltyAB: React.FC<PenaltyABPros> = () => {
 
     return (
         <View style={styles.container}>
-                <View style={{alignItems:"center", marginBottom: 50}}>
+                {/* <View style={{alignItems:"center", marginBottom: 50}}>
                     <Text style={{color: 'white', fontSize: 30, textAlign: 'center'}}>
                         罰ゲームの決め方
                     </Text>
-                </View>
+                </View> */}
                 <EffectBorder style={{width: '80%', marginVertical: 10}}>
                     <TouchableOpacity 
                         style={styles.gameBtn}
@@ -92,8 +101,8 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        padding: viewportWidth*0.1,
-        backgroundColor: "#000000",
+        paddingHorizontal: viewportWidth*0.1,
+        // backgroundColor: "black",
         width: '100%'
       },
     button: {
