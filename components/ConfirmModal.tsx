@@ -14,7 +14,8 @@ interface ModalProps {
     onCancel: () => void,
     topElement?: React.ReactNode,
     middleElement?: React.ReactNode,
-    bottomElement?: React.ReactNode
+    bottomElement?: React.ReactNode,
+    zindex?: number
 }
 
 const ConfirmModal: React.FC<ModalProps> = ({
@@ -29,7 +30,8 @@ const ConfirmModal: React.FC<ModalProps> = ({
     onCancel,
     topElement = <></>,
     middleElement = <></>,
-    bottomElement = <></>
+    bottomElement = <></>,
+    zindex=10
 }) => {
     return (
         <Modal
@@ -39,6 +41,7 @@ const ConfirmModal: React.FC<ModalProps> = ({
             onRequestClose={() => {
                 setVisible(false);
             }}
+            style={{zIndex: zindex}}
         >
             <TouchableWithoutFeedback onPress={() => setVisible(false)}>
                 <View
@@ -139,6 +142,7 @@ const styles = StyleSheet.create({
         marginVertical: 4,
         borderRadius: 6,
         borderWidth: 1,
+        alignItems: 'center'
     },
     modalCancelBtn: {
         backgroundColor: customColors.blackGrey,
@@ -149,6 +153,7 @@ const styles = StyleSheet.create({
         marginVertical: 4,
         borderRadius: 6,
         borderWidth: 1,
+        alignItems: 'center'
     },
     modalOkText: {
         fontSize: 16,

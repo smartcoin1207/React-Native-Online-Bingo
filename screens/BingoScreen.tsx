@@ -976,6 +976,7 @@ const PlayBoard: React.FC = () => {
                 confirmBackgroundColor={customColors.blackRed}
                 onConfirm={exitScreen}
                 onCancel={() => {}}
+                zindex={20}
             />
 
             <Modal
@@ -1045,6 +1046,7 @@ const PlayBoard: React.FC = () => {
                         setBingoEndedModalVisible(false);
                     }
                 }}
+                style={{zIndex: 20}}
             >
                 <View
                     style={{

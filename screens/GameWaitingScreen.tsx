@@ -194,6 +194,7 @@ const GameWaitingScreen = () => {
             }
 
             if (gameRoom?.gameType == GameType.Penalty && !isHost) {
+              setSortModalVisible(false);
               navigator.navigate("penalty");
             }
 
