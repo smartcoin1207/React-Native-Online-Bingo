@@ -26,7 +26,7 @@ const AppNavigator = () => {
   return (
       <Stack.Navigator initialRouteName='Splash'>
         <Stack.Screen name='Splash' component={SplashScreen} options={{ headerShown: false }}/>
-        <Stack.Screen name='Home' component={Home} options={{ headerShown: true, title: '' }}/>
+        <Stack.Screen name='Home' component={Home} options={{ headerShown: true, title: '', headerTitle:'' }}/>
         <Stack.Screen name='register' component={Register} options={{ 
             headerShown: true,
             title: ''
@@ -55,7 +55,8 @@ const AppNavigator = () => {
             headerTitleAlign: 'center',
             headerTitleStyle: {
               fontSize: 20,
-              fontWeight: 'bold'
+              fontWeight: 'bold',
+              fontFamily: 'NotoSansJP_400Regular'
             }
           }}/>
         <Stack.Screen name='penaltyAB' component={PenaltyAB} options={{headerShown: true, title: '罰ゲームの決め方'}}/>
@@ -74,17 +75,19 @@ const AppNavigator = () => {
           headerTitleStyle: {
             fontSize: 20,
             fontWeight: 'bold',
-            // fontFamily: 'NotoSansJP_400Regular'
+            fontFamily: 'NotoSansJP_400Regular'
           }
         }}/>
         <Stack.Screen name='bingo' component={PlayBoard} options={{ 
-          headerShown: true, 
-          title: 'BINGO',
-          headerTitleAlign: 'center',
-          headerTitleStyle: {
-            fontSize: 80,
-            fontWeight: 'bold'
-          } 
+          headerShown: false, 
+          // title: '',
+          // // headerTransparent: true,
+          // headerTitleAlign: 'center',
+          // headerTitleStyle: {
+          //   fontSize: 80,
+          //   fontWeight: 'bold',
+          // },
+
         }}/>
         <Stack.Screen name='highlow' component={HighLowScreen} options={{ headerShown: false }}/>
         <Stack.Screen name='tictactoe' component={TictactoeScreen} options={{ headerShown: false }}/>

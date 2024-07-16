@@ -323,8 +323,6 @@ const GameRoomScreen = () => {
         isVisible={passwordSetModalVisible}
         setVisible={handlePasswordSetModalVisible}
         messageText="パスワードを設定しますか？"
-        confirmText="　 はい 　"
-        cancelText="　 いいえ 　"
         onConfirm={() => handleCreateModalWithPassword(true)}
         onCancel={() => handleCreateModalWithPassword(false)}
       />

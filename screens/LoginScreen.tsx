@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: viewportWidth*0.05,
-    backgroundColor: customColors.black,
+    // backgroundColor: customColors.black,
   },
   subContainer: {
     justifyContent: "center",

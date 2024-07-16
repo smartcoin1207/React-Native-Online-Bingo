@@ -18,9 +18,13 @@ import {
   NotoSansJP_900Black,
 } from '@expo-google-fonts/noto-sans-jp';
 
-StatusBar.setBarStyle('light-content');
-StatusBar.setTranslucent(true);
-StatusBar.setBackgroundColor('transparent');
+if (Platform.OS === 'ios') {
+  StatusBar.setBarStyle('light-content');
+} else if (Platform.OS === 'android') {
+  StatusBar.setBarStyle('light-content');
+  StatusBar.setTranslucent(true);
+  StatusBar.setBackgroundColor('transparent');
+}
 
 SplashScreen.preventAutoHideAsync();
 

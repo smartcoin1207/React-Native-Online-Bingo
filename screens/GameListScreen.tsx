@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         padding: viewportWidth*0.1,
-        backgroundColor: "#000000",
+        // backgroundColor: "#000000",
         width: '100%'
       },
     button: {

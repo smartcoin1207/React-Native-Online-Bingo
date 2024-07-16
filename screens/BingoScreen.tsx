@@ -12,6 +12,9 @@ import {
     PanResponder,
     ScrollView,
     FlatList,
+    TouchableWithoutFeedback,
+    Platform,
+    StatusBar,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useDispatch, useSelector } from "react-redux";
@@ -50,8 +53,9 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { setPenaltyInitial } from "../store/reducers/bingo/penaltySlice";
 import { setGameRoomInitial } from "../store/reducers/bingo/gameRoomSlice";
 import Language from "../utils/Variables";
-import {Audio} from 'expo-av';
+import { Audio } from 'expo-av';
 import ConfirmModal from "../components/ConfirmModal";
+import { useHeaderHeight } from '@react-navigation/elements';
 
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get("window");
 const screenWidth = Dimensions.get("window").width;
@@ -59,8 +63,8 @@ const cellSize = (screenWidth * 0.9) / 5;
 const jpLanguage = Language.jp;
 
 type ResultData = {
-    uid: string, 
-    displayName: string, 
+    uid: string,
+    displayName: string,
     ranks: number[],
     sum: number,
     firstRankCount: number,
@@ -69,6 +73,11 @@ type ResultData = {
 
 const PlayBoard: React.FC = () => {
     const navigation = useNavigation();
+    const headerHeight = useHeaderHeight();
+    const statusBarHeight = Platform.OS === 'ios' ? 20 : StatusBar.currentHeight; // On iOS, StatusBar.currentHeight is undefined, typically use 20
+
+    const headerHeightWithoutStatusBar = headerHeight - (statusBarHeight || 0);
+
     const [modalCompletedVisible, setModalCompletedVisible] = useState(false);
     const [exitModalVisible, setExitModalVisible] = useState<boolean>(false);
     const [bingoEndedModalVisible, setBingoEndedModalVisible] = useState<boolean>(false);
@@ -126,7 +135,7 @@ const PlayBoard: React.FC = () => {
     const [penaltyAList, setPenaltyAList] = useState<any[]>([]);
     const [penaltyB, setPenaltyB] = useState<any>();
     const [isPatternASet, setIsPatternASet] = useState<boolean>(false);
-    const [isPatternBSet, setIsPatternBSet] = useState<boolean>(false); 
+    const [isPatternBSet, setIsPatternBSet] = useState<boolean>(false);
     const [isSubPattern1, setIsSubPattern1] = useState<boolean>(false);
     const [isSubPattern2, setIsSubPattern2] = useState<boolean>(false);
     const [isSubPattern3, setIsSubPattern3] = useState<boolean>(false);
@@ -141,27 +150,27 @@ const PlayBoard: React.FC = () => {
     const [sound, setSound] = useState<Audio.Sound | null>(null);
 
     const playSound = async () => {
-      console.log('Loading Sound');
+        console.log('Loading Sound');
 
-      try {
-        const { sound } = await Audio.Sound.createAsync(require('../assets/media/music/penalty.mp3'));
-        setSound(sound);
-    
-        console.log('Playing Sound');
-        await sound.playAsync();
-      } catch (error) {
-        console.log("this is failed.")
-      }
+        try {
+            const { sound } = await Audio.Sound.createAsync(require('../assets/media/music/penalty.mp3'));
+            setSound(sound);
+
+            console.log('Playing Sound');
+            await sound.playAsync();
+        } catch (error) {
+            console.log("this is failed.")
+        }
     }
-  
+
     // play sound when screen will be visited
     // useEffect(() => {
     //   const loadAndPlaySound = async () => {
     //     await playSound();
     //   };
-  
+
     //   loadAndPlaySound();
-  
+
     //   return () => {
     //     if (sound) {
     //       sound.unloadAsync();
@@ -187,23 +196,23 @@ const PlayBoard: React.FC = () => {
 
     useEffect(() => {
         const fetchGamePenaltyData = async () => {
-          const gamePenaltyData = await getGamePenalty(gameRoomId);
+            const gamePenaltyData = await getGamePenalty(gameRoomId);
 
-          if(gamePenaltyData) {
-            setPenaltyRunCount(gamePenaltyData?.penaltyRunCount as number || 1);
-            setPenaltyAList(gamePenaltyData?.patternAList || []);
-            setPenaltyB(gamePenaltyData?.penaltyB);
-            setIsPatternASet(gamePenaltyData?.patternASet);
-            setIsPatternBSet(gamePenaltyData?.patternBSet);
-            setIsSubPattern1(gamePenaltyData?.subPattern1);
-            setIsSubPattern2(gamePenaltyData?.subPattern2);
-            setIsSubPattern3(gamePenaltyData?.subPattern3);
-          }
-          // Handle the game penalty data as needed
+            if (gamePenaltyData) {
+                setPenaltyRunCount(gamePenaltyData?.penaltyRunCount as number || 1);
+                setPenaltyAList(gamePenaltyData?.patternAList || []);
+                setPenaltyB(gamePenaltyData?.penaltyB);
+                setIsPatternASet(gamePenaltyData?.patternASet);
+                setIsPatternBSet(gamePenaltyData?.patternBSet);
+                setIsSubPattern1(gamePenaltyData?.subPattern1);
+                setIsSubPattern2(gamePenaltyData?.subPattern2);
+                setIsSubPattern3(gamePenaltyData?.subPattern3);
+            }
+            // Handle the game penalty data as needed
         };
-      
+
         fetchGamePenaltyData();
-      }, [gameRoomId]);
+    }, [gameRoomId]);
 
     useFocusEffect(
         useCallback(() => {
@@ -215,12 +224,12 @@ const PlayBoard: React.FC = () => {
                     return false;
                 }
 
-                if (gameRoom ?.subscribersPlayers) {
+                if (gameRoom?.subscribersPlayers) {
                     if (
-                        !gameRoom ?.subscribersPlayers.some(
+                        !gameRoom?.subscribersPlayers.some(
                             (player: any) => player.uid === authUser.uid
                         )
-                ) {
+                    ) {
                         dispatch(setBingoInitial(null));
                         dispatch(setGameRoomInitial(null));
                         navigation.navigate('gameRoomList');
@@ -228,7 +237,7 @@ const PlayBoard: React.FC = () => {
                     }
                 }
 
-                if (gameRoom ?.gameType == GameType.Room && !isHost) {
+                if (gameRoom?.gameType == GameType.Room && !isHost) {
                     dispatch(setBingoInitial(null));
                     navigation.navigate("currentRoom", { isHostParam: isHost, gameRoomIdParam: gameRoomId });
                 }
@@ -237,14 +246,14 @@ const PlayBoard: React.FC = () => {
             return unsubscribe1;
         }, [])
     )
-    
+
     useEffect(() => {
         console.log("currentRoom", currentGameRoom)
-        const sort: string[] = currentGameRoom ?.sort || [];
+        const sort: string[] = currentGameRoom?.sort || [];
         setSort(sort);
 
         let sortedPlayers: Player[] | any[] = [];
-        const subscribersPlayers: Player[] = currentGameRoom ?.subscribersPlayers || [];
+        const subscribersPlayers: Player[] = currentGameRoom?.subscribersPlayers || [];
         if (subscribersPlayers && subscribersPlayers.length > 0) {
             sortedPlayers = sort.map(uid => subscribersPlayers.find(player => player.uid === uid)).filter(Boolean);
             setPlayerOrderList(sortedPlayers);
@@ -279,7 +288,7 @@ const PlayBoard: React.FC = () => {
                 }
 
                 if (authUser.uid != completedPlayerId) {
-                    const subscribersPlayers: Player[] | undefined = currentGameRoom ?.subscribersPlayers;
+                    const subscribersPlayers: Player[] | undefined = currentGameRoom?.subscribersPlayers;
 
                     if (subscribersPlayers) {
                         const completedPlayer = subscribersPlayers.find(
@@ -287,8 +296,8 @@ const PlayBoard: React.FC = () => {
                         );
 
                         if (completedPlayer) {
-                            const otherPlayerCellstatus = JSON.parse(bingoCompletedObj[rank] ?.cellstatus);
-                            const otherPlayerCellValue = JSON.parse(bingoCompletedObj[rank] ?.cellValue);;
+                            const otherPlayerCellstatus = JSON.parse(bingoCompletedObj[rank]?.cellstatus);
+                            const otherPlayerCellValue = JSON.parse(bingoCompletedObj[rank]?.cellValue);;
 
                             const newBingoCompletedMessageObj = {
                                 rank: rank,
@@ -307,10 +316,10 @@ const PlayBoard: React.FC = () => {
             setBingoCompletedMessagesObj(messages);
         }
 
-        if(isHost && (bingoNewCompleted.length > 0) && ((bingoNewCompleted.length + 1) >= sort.length)) {
+        if (isHost && (bingoNewCompleted.length > 0) && ((bingoNewCompleted.length + 1) >= sort.length)) {
             setBingoRoundEnd(gameRoomId);
         }
-        
+
     }, [JSON.stringify(bingoNewCompleted)]);
 
     useEffect(() => {
@@ -318,41 +327,41 @@ const PlayBoard: React.FC = () => {
 
     useEffect(() => {
         const showResult = async () => {
-            if(bingoRoundEnded && sort.length > 1) {
-                if(bingoRound >= penaltyRunCount) {
+            if (bingoRoundEnded && sort.length > 1) {
+                if (bingoRound >= penaltyRunCount) {
                     setBingoAllRoundEnd(true);
                     await playSound();
                 }
 
                 const getPlayersBySort = (sort: string[], subscribers: Player[]): Player[] => {
                     const sortedPlayers: Player[] = [...subscribers];
-                  
+
                     sortedPlayers.sort((player1, player2) => {
-                      const index1 = sort.indexOf(player1.uid);
-                      const index2 = sort.indexOf(player2.uid);
-                      return index1 - index2;
+                        const index1 = sort.indexOf(player1.uid);
+                        const index2 = sort.indexOf(player2.uid);
+                        return index1 - index2;
                     });
-                  
+
                     return sortedPlayers;
-                  };
-                
+                };
+
                 const sortedPlayers = getPlayersBySort(sort, currentGameRoom?.subscribersPlayers || []);
                 const bingoCompletedHistory = await getBingoCompletedHistory(gameRoomId) || [];
 
                 let historyAll: any[][] = [];
-                bingoCompletedHistory.forEach((element:any) => {
+                bingoCompletedHistory.forEach((element: any) => {
                     const roundData = JSON.parse(element);
                     const roundScore = JSON.parse(roundData?.roundScore) as any[];
                     historyAll.push(roundScore);
                 });
-    
+
                 const remainedBingoSubscribers = sort.filter(playerId => !bingoCompleted.includes(playerId));
                 const bingoCompletedAllRank = [...bingoCompleted, ...remainedBingoSubscribers];
                 historyAll.push(bingoCompletedAllRank);
 
                 const resultTableData: ResultData[] = sortedPlayers.map((player: Player) => {
                     let sum = 0;
-                    let firstRankCount = 0; 
+                    let firstRankCount = 0;
                     let lastRankCount = 0;
                     const playerRanks = historyAll.map((historyOne, index) => {
                         const roundRank = historyOne.indexOf(player.uid);
@@ -363,18 +372,18 @@ const PlayBoard: React.FC = () => {
                     });
 
                     const row: ResultData = {
-                        uid: player.uid, 
+                        uid: player.uid,
                         displayName: player.displayName,
                         ranks: playerRanks,
                         firstRankCount: firstRankCount,
                         lastRankCount: lastRankCount,
                         sum: sum,
                     }
-    
+
                     return row;
                 });
 
-                if(bingoRound >= penaltyRunCount) {
+                if (bingoRound >= penaltyRunCount) {
                     const resortResultTableDataByFirstRank = resultTableData.sort((a: ResultData, b: ResultData) => b.firstRankCount - a.firstRankCount);
                     const firstUid = resortResultTableDataByFirstRank[0].uid;
 
@@ -391,7 +400,7 @@ const PlayBoard: React.FC = () => {
                     setPenaltyATitle(penaltyATitle);
                     setPenaltyBTitle(penaltyBTitle);
                 }
-                
+
                 console.log(resultTableData)
                 setBingoResultTableData(resultTableData);
                 setModalCompletedVisible(false);
@@ -404,13 +413,13 @@ const PlayBoard: React.FC = () => {
     }, [bingoRoundEnded]);
 
     const getPlayerDisplayName = (uid: string) => {
-        const player = currentGameRoom ?.subscribersPlayers.find((item: Player) => item.uid == uid );
+        const player = currentGameRoom?.subscribersPlayers.find((item: Player) => item.uid == uid);
         return player?.displayName;
     }
 
     const getPenaltyATitle = (uid: string) => {
-        const penalty = penaltyAList.find((item:any) => item.uid == uid);
-        
+        const penalty = penaltyAList.find((item: any) => item.uid == uid);
+
         return penalty?.penaltyTitle || '';
     }
 
@@ -419,7 +428,7 @@ const PlayBoard: React.FC = () => {
     }
 
     useEffect(() => {
-        if(bingoRound > 1 && !isHost) {
+        if (bingoRound > 1 && !isHost) {
             const newSort = [...sort.slice(1), sort[0]];
             setSort(newSort);
             dispatch(setBingoInitial(null));
@@ -447,32 +456,32 @@ const PlayBoard: React.FC = () => {
     useFocusEffect(
         useCallback(() => {
             const unsubscribe: UnsubscribeOnsnapCallbackFunction = getBingo(gameRoomId, (bingo: any) => {
-                const turnPlayerId: string = bingo ?.turnPlayerId || '';
+                const turnPlayerId: string = bingo?.turnPlayerId || '';
                 const bingoMyTurn: boolean = turnPlayerId == authUser.uid;
-                const subscribersPlayers: Player[] = currentGameRoom ?.subscribersPlayers || [];
-                const bingoCompletedFirestore: string[] = bingo ?.bingoCompleted || [];
-                const bingoCompletedObj: any[] = bingo ?.bingoCompletedObj || [];
-                const bingoRoundEnd: boolean = bingo ?.bingoRoundEnd || false;
+                const subscribersPlayers: Player[] = currentGameRoom?.subscribersPlayers || [];
+                const bingoCompletedFirestore: string[] = bingo?.bingoCompleted || [];
+                const bingoCompletedObj: any[] = bingo?.bingoCompletedObj || [];
+                const bingoRoundEnd: boolean = bingo?.bingoRoundEnd || false;
 
                 setBingoRound(bingo?.bingoRound || 1);
-                if(bingoRoundEnd) {
+                if (bingoRoundEnd) {
                     setBingoRoundEnded(bingoRoundEnd);
                 }
 
                 setBingoCompletedObj(bingoCompletedObj);
                 setBingoNewCompleted(bingoCompletedFirestore);
-                setTurnPlayerId(bingo ?.turnPlayerId);
+                setTurnPlayerId(bingo?.turnPlayerId);
 
                 const bingoInfo = {
                     bingoMyTurn: bingoMyTurn,
-                    bingoNextNumber: bingo ?.bingoNextNumber || "",
+                    bingoNextNumber: bingo?.bingoNextNumber || "",
                 };
 
-                if( isHost && bingoCompletedFirestore.includes(turnPlayerId)) {
-                   setNextTurnPlayerId(turnPlayerId, bingoCompletedFirestore); 
+                if (isHost && bingoCompletedFirestore.includes(turnPlayerId)) {
+                    setNextTurnPlayerId(turnPlayerId, bingoCompletedFirestore);
                 }
                 dispatch(setBingoInfo(bingoInfo));
-                
+
                 if (bingoMyTurn) {
                     setTurnText(jpLanguage.bingoMyTurnTextString);
                 } else {
@@ -481,7 +490,7 @@ const PlayBoard: React.FC = () => {
                             (player) => player.uid === turnPlayerId
                         );
                         if (turnPlayer) {
-                            setTurnText(turnPlayer ?.displayName + jpLanguage.bingoOtherTurnTextString);
+                            setTurnText(turnPlayer?.displayName + jpLanguage.bingoOtherTurnTextString);
                         } else {
                             setTurnText("");
                         }
@@ -492,7 +501,7 @@ const PlayBoard: React.FC = () => {
             return () => unsubscribe();
         }, [])
     )
-    
+
     useFocusEffect(
         useCallback(() => {
             const unsubscribe1: UnsubscribeOnsnapCallbackFunction = getGameRoom(gameRoomId, (gameRoom: any) => {
@@ -503,12 +512,12 @@ const PlayBoard: React.FC = () => {
                     return false;
                 }
 
-                if (gameRoom ?.subscribersPlayers) {
+                if (gameRoom?.subscribersPlayers) {
                     if (
-                        !gameRoom ?.subscribersPlayers.some(
+                        !gameRoom?.subscribersPlayers.some(
                             (player: any) => player.uid === authUser.uid
                         )
-                ) {
+                    ) {
                         dispatch(setBingoInitial(null));
                         dispatch(setGameRoomInitial(null));
                         navigation.navigate('gameRoomList');
@@ -516,7 +525,7 @@ const PlayBoard: React.FC = () => {
                     }
                 }
 
-                if (gameRoom ?.gameType == GameType.Room && !isHost) {
+                if (gameRoom?.gameType == GameType.Room && !isHost) {
                     dispatch(setBingoInitial(null));
                     navigation.navigate("currentRoom", { isHostParam: isHost, gameRoomIdParam: gameRoomId });
                 }
@@ -526,16 +535,16 @@ const PlayBoard: React.FC = () => {
         }, [])
     )
 
-    useLayoutEffect(() => {
-        navigation.setOptions({
-          headerLeft: () => (
-            <Icon name="chevron-back-sharp" size={30} color="white" style={{marginRight: 20, marginLeft: -10 }} onPress={() => {
-                setExitModalText(jpLanguage.bingoExitModalTextString);
-                setExitModalVisible(true);
-            }} />
-          ),
-        })
-      }, [navigation]) 
+    // useLayoutEffect(() => {
+    //     navigation.setOptions({
+    //         headerLeft: () => (
+    //             <Icon name="chevron-back-sharp" size={30} color="white" style={{ marginRight: 20, marginLeft: -10, marginTop: 0 }} onPress={() => {
+    //                 setExitModalText(jpLanguage.bingoExitModalTextString);
+    //                 setExitModalVisible(true);
+    //             }} />
+    //         ),
+    //     })
+    // }, [navigation])
 
     const exitScreen = () => {
         if (isHost) {
@@ -580,11 +589,11 @@ const PlayBoard: React.FC = () => {
         setSelectedCellValue("");
         setPlayerOrderList([]);
 
-        if(isSubPattern3) {
+        if (isSubPattern3) {
             const remainedBingoSubscribers = newSort.filter(playerId => !bingoCompleted.includes(playerId));
             const bingoCompletedAllRank = [...bingoCompleted, ...remainedBingoSubscribers];
             setBingoNextRound(gameRoomId, bingoCompletedAllRank, bingoRound + 1, newSort[0]);
-        } else if(isSubPattern2 || isSubPattern1) {
+        } else if (isSubPattern2 || isSubPattern1) {
             setBingoOneNextRound(gameRoomId, bingoRound + 1, newSort[0]);
         }
     }
@@ -597,15 +606,15 @@ const PlayBoard: React.FC = () => {
             if (sort) {
                 const remainedPlayers = sort.filter(item => !bingoCompleted.includes(item));
                 let newTurnPlayerId = '';
-                if(bingoCompleted.includes(turnPlayerId)) {                    
+                if (bingoCompleted.includes(turnPlayerId)) {
                     const currentIndexInSort = sort.indexOf(turnPlayerId);
                     for (let i = 0; i < sort.length; i++) {
                         const nextIndexInSort = (currentIndexInSort + 1 + i) % sort.length;
-                        if(remainedPlayers.indexOf(sort[nextIndexInSort])> -1) {
+                        if (remainedPlayers.indexOf(sort[nextIndexInSort]) > -1) {
                             newTurnPlayerId = sort[nextIndexInSort];
                             break;
                         }
-                    } 
+                    }
                 } else {
                     const currentIndex = remainedPlayers.indexOf(turnPlayerId);
                     const nextIndex = (currentIndex + 1) % remainedPlayers.length;
@@ -633,13 +642,13 @@ const PlayBoard: React.FC = () => {
         return (
             <DraggableComponent>
                 <View style={styles.notifierContainer}>
-                    <TouchableOpacity style={{ display: 'flex', alignItems: 'center' }} onPress={() => { if (item ?.rank == notifyExpandKey) { setNotifyExpand(!notifyExpand); } else { setNotifyExpand(true) } setNotifyExpandKey(item ?.rank) }}>
+                    <TouchableOpacity style={{ display: 'flex', alignItems: 'center' }} onPress={() => { if (item?.rank == notifyExpandKey) { setNotifyExpand(!notifyExpand); } else { setNotifyExpand(true) } setNotifyExpandKey(item?.rank) }}>
                         <Text style={{
-                            
+
                         }}>
-                            <Text style={[styles.notifierDescription, { fontWeight: 'bold', fontSize: 24, textDecorationLine: 'underline' }]}> {item ?.displayName} </Text>
+                            <Text style={[styles.notifierDescription, { fontWeight: 'bold', fontSize: 24, textDecorationLine: 'underline' }]}> {item?.displayName} </Text>
                             <Text style={styles.notifierDescription}> {jpLanguage.bingoOtherMrString} </Text>
-                            <Text style={[styles.notifierDescription, { fontWeight: 'bold', fontSize: 24, textDecorationLine: 'underline' }]}> {item ?.rank + 1} {jpLanguage.rankString}</Text>
+                            <Text style={[styles.notifierDescription, { fontWeight: 'bold', fontSize: 24, textDecorationLine: 'underline' }]}> {item?.rank + 1} {jpLanguage.rankString}</Text>
                             <Text style={styles.notifierDescription}> {jpLanguage.bingoOtherCompletedBingoString}</Text>
                         </Text>
                     </TouchableOpacity>
@@ -647,10 +656,10 @@ const PlayBoard: React.FC = () => {
                         <Icon name="close-outline" size={20} color="white" />
                     </TouchableOpacity>
 
-                    {(notifyExpand && notifyExpandKey == item ?.rank) &&
+                    {(notifyExpand && notifyExpandKey == item?.rank) &&
                         <View style={{ display: 'flex', alignContent: 'center' }}>
                             <View style={styles.boardContainerOutModalNot}>
-                                <View style={[styles.boardContainerModalNot]}>{BingoBoard(item ?.cellStatus, item ?.cellValue, true)}</View>
+                                <View style={[styles.boardContainerModalNot]}>{BingoBoard(item?.cellStatus, item?.cellValue, true)}</View>
                             </View>
                         </View>
                     }
@@ -667,20 +676,20 @@ const PlayBoard: React.FC = () => {
 
     const renderPlayerItem = ({ item, index }: { item: ResultData, index: number }) => (
         <>
-            {index == 0 && 
-                <View style={{flexDirection: 'row', height:50, borderWidth:0, borderColor: 'grey', justifyContent: 'space-between', alignItems: 'center', backgroundColor: customColors.customLightBlue}}  key={index + "resultkey"}>
-                    {Array.from({length: isSubPattern3 ?  bingoRound : 1}, (v, i) => i).map((rank: number, round: number) =>
-                        <View key={round + "roundIndex"} style={{ borderLeftWidth:0, borderLeftColor: 'grey', padding: 5, width: ((viewportWidth*0.5-10)/( isSubPattern3 ? bingoRound : 1 > 3 ? 3: isSubPattern3 ? bingoRound : 1)), justifyContent: 'space-between', alignItems: 'center'}}>
-                            <Text style={{color: 'white', textAlign: 'center', letterSpacing: 5, fontSize: 18}}>{(round + 1) + "戦"}</Text>
+            {index == 0 &&
+                <View style={{ flexDirection: 'row', height: 50, borderWidth: 0, borderColor: 'grey', justifyContent: 'space-between', alignItems: 'center', backgroundColor: customColors.customLightBlue }} key={index + "resultkey"}>
+                    {Array.from({ length: isSubPattern3 ? bingoRound : 1 }, (v, i) => i).map((rank: number, round: number) =>
+                        <View key={round + "roundIndex"} style={{ borderLeftWidth: 0, borderLeftColor: 'grey', padding: 5, width: ((viewportWidth * 0.5 - 10) / (isSubPattern3 ? bingoRound : 1 > 3 ? 3 : isSubPattern3 ? bingoRound : 1)), justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Text style={{ color: 'white', textAlign: 'center', letterSpacing: 5, fontSize: 18 }}>{(round + 1) + "戦"}</Text>
                         </View>
                     )}
                 </View>
             }
-            
-            <View style={{flexDirection: 'row', height:50, borderWidth:0, borderColor: 'grey', justifyContent: 'space-between', alignItems: 'center'}}  key={(index+1) + "resultkey"}>
+
+            <View style={{ flexDirection: 'row', height: 50, borderWidth: 0, borderColor: 'grey', justifyContent: 'space-between', alignItems: 'center' }} key={(index + 1) + "resultkey"}>
                 {item.ranks.map((rank: number, rankIndex: number) =>
-                    <View key={rankIndex + "rankIndex"} style={{ borderLeftWidth:0, borderLeftColor: 'grey', padding: 5, width: ((viewportWidth*0.5-10)/(isSubPattern3 ? bingoRound : 1 > 3 ? 3: isSubPattern3 ? bingoRound : 1)), justifyContent: 'space-between', alignItems: 'center'}}>
-                        <Text style={{color: 'white', textAlign: 'center'}}>{isNaN(rank) ? '' : rank + 1} 位</Text>
+                    <View key={rankIndex + "rankIndex"} style={{ borderLeftWidth: 0, borderLeftColor: 'grey', padding: 5, width: ((viewportWidth * 0.5 - 10) / (isSubPattern3 ? bingoRound : 1 > 3 ? 3 : isSubPattern3 ? bingoRound : 1)), justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Text style={{ color: 'white', textAlign: 'center' }}>{isNaN(rank) ? '' : rank + 1} 位</Text>
                     </View>
                 )}
             </View>
@@ -689,32 +698,32 @@ const PlayBoard: React.FC = () => {
 
     const renderPlayerItem1 = ({ item, index }: { item: ResultData, index: number }) => (
         <>
-            {index == 0 && 
-                <View style={{flexDirection: 'row', height:50, borderWidth:0, borderColor: 'grey', justifyContent: 'space-between', alignItems: 'center', backgroundColor: customColors.customLightBlue}}  key={index + "resultkey"}>
-                    
+            {index == 0 &&
+                <View style={{ flexDirection: 'row', height: 50, borderWidth: 0, borderColor: 'grey', justifyContent: 'space-between', alignItems: 'center', backgroundColor: customColors.customLightBlue }} key={index + "resultkey"}>
+
                     <View style={{ width: 60, alignItems: 'center' }}>
-                        <Text style={{color: 'white', textAlign: 'center', fontSize: 15}}>名前</Text>
+                        <Text style={{ color: 'white', textAlign: 'center', fontSize: 15 }}>名前</Text>
                     </View>
-                    <View style={{ width: 40, alignItems: 'center', borderLeftWidth:0, borderLeftColor: 'grey', paddingVertical:5 }}>
-                        <Text style={{color: 'white', textAlign: 'center', fontSize: 15}}>1位</Text>
+                    <View style={{ width: 40, alignItems: 'center', borderLeftWidth: 0, borderLeftColor: 'grey', paddingVertical: 5 }}>
+                        <Text style={{ color: 'white', textAlign: 'center', fontSize: 15 }}>1位</Text>
                     </View>
-                    <View style={{ width: 60, alignItems: 'center',  borderLeftWidth:0, borderLeftColor: 'grey', paddingVertical:5 }}>
-                        <Text style={{color: 'white', textAlign: 'center', fontSize: 15}}>最下位</Text>
+                    <View style={{ width: 60, alignItems: 'center', borderLeftWidth: 0, borderLeftColor: 'grey', paddingVertical: 5 }}>
+                        <Text style={{ color: 'white', textAlign: 'center', fontSize: 15 }}>最下位</Text>
                     </View>
                 </View>
             }
-            
-            <View style={{flexDirection: 'row', height:50, borderWidth:0, borderColor: 'grey', justifyContent: 'space-between', alignItems: 'center'}}  key={(index+1) + "resultkey"}>
+
+            <View style={{ flexDirection: 'row', height: 50, borderWidth: 0, borderColor: 'grey', justifyContent: 'space-between', alignItems: 'center' }} key={(index + 1) + "resultkey"}>
                 <View style={{ width: 60, alignItems: 'center' }}>
-                    <Text style={{color: 'white', textAlign: 'center'}}>{item?.displayName}様</Text>
+                    <Text style={{ color: 'white', textAlign: 'center' }}>{item?.displayName}様</Text>
                 </View>
 
-                <View style={{ alignItems: 'center', width: 40, borderLeftWidth:0, borderLeftColor: 'grey' }} key={(index+1) + "firstrank"}>
-                    <Text style={{color: 'white', textAlign: 'center'}}>{item?.firstRankCount}</Text>
+                <View style={{ alignItems: 'center', width: 40, borderLeftWidth: 0, borderLeftColor: 'grey' }} key={(index + 1) + "firstrank"}>
+                    <Text style={{ color: 'white', textAlign: 'center' }}>{item?.firstRankCount}</Text>
                 </View>
 
-                <View style={{ alignItems: 'center', width: 60, borderLeftWidth:0, borderLeftColor: 'grey' }} key={(index+1) + "lastrank"}>
-                    <Text style={{color: 'white', textAlign: 'center'}}>{item?.lastRankCount}</Text>
+                <View style={{ alignItems: 'center', width: 60, borderLeftWidth: 0, borderLeftColor: 'grey' }} key={(index + 1) + "lastrank"}>
+                    <Text style={{ color: 'white', textAlign: 'center' }}>{item?.lastRankCount}</Text>
                 </View>
             </View>
         </>
@@ -859,6 +868,24 @@ const PlayBoard: React.FC = () => {
         return ''
     }
 
+    const getCellTextStyle = (cellType: string): any => {
+        if (cellType == "pressedModal") {
+            return styles.pressedModalText;
+        } else if (cellType == 'pressed') {
+            return styles.pressedText;
+        } else if (cellType == 'bingoCellModal') {
+            return styles.bingoCellModalText;
+        } else if (cellType == 'bingoCell') {
+            return styles.bingoCellText
+        } else if (cellType == 'selectedCell') {
+            return styles.selectedCellText;
+        } else if (cellType == 'normal') {
+            return styles.normalText;
+        }
+
+        return ''
+    }
+
     const renderColumn = (rowNum: number, columnNum: number, cellStatus: number[][], cellValues: BingoCellValues, isModal: boolean): JSX.Element => {
         const cellValue = cellValues[rowNum][columnNum];
         const cellStatusValue = cellStatus[rowNum][columnNum];
@@ -895,22 +922,26 @@ const PlayBoard: React.FC = () => {
                 {renderCell(cellType, cellValue, isModal)}
             </TouchableOpacity>
         ) : (
-                <View
-                    key={cellValue}
-                >
-                    {renderCell(cellType, cellValue, isModal)}
-                </View>
-            );
+            <View
+                key={cellValue}
+            >
+                {renderCell(cellType, cellValue, isModal)}
+            </View>
+        );
     };
 
     const renderCell = (cellType: string, cellValue: number, isModal: boolean): JSX.Element => {
         const dynamicStyle = getCellStyle(cellType);
+        const dynamicTextStye = getCellTextStyle(cellType);
 
         return (
-            <View style={[isModal ? styles.boardSizeModal : styles.boardSize, { borderWidth: 1, borderColor: customColors.white, borderRadius: 10 }]}>
-                <Text style={[dynamicStyle]}>
-                    {cellValue}
-                </Text>
+            <View style={[isModal ? styles.boardSizeModal : styles.boardSize, { borderWidth: 1, borderColor: customColors.white, borderRadius: 10, justifyContent: 'center' }]}>
+                <View style={[dynamicStyle, { justifyContent: 'center' }]}>
+                    <Text style={[styles.cellText, dynamicTextStye]}>
+                        {cellValue}
+                    </Text>
+                </View>
+
             </View>
         );
     };
@@ -967,7 +998,7 @@ const PlayBoard: React.FC = () => {
                 ))}
             </View>
 
-            <ConfirmModal 
+            <ConfirmModal
                 isVisible={exitModalVisible}
                 setVisible={handleExitModalVisible}
                 messageText={exitModalText}
@@ -975,7 +1006,7 @@ const PlayBoard: React.FC = () => {
                 cancelText={jpLanguage.cancelString}
                 confirmBackgroundColor={customColors.blackRed}
                 onConfirm={exitScreen}
-                onCancel={() => {}}
+                onCancel={() => { }}
                 zindex={20}
             />
 
@@ -987,50 +1018,54 @@ const PlayBoard: React.FC = () => {
                     setModalCompletedVisible(false);
                 }}
             >
-                <View
-                    style={{
-                        flex: 1,
-                        justifyContent: "center",
-                        alignItems: "center",
-                        backgroundColor: customColors.modalBackgroundColor,
-                    }}
-                >
-                    <View style={styles.modalBody}>
-                        <Image
-                            source={require("../assets/images/bingo-win.gif")}
-                            style={styles.backgroundImage}
-                        />
-                        {modalCompletedVisible && (
-                            <View style={styles.boardContainerOutModal}>
-                                <View style={styles.boardContainerModal}>{BingoBoard(cellStatus, bingoCellValue, true)}</View>
-                            </View>
-                        )}
-                        <View
-                            style={{
-                                flexDirection: "row",
-                                alignSelf: "center",
-                                alignContent: "center",
-                                alignItems: "center",
-                                position: "absolute",
-                                top: '20%'
-                            }}
-                        >
-                            <Text style={styles.completedTextNumber}>
-                                {bingoCompletedRoundRanking}
-                            </Text>
-                            <Text style={styles.completedText}>{jpLanguage.rankString}</Text>
-                        </View>
+                <TouchableWithoutFeedback onPress={() => { setModalCompletedVisible(false) }}>
+                    <View
+                        style={{
+                            flex: 1,
+                            justifyContent: "center",
+                            alignItems: "center",
+                            backgroundColor: customColors.modalBackgroundColor,
+                        }}
+                    >
+                        <TouchableWithoutFeedback onPress={() => { }}>
+                            <View style={styles.modalBody}>
+                                <Image
+                                    source={require("../assets/images/bingo-win.gif")}
+                                    style={styles.backgroundImage}
+                                />
+                                {modalCompletedVisible && (
+                                    <View style={styles.boardContainerOutModal}>
+                                        <View style={styles.boardContainerModal}>{BingoBoard(cellStatus, bingoCellValue, true)}</View>
+                                    </View>
+                                )}
+                                <View
+                                    style={{
+                                        flexDirection: "row",
+                                        alignSelf: "center",
+                                        alignContent: "center",
+                                        alignItems: "center",
+                                        position: "absolute",
+                                        top: '20%'
+                                    }}
+                                >
+                                    <Text style={styles.completedTextNumber}>
+                                        {bingoCompletedRoundRanking}
+                                    </Text>
+                                    <Text style={styles.completedText}>{jpLanguage.rankString}</Text>
+                                </View>
 
-                        <TouchableOpacity
-                            style={styles.closeTouchableButton}
-                            onPress={() => setModalCompletedVisible(false)}
-                        >
-                            <View style={styles.buttonContainer}>
-                                <Icon name="close-outline" size={20} color="white" />
+                                <TouchableOpacity
+                                    style={styles.closeTouchableButton}
+                                    onPress={() => setModalCompletedVisible(false)}
+                                >
+                                    <View style={styles.buttonContainer}>
+                                        <Icon name="close-outline" size={20} color="white" />
+                                    </View>
+                                </TouchableOpacity>
                             </View>
-                        </TouchableOpacity>
+                        </TouchableWithoutFeedback>
                     </View>
-                </View>
+                </TouchableWithoutFeedback>
             </Modal>
 
             <Modal
@@ -1038,15 +1073,15 @@ const PlayBoard: React.FC = () => {
                 transparent={true}
                 visible={bingoEndedModalVisible}
                 onRequestClose={() => {
-                    if(isHost) {
-                        if(bingoAllRoundEnd) {
+                    if (isHost) {
+                        if (bingoAllRoundEnd) {
                             setBingoEndedModalVisible(false);
                         }
                     } else {
                         setBingoEndedModalVisible(false);
                     }
                 }}
-                style={{zIndex: 20}}
+                style={{ zIndex: 20 }}
             >
                 <View
                     style={{
@@ -1056,21 +1091,21 @@ const PlayBoard: React.FC = () => {
                         backgroundColor: customColors.modalBackgroundColor,
                     }}
                 >
-                    <View style={[styles.modalBody, {width: '95%', height: '95%', justifyContent: "flex-start", backgroundColor: customColors.black}]}>
-                        <View style={{ alignItems: 'center', width: '100%'}}>
-                            <View style={{marginVertical: 10}}>
-                                <Text style={{color: 'white', fontSize: 20}}>ゲーム結果</Text>
+                    <View style={[styles.modalBody, { width: '95%', height: '95%', justifyContent: "flex-start", backgroundColor: customColors.black }]}>
+                        <View style={{ alignItems: 'center', width: '100%' }}>
+                            <View style={{ marginVertical: 10 }}>
+                                <Text style={{ color: 'white', fontSize: 20 }}>ゲーム結果</Text>
                             </View>
 
-                            <View style={[styles.FlatResultDataListStyle, {paddingHorizontal: 2, borderWidth:1, borderColor: 'grey', borderRadius: 0, flexDirection: 'row', justifyContent: 'space-between' }]}>
-                                <View style={{width: '50%'}}>
+                            <View style={[styles.FlatResultDataListStyle, { paddingHorizontal: 2, borderWidth: 1, borderColor: 'grey', borderRadius: 0, flexDirection: 'row', justifyContent: 'space-between' }]}>
+                                <View style={{ width: '50%' }}>
                                     <FlatList
                                         data={bingoResultTableData}
                                         renderItem={renderPlayerItem1}
                                         keyExtractor={(item, index) => index.toString()}
                                     />
                                 </View>
-                                <View style={{width: '50%', borderLeftWidth:1, borderLeftColor:'#75787d8c', paddingLeft:0}}>
+                                <View style={{ width: '50%', borderLeftWidth: 1, borderLeftColor: '#75787d8c', paddingLeft: 0 }}>
                                     <ScrollView horizontal={true}>
                                         <FlatList
                                             data={bingoResultTableData}
@@ -1081,22 +1116,22 @@ const PlayBoard: React.FC = () => {
                                 </View>
                             </View>
 
-                            {bingoAllRoundEnd && 
-                                <View style={{width: '100%', marginTop: 30}}>
-                                    <Text style={{color: 'white', fontSize: 20, textAlign: 'center'}}>罰ゲーム実行</Text>
+                            {bingoAllRoundEnd &&
+                                <View style={{ width: '100%', marginTop: 30 }}>
+                                    <Text style={{ color: 'white', fontSize: 20, textAlign: 'center' }}>罰ゲーム実行</Text>
 
-                                    <View style={{borderWidth:1, borderRadius: 5, width: '100%', padding:5, paddingVertical: 10, marginVertical: 10}}>
-                                        {(penaltyATitle && isPatternASet) && 
-                                            <View style={{ padding:10, borderWidth:1, borderColor: customColors.customLightBlue, borderRadius:10, marginVertical: 10}}>
-                                                <Text style={{color: 'white', textAlign: 'center', fontSize: 18, textDecorationLine: 'underline'}}>{firstPlayerDisplayName}様 {' => '} {lastPlayerDisplayName}様</Text>
-                                                <Text style={{color: 'white', textAlign: 'center', fontSize: 15, marginTop: 10}}>{penaltyATitle}</Text>
+                                    <View style={{ borderWidth: 1, borderRadius: 5, width: '100%', padding: 5, paddingVertical: 10, marginVertical: 10 }}>
+                                        {(penaltyATitle && isPatternASet) &&
+                                            <View style={{ padding: 10, borderWidth: 1, borderColor: customColors.customLightBlue, borderRadius: 10, marginVertical: 10 }}>
+                                                <Text style={{ color: 'white', textAlign: 'center', fontSize: 18, textDecorationLine: 'underline' }}>{firstPlayerDisplayName}様 {' => '} {lastPlayerDisplayName}様</Text>
+                                                <Text style={{ color: 'white', textAlign: 'center', fontSize: 15, marginTop: 10 }}>{penaltyATitle}</Text>
                                                 <View style={{}}></View>
                                             </View>
                                         }
-                                        {(penaltyBTitle && isPatternBSet) && 
-                                            <View style={{padding:10, borderWidth:1, borderColor: customColors.customLightBlue, borderRadius:10, marginVertical: 10}}>
-                                                <Text style={{color: 'white', textAlign: 'center', fontSize: 18, textDecorationLine: 'underline'}}>共通罰ゲーム  {'  =>  '} {lastPlayerDisplayName}様</Text>
-                                                <Text style={{color: 'white', textAlign: 'center', fontSize: 15,  marginTop: 10}}>{penaltyBTitle}</Text>
+                                        {(penaltyBTitle && isPatternBSet) &&
+                                            <View style={{ padding: 10, borderWidth: 1, borderColor: customColors.customLightBlue, borderRadius: 10, marginVertical: 10 }}>
+                                                <Text style={{ color: 'white', textAlign: 'center', fontSize: 18, textDecorationLine: 'underline' }}>共通罰ゲーム  {'  =>  '} {lastPlayerDisplayName}様</Text>
+                                                <Text style={{ color: 'white', textAlign: 'center', fontSize: 15, marginTop: 10 }}>{penaltyBTitle}</Text>
                                             </View>
                                         }
                                     </View>
@@ -1104,40 +1139,40 @@ const PlayBoard: React.FC = () => {
                             }
                         </View>
 
-                        <View style={{flex: 1, justifyContent: 'center', width: '100%'}}>
+                        <View style={{ flex: 1, justifyContent: 'center', width: '100%' }}>
                             {(isSubPattern1 || isSubPattern2) && isHost && (
-                                <View style={{flexDirection: 'row', justifyContent: 'space-around', width: '100%', }}>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '100%', }}>
                                     <TouchableOpacity
-                                    style={{ padding: 10, borderWidth:1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.blackRed, justifyContent: 'center', alignItems: 'center', marginTop: 10}}
-                                    onPress={() => {setExitModalVisible(true), setExitModalText(jpLanguage.bingoExitModalTextString);}}
+                                        style={{ padding: 10, borderWidth: 1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.blackRed, justifyContent: 'center', alignItems: 'center', marginTop: 10 }}
+                                        onPress={() => { setExitModalVisible(true), setExitModalText(jpLanguage.bingoExitModalTextString); }}
                                     >
-                                    <Text style={{fontSize: 18, color: 'white', letterSpacing: 5}}>退出する</Text>
+                                        <Text style={{ fontSize: 18, color: 'white', letterSpacing: 5 }}>退出する</Text>
                                     </TouchableOpacity>
 
                                     <TouchableOpacity
-                                        style={{ padding: 10, borderWidth:1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.customLightBlue, justifyContent: 'center', alignItems: 'center', marginTop: 10}}
+                                        style={{ padding: 10, borderWidth: 1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.customLightBlue, justifyContent: 'center', alignItems: 'center', marginTop: 10 }}
                                         onPress={() => startBingoNextRound()}
                                     >
-                                        <Text style={{fontSize: 18, color: 'white', letterSpacing: 5}}>もう1回</Text>
+                                        <Text style={{ fontSize: 18, color: 'white', letterSpacing: 5 }}>もう1回</Text>
                                     </TouchableOpacity>
                                 </View>
                             )}
 
                             {(isSubPattern3 && isHost) && (
-                                <View style={{flexDirection: 'row',  justifyContent: 'space-around', width: '100%'}}>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '100%' }}>
                                     <TouchableOpacity
-                                        style={{ padding: 10, borderWidth:1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.blackRed, justifyContent: 'center', alignItems: 'center', marginTop: 10}}
-                                        onPress={() => {setExitModalVisible(true), setExitModalText(jpLanguage.bingoExitModalTextString);}}
-                                        >
-                                        <Text style={{fontSize: 18, color: 'white', letterSpacing: 5}}>退出する</Text>
+                                        style={{ padding: 10, borderWidth: 1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.blackRed, justifyContent: 'center', alignItems: 'center', marginTop: 10 }}
+                                        onPress={() => { setExitModalVisible(true), setExitModalText(jpLanguage.bingoExitModalTextString); }}
+                                    >
+                                        <Text style={{ fontSize: 18, color: 'white', letterSpacing: 5 }}>退出する</Text>
                                     </TouchableOpacity>
 
                                     {!bingoAllRoundEnd && (
                                         <TouchableOpacity
-                                            style={{ padding: 10, borderWidth:1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.customLightBlue, justifyContent: 'center', alignItems: 'center', marginTop: 10}}
+                                            style={{ padding: 10, borderWidth: 1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.customLightBlue, justifyContent: 'center', alignItems: 'center', marginTop: 10 }}
                                             onPress={() => startBingoNextRound()}
                                         >
-                                            <Text style={{fontSize: 18, color: 'white', letterSpacing: 5}}>次ラウンド</Text>
+                                            <Text style={{ fontSize: 18, color: 'white', letterSpacing: 5 }}>次ラウンド</Text>
                                         </TouchableOpacity>
                                     )}
                                 </View>
@@ -1146,8 +1181,16 @@ const PlayBoard: React.FC = () => {
                     </View>
                 </View>
             </Modal>
+            <View style={{width: '100%', alignItems: 'center'}}>
+                <View style={{ position: 'absolute', top: 40, left: 10 }}>
+                    <Icon name="chevron-back-sharp" size={30} color="white" style={{ marginRight: 20, marginLeft: -10, marginTop: 0 }} onPress={() => {
+                        setExitModalText(jpLanguage.bingoExitModalTextString);
+                        setExitModalVisible(true);
+                    }} />
+                </View>
+                <Text style={[styles.title,]}>BINGO</Text>
+            </View>
 
-            {/* <Text style={styles.title}>BINGO</Text> */}
             {/* <ShowOrder /> */}
 
             <View style={styles.container}>
@@ -1161,9 +1204,9 @@ const PlayBoard: React.FC = () => {
                             <Text style={styles.selected}>{bingoNextNumber}</Text>
                         </View>
                     ) : (
-                            <View style={styles.randomContainer}>
-                            </View>
-                        )}
+                        <View style={styles.randomContainer}>
+                        </View>
+                    )}
                 </View>
 
                 <Text style={styles.turnText}>{turnText}</Text>
@@ -1180,8 +1223,8 @@ const PlayBoard: React.FC = () => {
                                 </TouchableOpacity>
                             </EffectBorder>
                         ) : (
-                                ""
-                            )}
+                            ""
+                        )}
                     </View>
                     <View style={styles.boardContainerOut}>
                         <View style={styles.boardContainer}>{BingoBoard(cellStatus, bingoCellValue, false)}</View>
@@ -1229,13 +1272,13 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         flexDirection: "column",
-        backgroundColor: "black",
+        // backgroundColor: "black",
         alignItems: "center",
         position: "relative",
     },
     title: {
         color: customColors.white,
-        fontSize: viewportWidth * 0.2,
+        fontSize: 80,
         fontWeight: "700",
     },
     modalBtn: {
@@ -1447,13 +1490,12 @@ const styles = StyleSheet.create({
         padding: 8,
         borderWidth: 1,
         borderRadius: 80,
-        textAlign: "center",
-        fontSize: viewportWidth * 0.07,
-        fontWeight: "700",
-        color: "#c45600",
         borderColor: '#c45600',
-        textAlignVertical: "center",
         backgroundColor: "#d8d2cdeb",
+    },
+    pressedText: {
+        fontSize: viewportWidth * 0.07,
+        color: "#c45600",
     },
 
     pressedModal: {
@@ -1463,13 +1505,12 @@ const styles = StyleSheet.create({
         padding: 8,
         borderWidth: 1,
         borderRadius: 80,
-        textAlign: "center",
-        fontSize: viewportWidth * 0.06,
-        fontWeight: "700",
-        color: "#c45600",
         borderColor: '#c45600',
-        textAlignVertical: "center",
         backgroundColor: "#d8d2cdeb",
+    },
+    pressedModalText: {
+        fontSize: viewportWidth * 0.06,
+        color: "#c45600",
     },
 
     boardSize: {
@@ -1482,18 +1523,23 @@ const styles = StyleSheet.create({
         height: cellSize * 0.8
     },
 
+    cellText: {
+        textAlign: 'center',
+        textAlignVertical: 'center',
+        fontWeight: '700'
+    },
+
     normal: {
         width: '100%',
         height: '100%',
         padding: 8,
         borderWidth: 1,
         borderRadius: 10,
-        textAlign: "center",
-        fontSize: viewportWidth * 0.06,
-        fontWeight: "700",
-        color: customColors.white,
         borderColor: customColors.white,
-        textAlignVertical: "center"
+    },
+    normalText: {
+        fontSize: viewportWidth * 0.06,
+        color: customColors.white,
     },
     TouchableOpacity: {
         padding: 8,
@@ -1510,17 +1556,14 @@ const styles = StyleSheet.create({
     selectedCell: {
         width: '100%',
         height: '100%',
-        // marginLeft: '0%',
-        // marginTop: '0%',
         padding: 8,
         borderWidth: 2,
         borderRadius: 10,
-        textAlign: "center",
-        fontSize: viewportWidth * 0.09,
-        fontWeight: "700",
-        color: "#04AA6D",
         borderColor: customColors.blackGreen,
-        textAlignVertical: "center",
+    },
+    selectedCellText: {
+        fontSize: viewportWidth * 0.09,
+        color: "#04AA6D",
     },
     bingoCell: {
         width: '100%',
@@ -1529,12 +1572,11 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: 10,
         borderColor: customColors.blackGreen,
-        textAlign: "center",
-        fontSize: viewportWidth * 0.1,
-        fontWeight: "700",
         backgroundColor: 'yellow',
+    },
+    bingoCellText: {
+        fontSize: viewportWidth * 0.1,
         color: customColors.blackGreen,
-        textAlignVertical: "center",
     },
 
     bingoCellModal: {
@@ -1542,12 +1584,11 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: 10,
         borderColor: customColors.blackGreen,
-        textAlign: "center",
-        fontSize: viewportWidth * 0.08,
-        fontWeight: "700",
         backgroundColor: 'yellow',
+    },
+    bingoCellModalText: {
+        fontSize: viewportWidth * 0.08,
         color: customColors.blackGreen,
-        textAlignVertical: "center",
     },
     row: {
         flexDirection: "row",
@@ -1629,7 +1670,7 @@ const styles = StyleSheet.create({
         // flex: 1,
         backgroundColor: customColors.customDarkBlueBackground,
         borderRadius: 10,
-        padding:2,
+        padding: 2,
         width: '100%',
         alignItems: 'center',
         justifyContent: 'flex-start'

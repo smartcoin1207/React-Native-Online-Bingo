@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useLayoutEffect } from 'react';
 
 import { View, SafeAreaView, Text, StyleSheet, TouchableOpacity, Dimensions, Linking, Animated, Easing  } from 'react-native';
 import { UseSelector, useDispatch, useSelector } from 'react-redux';
@@ -9,6 +9,7 @@ import { customColors } from '../utils/Color';
 import { useRef } from 'react';
 import { delectDirectory, deleteBingoCollection } from '../utils/firebase/FirebaseUtil';
 import EffectBorder from '../components/EffectBorder';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const openWebsite = () => {
     const url = 'https://newgate-llc.shop/listener/registration';
@@ -28,15 +29,24 @@ const HomeScreen: React.FC = () => {
 
     useEffect(() => {
         // const playSound = async () => {
-        //     try {    
+        //     try {
         //         await SoundPlayer.playSoundFile('../assets/media/music/penalty.mp3', 'mp3');
         //     } catch (e) {
         //         console.log('Cannot play the sound file', e);
         //     }
         // };
-    
+
         // playSound();
     }, []);
+
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerLeft: () => (
+                <Icon name="chevron-back-sharp" size={30} color="white" style={{marginRight: 20, marginLeft: -10 }} onPress={() => {navigation.goBack()}} />
+            ),
+            headerTitle: ''
+        })
+    }, [navigation])
 
     return (
         <SafeAreaView style={styles.container}>
@@ -48,13 +58,13 @@ const HomeScreen: React.FC = () => {
 
             <EffectBorder style={{ width: '70%', marginVertical: 20}}>
                 <TouchableOpacity style={styles.gameBtn} onPress={() => navigation.navigate('register')}>
-                    <Text style={styles.textTitle}>　登録　</Text>
+                    <Text style={styles.textTitle}>登録</Text>
                 </TouchableOpacity>
             </EffectBorder>
 
             <EffectBorder style={{ width: '70%', marginVertical: 20}}>
                 <TouchableOpacity style={styles.gameBtn} onPress={() => navigation.navigate('login')}>
-                    <Text style={styles.textTitle}>　ログイン　</Text>
+                    <Text style={styles.textTitle}>ログイン</Text>
                 </TouchableOpacity>
             </EffectBorder>
         </SafeAreaView>
