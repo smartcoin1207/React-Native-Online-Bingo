@@ -18,6 +18,7 @@ import PlusMinusSettingModal from "../components/plusminus/PlusMinusSettingModal
 import PlusMinusValueButton from "../components/plusminus/PlusMinusValueButton";
 import ConfirmModal from "../components/ConfirmModal";
 import Icon from "react-native-vector-icons/Ionicons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get("window");
 
@@ -86,6 +87,8 @@ const PlusMinusScreen: React.FC = () => {
   const [isSubPattern3, setIsSubPattern3] = useState<boolean>(false);
   const [penaltyRunCount, setPenaltyRunCount] = useState<number>(20);
 
+  const insets = useSafeAreaInsets();
+
   /** ------------------------------useEffect functions------------------------------------  */
   //gameRoom monitoring
   useFocusEffect(
@@ -118,7 +121,7 @@ const PlusMinusScreen: React.FC = () => {
     }, [])
   )
 
-  //realtime monitoring for plusminus 
+  //realtime monitoring for plusminus
   useFocusEffect(
     useCallback(() => {
       const unsubscribe2: UnsubscribeOnsnapCallbackFunction = getPlusMinusFirestore(gameRoomId, (plusMinus: any) => {
@@ -162,11 +165,11 @@ const PlusMinusScreen: React.FC = () => {
             if(isHost) {
               setProblemHistory(history);
               handleFinishedGameHost(history);
-            } 
+            }
           } else {
             if(isHost) {
               setProblemHistory(history);
-              
+
               if (autoNextProblemActive) {
                 setNextProblemButtonDisplay(false);
                 handleNextProblem(proNum);
@@ -182,7 +185,7 @@ const PlusMinusScreen: React.FC = () => {
     }, [subscribers, penaltyRunCount])
   )
 
-  // //get penalty 
+  // //get penalty
   useEffect(() => {
     const fetchGamePenaltyData = async () => {
       const gamePenaltyData = await getGamePenalty(gameRoomId);
@@ -419,8 +422,8 @@ const PlusMinusScreen: React.FC = () => {
   }
 
   return (
-    <View style={[styles.container]}>
-     
+    <View style={[styles.container, {paddingBottom: insets.bottom}]}>
+
       <View
         style={{
           width: "97%",
@@ -556,7 +559,7 @@ const PlusMinusScreen: React.FC = () => {
 
       </View>
 
-      <ConfirmModal 
+      <ConfirmModal
         isVisible={exitModalVisible}
         setVisible={handleExitModalVisible}
         messageText={isHost

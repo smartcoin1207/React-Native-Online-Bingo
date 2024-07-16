@@ -1,12 +1,7 @@
 import React, { useEffect } from 'react';
 import { Provider } from 'react-redux';
-
-import { store } from './store/';
-import RootNavigator from './routes';
-
-import { DefaultTheme, Provider as PaperProvider } from 'react-native-paper';
 import { Platform, StatusBar } from 'react-native';
-
+import { SafeAreaProvider, SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import {
   useFonts,
@@ -17,6 +12,9 @@ import {
   NotoSansJP_700Bold,
   NotoSansJP_900Black,
 } from '@expo-google-fonts/noto-sans-jp';
+
+import { store } from './store/';
+import RootNavigator from './routes';
 
 if (Platform.OS === 'ios') {
   StatusBar.setBarStyle('light-content');
@@ -53,7 +51,9 @@ function App(): JSX.Element {
 
   return (
     <Provider store={store}>
-        <RootNavigator />
+        <SafeAreaProvider>
+          <RootNavigator />
+        </SafeAreaProvider>
     </Provider>
   );
 }

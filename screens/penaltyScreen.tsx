@@ -857,7 +857,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
               alignItems: 'center'
             }}
           >
-            {/* { isPenaltyAorB && subscribers.length >1 && 
+            {/* { isPenaltyAorB && subscribers.length >1 &&
               <View style={{flexDirection:'row', marginBottom: 35}}>
                 {subscribers.map((player,  index) => (
                   <View key={index} style={{width: 12, height:12, backgroundColor: (penaltyList.length > index) ? 'white' : '#413c3c', borderRadius: 12, marginHorizontal: 10}}></View>
@@ -1061,6 +1061,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
           setPenaltyListModalVisible(false);
         }}
       >
+      <TouchableWithoutFeedback onPress={() => {setPenaltyListModalVisible(false)}} >
         <View
           style={{
             flex: 1,
@@ -1069,6 +1070,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
             backgroundColor: "#000000e0",
           }}
         >
+        <TouchableWithoutFeedback onPress={() => { }} >
           <View
             style={{
               margin: 10,
@@ -1118,7 +1120,9 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
               </TouchableOpacity>
             </View>
           </View>
+        </TouchableWithoutFeedback>
         </View>
+      </TouchableWithoutFeedback>
       </Modal>
 
       <Modal

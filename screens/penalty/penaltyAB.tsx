@@ -21,7 +21,7 @@ const PenaltyAB: React.FC<PenaltyABPros> = () => {
     const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
     const currentGameRoom = useSelector((state: RootState) => state.gameRoom.currentGameRoom);
     const dispatch  = useDispatch();
-    
+
     useEffect(() => {
         if(!isLoggedIn) {
             navigation.navigate('Splash');
@@ -38,9 +38,9 @@ const PenaltyAB: React.FC<PenaltyABPros> = () => {
 
             return false; // Indicate that the back press is handled
           };
-    
+
           BackHandler.addEventListener("hardwareBackPress", onBackPress);
-    
+
           return () => {
             BackHandler.removeEventListener("hardwareBackPress", onBackPress);
           };
@@ -79,16 +79,16 @@ const PenaltyAB: React.FC<PenaltyABPros> = () => {
                     </Text>
                 </View> */}
                 <EffectBorder style={{width: '80%', marginVertical: 10}}>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         style={styles.gameBtn}
                         onPress={handlePenaltyA}
                     >
                         <Text style={styles.textTitle}>全員で決める</Text>
                     </TouchableOpacity>
                 </EffectBorder>
-                
+
                 <EffectBorder style={{width : '80%', marginVertical: 10}}>
-                    <TouchableOpacity style={styles.signBtn} onPress={handlePenaltyB}>
+                    <TouchableOpacity style={[styles.gameBtn, {backgroundColor: customColors.customDarkGreen1}]} onPress={handlePenaltyB}>
                         <Text style={styles.textTitle}>ホストが決める</Text>
                     </TouchableOpacity>
                 </EffectBorder>

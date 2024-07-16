@@ -54,6 +54,7 @@ const PlusMinusSettingModal: React.FC<PlusMinusSettingModalProps> = ({ isHost, i
                             borderRadius: 0,
                             paddingTop: 0,
                             paddingBottom: 0,
+                            paddingHorizontal: 0
                         },
                     ]}
                 >

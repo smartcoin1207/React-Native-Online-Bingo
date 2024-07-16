@@ -56,6 +56,7 @@ import Language from "../utils/Variables";
 import { Audio } from 'expo-av';
 import ConfirmModal from "../components/ConfirmModal";
 import { useHeaderHeight } from '@react-navigation/elements';
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get("window");
 const screenWidth = Dimensions.get("window").width;
@@ -148,6 +149,7 @@ const PlayBoard: React.FC = () => {
     const dispatch = useDispatch();
 
     const [sound, setSound] = useState<Audio.Sound | null>(null);
+    const instes = useSafeAreaInsets();
 
     const playSound = async () => {
         console.log('Loading Sound');
@@ -404,6 +406,7 @@ const PlayBoard: React.FC = () => {
                 console.log(resultTableData)
                 setBingoResultTableData(resultTableData);
                 setModalCompletedVisible(false);
+                setExitModalVisible(false);
                 setBingoEndedModalVisible(true);
                 dispatch(setBingoInitial(null))
             }
@@ -976,7 +979,7 @@ const PlayBoard: React.FC = () => {
     }
 
     return (
-        <View style={[styles.container, { paddingTop: '5%' }]}>
+        <View style={[styles.container, { paddingTop: (Platform.OS == 'ios' ? (statusBarHeight ? statusBarHeight : 0) : 0) + 20 }]}>
             <View
                 style={{
                     padding: 0,
@@ -998,17 +1001,7 @@ const PlayBoard: React.FC = () => {
                 ))}
             </View>
 
-            <ConfirmModal
-                isVisible={exitModalVisible}
-                setVisible={handleExitModalVisible}
-                messageText={exitModalText}
-                confirmText={jpLanguage.yesString}
-                cancelText={jpLanguage.cancelString}
-                confirmBackgroundColor={customColors.blackRed}
-                onConfirm={exitScreen}
-                onCancel={() => { }}
-                zindex={20}
-            />
+
 
             <Modal
                 animationType="fade"
@@ -1083,117 +1076,134 @@ const PlayBoard: React.FC = () => {
                 }}
                 style={{ zIndex: 20 }}
             >
-                <View
-                    style={{
-                        flex: 1,
-                        justifyContent: "center",
-                        alignItems: "center",
-                        backgroundColor: customColors.modalBackgroundColor,
-                    }}
-                >
-                    <View style={[styles.modalBody, { width: '95%', height: '95%', justifyContent: "flex-start", backgroundColor: customColors.black }]}>
-                        <View style={{ alignItems: 'center', width: '100%' }}>
-                            <View style={{ marginVertical: 10 }}>
-                                <Text style={{ color: 'white', fontSize: 20 }}>ゲーム結果</Text>
-                            </View>
-
-                            <View style={[styles.FlatResultDataListStyle, { paddingHorizontal: 2, borderWidth: 1, borderColor: 'grey', borderRadius: 0, flexDirection: 'row', justifyContent: 'space-between' }]}>
-                                <View style={{ width: '50%' }}>
-                                    <FlatList
-                                        data={bingoResultTableData}
-                                        renderItem={renderPlayerItem1}
-                                        keyExtractor={(item, index) => index.toString()}
-                                    />
-                                </View>
-                                <View style={{ width: '50%', borderLeftWidth: 1, borderLeftColor: '#75787d8c', paddingLeft: 0 }}>
-                                    <ScrollView horizontal={true}>
-                                        <FlatList
-                                            data={bingoResultTableData}
-                                            renderItem={renderPlayerItem}
-                                            keyExtractor={(item, index) => index.toString()}
-                                        />
-                                    </ScrollView>
-                                </View>
-                            </View>
-
-                            {bingoAllRoundEnd &&
-                                <View style={{ width: '100%', marginTop: 30 }}>
-                                    <Text style={{ color: 'white', fontSize: 20, textAlign: 'center' }}>罰ゲーム実行</Text>
-
-                                    <View style={{ borderWidth: 1, borderRadius: 5, width: '100%', padding: 5, paddingVertical: 10, marginVertical: 10 }}>
-                                        {(penaltyATitle && isPatternASet) &&
-                                            <View style={{ padding: 10, borderWidth: 1, borderColor: customColors.customLightBlue, borderRadius: 10, marginVertical: 10 }}>
-                                                <Text style={{ color: 'white', textAlign: 'center', fontSize: 18, textDecorationLine: 'underline' }}>{firstPlayerDisplayName}様 {' => '} {lastPlayerDisplayName}様</Text>
-                                                <Text style={{ color: 'white', textAlign: 'center', fontSize: 15, marginTop: 10 }}>{penaltyATitle}</Text>
-                                                <View style={{}}></View>
-                                            </View>
-                                        }
-                                        {(penaltyBTitle && isPatternBSet) &&
-                                            <View style={{ padding: 10, borderWidth: 1, borderColor: customColors.customLightBlue, borderRadius: 10, marginVertical: 10 }}>
-                                                <Text style={{ color: 'white', textAlign: 'center', fontSize: 18, textDecorationLine: 'underline' }}>共通罰ゲーム  {'  =>  '} {lastPlayerDisplayName}様</Text>
-                                                <Text style={{ color: 'white', textAlign: 'center', fontSize: 15, marginTop: 10 }}>{penaltyBTitle}</Text>
-                                            </View>
-                                        }
+                <TouchableWithoutFeedback onPress={() => {setBingoEndedModalVisible(false)}}>
+                    <View
+                        style={{
+                            flex: 1,
+                            justifyContent: "center",
+                            alignItems: "center",
+                            backgroundColor: customColors.modalBackgroundColor,
+                        }}
+                    >
+                        <TouchableWithoutFeedback onPress={() => { }}>
+                            <View style={[styles.modalBody, { width: '95%', height: '95%', justifyContent: "flex-start", backgroundColor: customColors.black }]}>
+                                <View style={{ alignItems: 'center', width: '100%' }}>
+                                    <View style={{ marginVertical: 10 }}>
+                                        <Text style={{ color: 'white', fontSize: 20 }}>ゲーム結果</Text>
                                     </View>
+
+                                    <View style={[styles.FlatResultDataListStyle, { paddingHorizontal: 2, borderWidth: 1, borderColor: 'grey', borderRadius: 0, flexDirection: 'row', justifyContent: 'space-between' }]}>
+                                        <View style={{ width: '50%' }}>
+                                            <FlatList
+                                                data={bingoResultTableData}
+                                                renderItem={renderPlayerItem1}
+                                                keyExtractor={(item, index) => index.toString()}
+                                            />
+                                        </View>
+                                        <View style={{ width: '50%', borderLeftWidth: 1, borderLeftColor: '#75787d8c', paddingLeft: 0 }}>
+                                            <ScrollView horizontal={true}>
+                                                <FlatList
+                                                    data={bingoResultTableData}
+                                                    renderItem={renderPlayerItem}
+                                                    keyExtractor={(item, index) => index.toString()}
+                                                />
+                                            </ScrollView>
+                                        </View>
+                                    </View>
+
+                                    {bingoAllRoundEnd &&
+                                        <View style={{ width: '100%', marginTop: 30 }}>
+                                            <Text style={{ color: 'white', fontSize: 20, textAlign: 'center' }}>罰ゲーム実行</Text>
+
+                                            <View style={{ borderWidth: 1, borderRadius: 5, width: '100%', padding: 5, paddingVertical: 10, marginVertical: 10 }}>
+                                                {(penaltyATitle && isPatternASet) &&
+                                                    <View style={{ padding: 10, borderWidth: 1, borderColor: customColors.customLightBlue, borderRadius: 10, marginVertical: 10 }}>
+                                                        <Text style={{ color: 'white', textAlign: 'center', fontSize: 18, textDecorationLine: 'underline' }}>{firstPlayerDisplayName}様 {' => '} {lastPlayerDisplayName}様</Text>
+                                                        <Text style={{ color: 'white', textAlign: 'center', fontSize: 15, marginTop: 10 }}>{penaltyATitle}</Text>
+                                                        <View style={{}}></View>
+                                                    </View>
+                                                }
+                                                {(penaltyBTitle && isPatternBSet) &&
+                                                    <View style={{ padding: 10, borderWidth: 1, borderColor: customColors.customLightBlue, borderRadius: 10, marginVertical: 10 }}>
+                                                        <Text style={{ color: 'white', textAlign: 'center', fontSize: 18, textDecorationLine: 'underline' }}>共通罰ゲーム  {'  =>  '} {lastPlayerDisplayName}様</Text>
+                                                        <Text style={{ color: 'white', textAlign: 'center', fontSize: 15, marginTop: 10 }}>{penaltyBTitle}</Text>
+                                                    </View>
+                                                }
+                                            </View>
+                                        </View>
+                                    }
                                 </View>
-                            }
-                        </View>
 
-                        <View style={{ flex: 1, justifyContent: 'center', width: '100%' }}>
-                            {(isSubPattern1 || isSubPattern2) && isHost && (
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '100%', }}>
-                                    <TouchableOpacity
-                                        style={{ padding: 10, borderWidth: 1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.blackRed, justifyContent: 'center', alignItems: 'center', marginTop: 10 }}
-                                        onPress={() => { setExitModalVisible(true), setExitModalText(jpLanguage.bingoExitModalTextString); }}
-                                    >
-                                        <Text style={{ fontSize: 18, color: 'white', letterSpacing: 5 }}>退出する</Text>
-                                    </TouchableOpacity>
+                                <View style={{ flex: 1, justifyContent: 'center', width: '100%' }}>
+                                    {(isSubPattern1 || isSubPattern2) && isHost && (
+                                        <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '100%', }}>
+                                            <TouchableOpacity
+                                                style={{ padding: 10, borderWidth: 1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.blackRed, justifyContent: 'center', alignItems: 'center', marginTop: 10 }}
+                                                onPress={() => {   setExitModalText(jpLanguage.bingoExitModalTextString);  setExitModalVisible(true);}}
+                                            >
+                                                <Text style={{ fontSize: 18, color: 'white', letterSpacing: 5 }}>退出する</Text>
+                                            </TouchableOpacity>
 
-                                    <TouchableOpacity
-                                        style={{ padding: 10, borderWidth: 1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.customLightBlue, justifyContent: 'center', alignItems: 'center', marginTop: 10 }}
-                                        onPress={() => startBingoNextRound()}
-                                    >
-                                        <Text style={{ fontSize: 18, color: 'white', letterSpacing: 5 }}>もう1回</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            )}
+                                            <TouchableOpacity
+                                                style={{ padding: 10, borderWidth: 1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.customLightBlue, justifyContent: 'center', alignItems: 'center', marginTop: 10 }}
+                                                onPress={() => startBingoNextRound()}
+                                            >
+                                                <Text style={{ fontSize: 18, color: 'white', letterSpacing: 5 }}>もう1回</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    )}
 
-                            {(isSubPattern3 && isHost) && (
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '100%' }}>
-                                    <TouchableOpacity
-                                        style={{ padding: 10, borderWidth: 1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.blackRed, justifyContent: 'center', alignItems: 'center', marginTop: 10 }}
-                                        onPress={() => { setExitModalVisible(true), setExitModalText(jpLanguage.bingoExitModalTextString); }}
-                                    >
-                                        <Text style={{ fontSize: 18, color: 'white', letterSpacing: 5 }}>退出する</Text>
-                                    </TouchableOpacity>
+                                    {(isSubPattern3 && isHost) && (
+                                        <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '100%' }}>
+                                            <TouchableOpacity
+                                                style={{ padding: 10, borderWidth: 1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.blackRed, justifyContent: 'center', alignItems: 'center', marginTop: 10 }}
+                                                onPress={() => { setExitModalText(jpLanguage.bingoExitModalTextString); setExitModalVisible(true);  }}
+                                            >
+                                                <Text style={{ fontSize: 18, color: 'white', letterSpacing: 5 }}>退出する</Text>
+                                            </TouchableOpacity>
 
-                                    {!bingoAllRoundEnd && (
-                                        <TouchableOpacity
-                                            style={{ padding: 10, borderWidth: 1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.customLightBlue, justifyContent: 'center', alignItems: 'center', marginTop: 10 }}
-                                            onPress={() => startBingoNextRound()}
-                                        >
-                                            <Text style={{ fontSize: 18, color: 'white', letterSpacing: 5 }}>次ラウンド</Text>
-                                        </TouchableOpacity>
+                                            {!bingoAllRoundEnd && (
+                                                <TouchableOpacity
+                                                    style={{ padding: 10, borderWidth: 1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.customLightBlue, justifyContent: 'center', alignItems: 'center', marginTop: 10 }}
+                                                    onPress={() => startBingoNextRound()}
+                                                >
+                                                    <Text style={{ fontSize: 18, color: 'white', letterSpacing: 5 }}>次ラウンド</Text>
+                                                </TouchableOpacity>
+                                            )}
+                                        </View>
                                     )}
                                 </View>
-                            )}
-                        </View>
+                            </View>
+                        </TouchableWithoutFeedback>
                     </View>
-                </View>
+                </TouchableWithoutFeedback>
             </Modal>
-            <View style={{width: '100%', alignItems: 'center'}}>
-                <View style={{ position: 'absolute', top: 40, left: 10 }}>
-                    <Icon name="chevron-back-sharp" size={30} color="white" style={{ marginRight: 20, marginLeft: -10, marginTop: 0 }} onPress={() => {
+
+            <ConfirmModal
+                isVisible={exitModalVisible}
+                setVisible={handleExitModalVisible}
+                messageText={exitModalText}
+                confirmText={jpLanguage.yesString}
+                cancelText={jpLanguage.cancelString}
+                confirmBackgroundColor={customColors.blackRed}
+                onConfirm={exitScreen}
+                onCancel={() => { }}
+                zindex={10}
+            />
+            <View style={{width: '100%', alignItems: 'center', flexDirection: 'row', justifyContent: 'center'}}>
+                <View style={{ position: 'absolute', left: 10 }}>
+                    <Icon name="chevron-back-sharp" size={40} color="white" style={{ marginRight: 20, marginLeft: -10, marginTop: 0 }} onPress={() => {
                         setExitModalText(jpLanguage.bingoExitModalTextString);
                         setExitModalVisible(true);
+                        console.log("xxxex")
                     }} />
                 </View>
-                <Text style={[styles.title,]}>BINGO</Text>
+                <Text style={[styles.title]}>BINGO</Text>
             </View>
 
             {/* <ShowOrder /> */}
 
-            <View style={styles.container}>
+            <View style={[styles.container]}>
 
                 <View style={styles.row}>
                     <View style={styles.randomContainer}>
@@ -1211,7 +1221,7 @@ const PlayBoard: React.FC = () => {
 
                 <Text style={styles.turnText}>{turnText}</Text>
 
-                <View style={{ position: 'absolute', bottom: 0 }}>
+                <View style={{ position: 'absolute', bottom: instes.bottom }}>
                     <View style={{ flex: 1, alignItems: 'center' }}>
                         {bingoMyTurn ? (
                             <EffectBorder style={{ width: '40%', marginBottom: 10 }}>

@@ -36,6 +36,7 @@ import {
 import Icon from "react-native-vector-icons/Ionicons";
 import { Tooltip } from "react-native-elements";
 import ConfirmModal from "../components/ConfirmModal";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const defaultAvatar = require("../assets/images/default1.png");
 const { width: viewportWidth, height: viewportHeight } = Dimensions.get("window");
@@ -64,7 +65,9 @@ const GameRoomScreen = () => {
   const gameRooms = useSelector((state: RootState) => state.gameRoom.gameRooms);
 
   const dispatch = useDispatch();
-  
+  const insets = useSafeAreaInsets();
+  console.log(insets.bottom, "333")
+
   useFocusEffect(
     useCallback(() => {
       const uid = authUser.uid;
@@ -106,7 +109,7 @@ const GameRoomScreen = () => {
     setIsPasswordSet(isPassword);
     setPasswordSetModalVisible(false);
     createRoomModal();
-  } 
+  }
 
   const createRoomModal = () => {
     setRoomModalVisible(true);
@@ -248,7 +251,7 @@ const GameRoomScreen = () => {
         >
           ルーム名
         </Text>
-        
+
         <Tooltip
           popover={
             <Text style={styles.tooltipText}>
@@ -261,7 +264,7 @@ const GameRoomScreen = () => {
         >
           <Text style={[styles.nameTitle, {maxWidth: viewportWidth - 280, textAlign: 'center'}]} numberOfLines={1}>{item.displayRoomName}</Text>
         </Tooltip>
-          
+
       </View>
 
       <View>
@@ -317,9 +320,9 @@ const GameRoomScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
 
-      <ConfirmModal 
+      <ConfirmModal
         isVisible={passwordSetModalVisible}
         setVisible={handlePasswordSetModalVisible}
         messageText="パスワードを設定しますか？"
@@ -327,7 +330,7 @@ const GameRoomScreen = () => {
         onCancel={() => handleCreateModalWithPassword(false)}
       />
 
-      <ConfirmModal 
+      <ConfirmModal
         isVisible={roomModalVisible}
         setVisible={handleRoomModalVisible}
         messageText={isCreateModal ? "プレイルーム作成" : "プレイルームに参加"}
@@ -335,7 +338,7 @@ const GameRoomScreen = () => {
         cancelText={"キャンセル"}
         onConfirm={() => isCreateModal ? createRoom() : joinRoom(currentJoinGameRoom)}
         onCancel={() => {}}
-        
+
         middleElement={
           <>
             {isCreateModal && (
@@ -361,7 +364,7 @@ const GameRoomScreen = () => {
                   )}
                 </View>
             )}
-            
+
             {((isPasswordSet && isCreateModal) || (!isCreateModal && currentJoinGameRoom?.password !=  '')) && (
               <View
               style={{ marginBottom: 10, width: "100%", alignItems: "center" }}
@@ -605,7 +608,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     width: "100%",
   },
-  
+
   completedText: {
     fontSize: 30,
     color: customColors.white,

@@ -655,9 +655,8 @@ const GameWaitingScreen = () => {
                 style={[
                   styles.modalBody,
                   {
-                    flex: 1,
                     width: "90%",
-                    height: '90%',
+                    height: '60%',
                     borderWidth: 0,
                     borderRadius: 15,
                     paddingTop: 0,
@@ -836,6 +835,7 @@ const GameWaitingScreen = () => {
             backgroundColor: customColors.black,
             padding: 5,
             paddingHorizontal: 15,
+
           }}
         >
           <Text style={styles.listTitle}>ゲームメンバー</Text>
@@ -1029,7 +1029,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 30,
     backgroundColor: customColors.customDarkBlueBackground,
-    // width: "97%",
+    width: "98%",
     alignItems: "center",
     paddingTop: 40,
     paddingHorizontal: 6,
