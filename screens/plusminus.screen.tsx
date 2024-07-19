@@ -76,7 +76,8 @@ const PlusMinusScreen: React.FC = () => {
 
   const [exitModalVisible, setExitModalVisible] = useState<boolean>(false);
   const [waitModalVisible, setWaitModalVisible] = useState<boolean>(true);
-  const [penaltyDisplayModalVisible, setPenaltyDisplayModalVisible] = useState<boolean>(true);
+  const [penaltyDisplayModalVisible, setPenaltyDisplayModalVisible] = useState<boolean>(false);
+  const [penaltyButtonVisible, setPenaltyButtonVisible] = useState<boolean>(false);
 
   //pelanty variables
   const [penaltyAList, setPenaltyAList] = useState<any[]>([]);
@@ -127,39 +128,39 @@ const PlusMinusScreen: React.FC = () => {
       const unsubscribe2: UnsubscribeOnsnapCallbackFunction = getPlusMinusFirestore(gameRoomId, (plusMinus: any) => {
         const firestoreStarted: boolean = plusMinus?.started;
         console.log(firestoreStarted, "started");
-        if(!firestoreStarted) {
+        if (!firestoreStarted) {
           return false;
         } else {
           console.log("modalvisible false")
           setWaitModalVisible(false);
           setStarted(true);
         }
-        
+
         const firestoreFinished: boolean = plusMinus?.finished;
-        if(firestoreFinished) {
+        if (firestoreFinished) {
           handleFinishedGame();
           return false;
         }
 
-        if(!started) {
+        if (!started) {
           const isAllSame: boolean = plusMinus?.isAllSame as boolean;
-          const problemDelay:  number = plusMinus?.problemDelay;
+          const problemDelay: number = plusMinus?.problemDelay;
           const inputOption: boolean = plusMinus?.inputOption;
           const selectOption: boolean = plusMinus?.selectOption;
-  
+
           let allProblems: any[] = [];
-          if(isAllSame) {
+          if (isAllSame) {
             allProblems = plusMinus?.allProblems || [];
           } else {
             allProblems = generateAllProblems(penaltyRunCount, inputOption, selectOption);
           }
-  
+
           setAllProblems(allProblems);
           setProblemDelay(problemDelay);
           setProNum(1);
-        } else if(isHost) {
+        } else if (isHost) {
           const scores: any[] = plusMinus?.scores || [];
-          if(scores.length == subscribers.length) {
+          if (scores.length == subscribers.length) {
             finishPlusMinusFirestore(gameRoomId);
           }
         }
@@ -170,15 +171,15 @@ const PlusMinusScreen: React.FC = () => {
   )
 
   useEffect(() => {
-    if(proNum > allProblems.length) {
-      if(authUser.uid) {
+    if (proNum > allProblems.length) {
+      if (authUser.uid) {
         setPlusMinusSubmitResultFirestore(gameRoomId, authUser.uid, allProblemScoreResults);
       }
 
-      return () => {};
+      return () => { };
     }
 
-    if(proNum > 0 && proNum <= (allProblems.length)) {
+    if (proNum > 0 && proNum <= (allProblems.length)) {
       setClickDisable(false);
 
       displayNextProblem(proNum);
@@ -201,20 +202,20 @@ const PlusMinusScreen: React.FC = () => {
 
   const displayNextProblem = (proNum: number) => {
     const problem = allProblems[proNum - 1];
-    
-    if(problem) {
-        const firstNum = problem?.firstNum;
-        const secondNum = problem?.secondNum;
-        const operator = problem?.operator;
-        const resultPattern = problem?.resultPattern;
-        const resultOptions = problem?.resultOptions;
 
-        setFirstNum(firstNum);
-        setSecondNum(secondNum);
-        setOperator(operator);
-        setResultPattern(resultPattern);
-        setResultOptions(resultOptions);
-        setDisplayProNum(proNum);
+    if (problem) {
+      const firstNum = problem?.firstNum;
+      const secondNum = problem?.secondNum;
+      const operator = problem?.operator;
+      const resultPattern = problem?.resultPattern;
+      const resultOptions = problem?.resultOptions;
+
+      setFirstNum(firstNum);
+      setSecondNum(secondNum);
+      setOperator(operator);
+      setResultPattern(resultPattern);
+      setResultOptions(resultOptions);
+      setDisplayProNum(proNum);
     }
   }
 
@@ -295,7 +296,7 @@ const PlusMinusScreen: React.FC = () => {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerLeft: () => (
-        <Icon name="chevron-back-sharp" size={30} color="white" style={{marginRight: 20, marginLeft: -10 }} onPress={() => {
+        <Icon name="chevron-back-sharp" size={30} color="white" style={{ marginRight: 20, marginLeft: -10 }} onPress={() => {
           setExitModalVisible(true);
         }} />
       ),
@@ -303,12 +304,12 @@ const PlusMinusScreen: React.FC = () => {
   }, [navigation])
 
   /** ----------------------------- Functions ------------------------------ */
-  const handleGameStart = (timingNumber: number,  isAllSameProblem: boolean, problemTypeInputOptionActive: boolean, problemTypeSelectOptionActive: boolean) => {
+  const handleGameStart = (timingNumber: number, isAllSameProblem: boolean, problemTypeInputOptionActive: boolean, problemTypeSelectOptionActive: boolean) => {
     let allProblems: any[] = [];
-    if(isAllSameProblem) {
-      allProblems = generateAllProblems(penaltyRunCount, problemTypeInputOptionActive, problemTypeSelectOptionActive); 
+    if (isAllSameProblem) {
+      allProblems = generateAllProblems(penaltyRunCount, problemTypeInputOptionActive, problemTypeSelectOptionActive);
     }
-    
+
     startPlusMinusFirestore(gameRoomId, timingNumber, isAllSameProblem, problemTypeInputOptionActive, problemTypeSelectOptionActive, allProblems);
   }
 
@@ -328,17 +329,17 @@ const PlusMinusScreen: React.FC = () => {
     const num1 = generateRandomNumber();
     const num2 = generateRandomNumber();
     const operator = generateRandomNumber01() == 1 ? Operator.plus : Operator.minus;
-    
-    const firstNum = (operator == Operator.minus) ?  (num1 >= num2 ? num1 : num2) : num1;
+
+    const firstNum = (operator == Operator.minus) ? (num1 >= num2 ? num1 : num2) : num1;
     const secondNum = (operator == Operator.minus) ? (num1 >= num2 ? num2 : num1) : num2;
 
     let resultPattern = ResultPattern.input;
 
-    if(inputOption && selectOption) {
+    if (inputOption && selectOption) {
       resultPattern = generateRandomNumber01() == 1 ? ResultPattern.input : ResultPattern.option;
-    } else if(inputOption) {
+    } else if (inputOption) {
       resultPattern = ResultPattern.input;
-    } else if(selectOption) {
+    } else if (selectOption) {
       resultPattern = ResultPattern.option;
     }
 
@@ -355,7 +356,7 @@ const PlusMinusScreen: React.FC = () => {
 
     return newPro;
   }
-  
+
   //will be called by all user
   const handleSubmitResult = (auto: boolean, value?: number) => {
     if (intervalRef.current) {
@@ -363,10 +364,10 @@ const PlusMinusScreen: React.FC = () => {
     }
 
     if (!submitedRef.current) {
-      if(proNum > allProblems.length) {
+      if (proNum > allProblems.length) {
         return false;
       }
-      
+
       let x = 0;
       let resultValue = 0;
 
@@ -415,14 +416,14 @@ const PlusMinusScreen: React.FC = () => {
 
       player_score.forEach(problem_score => {
         const result_value = problem_score?.score;
-        if(result_value == 1) {
+        if (result_value == 1) {
           sum_result++;
           correctResult++;
         } else {
           wrongResult++;
         }
       });
-      
+
       const sumScoreOne = {
         index: index,
         uid: uid,
@@ -430,40 +431,40 @@ const PlusMinusScreen: React.FC = () => {
         correctResult: correctResult,
         wrongResult: wrongResult
       }
-      
+
       sumScores.push(sumScoreOne);
     });
 
     sumScores.sort((a, b) => {
-      if(a.sum_score == b.sum_score) {
+      if (a.sum_score == b.sum_score) {
         return a.index - b.index;
       }
       return a.sum_score - b.sum_score;
     })
 
-    const sortedScores = sumScores.map(({index, ...item}) => item);
-     // Create the final array with uid, displayName, and score
+    const sortedScores = sumScores.map(({ index, ...item }) => item);
+    // Create the final array with uid, displayName, and score
     const finalScores = sortedScores.map(score => {
       const subscriber = subscribers.find(sub => sub.uid === score.uid);
       return {
         uid: score.uid,
         displayName: subscriber?.displayName || 'Unknown',
         score: score.sum_score,
-        correctResult: score.correctResult,
-        wrongResult: score.wrongResult
+        correctResult: score.correctResult + " 問",
+        wrongResult: score.wrongResult + " 問"
       };
     });
-    
+
     const firstUid = sortedScores[0]?.uid;
     const lastUid = sortedScores[sortedScores.length - 1]?.uid;
     const firstUser = subscribers.find(sub => sub.uid === firstUid);
     const lastUser = subscribers.find(sub => sub.uid === lastUid);
 
     let penaltyTitle = "";
-    if(isPatternASet) {
+    if (isPatternASet) {
       const penalty = penaltyAList.find(penaltyA => penaltyA.uid === firstUid);
       penaltyTitle = penalty?.penaltyTitle;
-    } else if(isPatternBSet) {
+    } else if (isPatternBSet) {
       const penalty = penaltyB;
       penaltyTitle = penalty?.penaltyTitle;
     }
@@ -477,6 +478,7 @@ const PlusMinusScreen: React.FC = () => {
     setPenaltyResult(penaltyResult);
     setScores(finalScores);
     setPenaltyDisplayModalVisible(true);
+    setPenaltyButtonVisible(true);
   }
 
   //force quit even if the game is not over.
@@ -511,8 +513,7 @@ const PlusMinusScreen: React.FC = () => {
   }
 
   return (
-    <View style={[styles.container, {paddingBottom: insets.bottom}]}>
-
+    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
       <View
         style={{
           width: "97%",
@@ -544,6 +545,33 @@ const PlusMinusScreen: React.FC = () => {
               zIndex: 10,
             }}
           ></View>
+
+          <View
+            style={{
+              display: penaltyButtonVisible ? "flex" : "none",
+              backgroundColor: '#000000a1',
+              // flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center', 
+              position: "absolute",
+              top: 0,
+              bottom: 0,
+              left: 0,
+              right: 0,
+              zIndex: 10,
+            }}
+          >
+            <View>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                style={[styles.button, { alignItems: 'center'}]}
+                onPress={() => setPenaltyDisplayModalVisible(true)}
+              >
+                <Text style={[styles.textTitle, { fontSize: 20 }]}>罰ゲーム現実</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
           <View>
             <Text style={{ color: 'white', fontSize: 20, fontWeight: '500' }}>
               問題番号{displayProNum}
@@ -642,16 +670,16 @@ const PlusMinusScreen: React.FC = () => {
         confirmText="は い"
         cancelText="キャンセル"
         onConfirm={exitGame}
-        onCancel={() => {}}
+        onCancel={() => { }}
         confirmBackgroundColor={customColors.blackRed}
       />
 
-      <PlusMinusSettingModal isHost={isHost} isVisible={waitModalVisible} setVisible={handleWaitModalVisible} setExitVisible={handleExitModalVisible}  handleGameStart={handleGameStart} />
+      <PlusMinusSettingModal isHost={isHost} isVisible={waitModalVisible} setVisible={handleWaitModalVisible} setExitVisible={handleExitModalVisible} handleGameStart={handleGameStart} />
 
       <PlusMinusPenaltyTable isVisible={penaltyDisplayModalVisible} setVisible={handlePenaltyDisplayModalVisible} setExitVisible={handleExitModalVisible} scores={scores} penaltyResult={penaltyResult} />
     </View>
 
-      
+
   );
 }
 

@@ -483,7 +483,7 @@ const GameWaitingScreen = () => {
           style={styles.joinBtn}
           onPress={() => removeUserModal(item.uid)}
         >
-          <Text style={styles.joinBtnText}>　退出　</Text>
+          <Text style={styles.joinBtnText}>退出</Text>
         </TouchableOpacity>
       )}
     </TouchableOpacity>

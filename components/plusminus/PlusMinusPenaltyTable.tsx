@@ -23,14 +23,16 @@ interface PlusMinusPenaltyTableProps {
 const PlusMinusPenaltyTable: React.FC<PlusMinusPenaltyTableProps> = ({ isVisible, setVisible, setExitVisible, scores, penaltyResult }) => {
     const columns: TableColumn[] = [
         { key: 'displayName', title: 'Name', width: 100, type: 'text' },
-        { key: 'correctResult', title: 'Correct', width: 100, type: 'text' },
-        { key: 'wrongResult', title: 'Wrong', width: 100, type: 'text' },
+        { key: 'correctResult', title: '正解', width: 100, type: 'text' },
+        { key: 'wrongResult', title: '間違い', width: 100, type: 'text' },
       ];
 
     const lastUser = penaltyResult?.lastUser || '';
     const penaltyTitle = penaltyResult?.penaltyTitle || '';
     const lastUserDisplayName = lastUser?.displayName || '';
-    
+
+    const inset = useSafeAreaInsets();
+
     const statusBarHeight = (Platform.OS === 'ios' ? 20 : StatusBar.currentHeight) || 0; // On iOS, StatusBar.currentHeight is undefined, typically use 20
 
     return (
@@ -61,12 +63,12 @@ const PlusMinusPenaltyTable: React.FC<PlusMinusPenaltyTableProps> = ({ isVisible
                             borderRadius: 0,
                             paddingTop: 0,
                             paddingBottom: 0,
-                            paddingHorizontal: 0
+                            paddingHorizontal: 0,
                         },
                     ]}
                 >
-                    <Icon name="chevron-back-sharp" size={30} color="white" style={{position: 'absolute', left: 10, top: (Platform.OS === 'ios' ? (statusBarHeight + 10) : 10 ),  zIndex: 1}} onPress={() => {
-                        setExitVisible(true)
+                    <Icon name="chevron-back-sharp" size={30} color="white" style={{position: 'absolute', left: 10, top: (Platform.OS === 'ios' ? (inset.top) : statusBarHeight ),  zIndex: 1}} onPress={() => {
+                        setVisible(false)
                     }}  />
                     <View
                         style={[
@@ -75,6 +77,7 @@ const PlusMinusPenaltyTable: React.FC<PlusMinusPenaltyTableProps> = ({ isVisible
                                 width: "100%",
                                 flex: 1,
                                 paddingHorizontal: 0,
+                                paddingTop: inset.top,
                                 borderWidth: 0,
                                 borderColor: "white",
                                 alignItems: "center",
@@ -87,7 +90,7 @@ const PlusMinusPenaltyTable: React.FC<PlusMinusPenaltyTableProps> = ({ isVisible
                                 足し算引き算ゲーム結果
                             </Text>
                         </View>
-                        <CustomTable 
+                        <CustomTable
                             columns={columns}
                             data={scores}
                             containerStyle={innerStyles.tableCointainer}
@@ -95,8 +98,8 @@ const PlusMinusPenaltyTable: React.FC<PlusMinusPenaltyTableProps> = ({ isVisible
                             rowStyle={innerStyles.tableRow}
                             cellStyle={innerStyles.tableCell}
                         />
-                        <View style={{marginTop: 30, width: '100%'}}>
-                            <View style={{flexDirection: 'row', justifyContent: 'space-around'}}>
+                        <View style={{marginTop: 30, width: '80%'}}>
+                            <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
                                 <Text style={{color: 'white', fontSize: 20}}>
                                     最下位
                                 </Text>
@@ -104,14 +107,17 @@ const PlusMinusPenaltyTable: React.FC<PlusMinusPenaltyTableProps> = ({ isVisible
                                     {lastUserDisplayName}
                                 </Text>
                             </View>
-                        </View>
-                        <View style={{flexDirection: 'row', justifyContent: 'space-around'}}>
-                            <Text style={{color: 'white', fontSize: 20}}>
-                                罰ゲーム
-                            </Text>
-                            <Text style={{color: 'white', fontSize: 20}}>
-                                {penaltyTitle}
-                            </Text>
+
+                            <Divider />
+
+                            <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                                <Text style={{color: 'white', fontSize: 20}}>
+                                    罰ゲーム
+                                </Text>
+                                <Text style={{color: 'white', fontSize: 20}}>
+                                    {penaltyTitle}
+                                </Text>
+                            </View>
                         </View>
                     </View>
                 </View>

@@ -67,8 +67,10 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
   const currentGameRoom = useSelector(
     (state: RootState) => state.gameRoom.currentGameRoom
   );
+  
   const isPenaltyAorBFromRedux = useSelector((state: RootState) => state.gameRoom.isPenaltyAorB);
-
+  
+  const penaltyGameType = useSelector((state: RootState) => state.gameRoom.penaltyGameType);
   // ---------------------------------Redux Data End----------------------------------------
 
   //Pattern A
@@ -234,6 +236,13 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
       return unsubscribe;
     }, [])
   );
+
+  useEffect(() => {
+    if(penaltyGameType == GameType.PlusMinus) {
+      toggleSubPattern3Switch();
+      setPenaltyRunCount(10);
+    }
+  }, [penaltyGameType])
 
   useEffect(() => {
     const subscribers_ = currentGameRoom?.subscribersPlayers || [];
@@ -632,7 +641,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
           >
             <View
               style={{
-                display: isSubPattern3 ? "none" : "flex",
+                display: isSubPattern3  ? "none" : "flex",
                 position: "absolute",
                 top: 0,
                 bottom: 0,

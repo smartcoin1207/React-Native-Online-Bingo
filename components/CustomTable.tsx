@@ -2,7 +2,7 @@
 import React from 'react';
 import { View, Text, FlatList, StyleSheet, ViewStyle, TextStyle, Image, TouchableOpacity } from 'react-native';
 import { TableColumn, TableRow } from '../utils/Types';
-  
+
   interface CustomTableProps {
     columns: TableColumn[];
     data: TableRow[];
@@ -11,7 +11,6 @@ import { TableColumn, TableRow } from '../utils/Types';
     rowStyle?: ViewStyle;
     cellStyle?: ViewStyle;
   }
-  
 
 const CustomTable: React.FC<CustomTableProps> = ({
   columns,
@@ -29,7 +28,7 @@ const CustomTable: React.FC<CustomTableProps> = ({
         {columns.map((column) => {
           const columnWidth = 100 * (column.width ? column.width : 0) / totalWidth;
           const columnWidthPercent = `${columnWidth}%` as const;
-          return <Text key={column.key} style={[styles.headerCell, { width: columnWidthPercent }, headerStyle]}>
+          return <Text key={column.key} style={[styles.headerCell, { width: columnWidthPercent }]}>
                 {column.title}
             </Text>
         })}
@@ -53,15 +52,15 @@ const CustomTable: React.FC<CustomTableProps> = ({
             case 'button':
               return (
                 <View key={column.key} style={[styles.dataCell, { width: columnWidthPercent }, cellStyle]}>
-                    <TouchableOpacity 
-                        
-                        style={styles.button} 
+                    <TouchableOpacity
+
+                        style={styles.button}
                         onPress={() => column.clickFunction ? column.clickFunction(item) : () => {}}
                     >
                     <Text style={styles.buttonText}>{value}</Text>
                     </TouchableOpacity>
                 </View>
-                
+
               );
             case 'image':
               return <View key={column.key} style={[styles.dataCell, { width: columnWidthPercent }, cellStyle]}><Image key={column.key} source={{ uri: value }} style={styles.image} /></View>;
@@ -84,7 +83,7 @@ const CustomTable: React.FC<CustomTableProps> = ({
       </View>
     );
   };
-  
+
   return (
     <View style={[styles.container, containerStyle]}>
       {renderHeader()}
@@ -103,19 +102,18 @@ const styles = StyleSheet.create({
   },
   headerRow: {
     flexDirection: 'row',
-    // backgroundColor: '#f0f0f0',
   },
   headerCell: {
-    // flex: 1,
     padding: 10,
     fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center'
   },
   dataRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   dataCell: {
-    // flex: 1,
     padding: 10,
   },
   avatar: {
