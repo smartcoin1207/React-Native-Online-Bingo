@@ -103,7 +103,7 @@ const PlusMinusSettingModal: React.FC<PlusMinusSettingModalProps> = ({ isHost, i
                                             paddingHorizontal: 15
                                         }}>
                                             <Text style={{ color: 'white', fontSize: 15 }}>問題現時点:</Text>
-                                            <Text style={{ color: 'white', fontWeight: '600', fontSize: 18, paddingLeft: 10 }}>{timingNumber}s</Text>
+                                            <Text style={{ color: 'white', fontWeight: '600', fontSize: 18, paddingLeft: 10 }}>{timingNumber}秒</Text>
                                         </View>
 
                                         <Slider

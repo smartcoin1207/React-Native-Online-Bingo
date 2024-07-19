@@ -67,9 +67,9 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
   const currentGameRoom = useSelector(
     (state: RootState) => state.gameRoom.currentGameRoom
   );
-  
+
   const isPenaltyAorBFromRedux = useSelector((state: RootState) => state.gameRoom.isPenaltyAorB);
-  
+
   const penaltyGameType = useSelector((state: RootState) => state.gameRoom.penaltyGameType);
   // ---------------------------------Redux Data End----------------------------------------
 
@@ -238,7 +238,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
   );
 
   useEffect(() => {
-    if(penaltyGameType == GameType.PlusMinus) {
+    if (penaltyGameType == GameType.PlusMinus) {
       toggleSubPattern3Switch();
       setPenaltyRunCount(10);
     }
@@ -577,6 +577,20 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
       <View>
         <View
           style={{
+            display: penaltyGameType == GameType.PlusMinus ? "flex" : "none",
+            position: "absolute",
+            backgroundColor: '#0000003b',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 10,
+          }}
+        >
+
+        </View>
+        <View
+          style={{
             borderRadius: 10,
             marginVertical: 15,
             width: "100%",
@@ -593,28 +607,6 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
             switchToggle={toggleSubPattern1Switch}
           />
         </View>
-
-        {/* <View
-          style={{
-            borderWidth: 1,
-            // borderColor: mainColor,
-            borderRadius: 10,
-            marginVertical: 15,
-            width: "100%",
-            paddingVertical: 10,
-            backgroundColor: (isSubPattern2 ) ? '#0f203e' : 'black'
-          }}
-        >
-          <CustomSwitchToogle
-            title="１ゲームが終了するごとに実行する"
-            mainColor={mainColor}
-            toggleBackgroundColor={toggleBackgroundColor}
-            isBig={true}
-            isToggle={isSubPattern2 }
-            switchToggle={toggleSubPattern2Switch}
-          />
-        </View> */}
-
         <View
           style={{
             borderWidth: 1,
@@ -641,7 +633,7 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
           >
             <View
               style={{
-                display: isSubPattern3  ? "none" : "flex",
+                display: isSubPattern3 ? "none" : "flex",
                 position: "absolute",
                 top: 0,
                 bottom: 0,
@@ -1070,68 +1062,68 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
           setPenaltyListModalVisible(false);
         }}
       >
-      <TouchableWithoutFeedback onPress={() => {setPenaltyListModalVisible(false)}} >
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: "#000000e0",
-          }}
-        >
-        <TouchableWithoutFeedback onPress={() => { }} >
+        <TouchableWithoutFeedback onPress={() => { setPenaltyListModalVisible(false) }} >
           <View
             style={{
-              margin: 10,
+              flex: 1,
               justifyContent: "center",
-              borderWidth: 1,
-              borderColor: "white",
-              borderRadius: 20,
-              width: "90%",
-              padding: 10,
-              backgroundColor: "#0f203e",
+              alignItems: "center",
+              backgroundColor: "#000000e0",
             }}
           >
-            <FlatList
-              data={allPenalties}
-              renderItem={renderPenaltyItem}
-              keyExtractor={(item, index) => index.toString()}
-            />
-            <View
-              style={{
-                padding: 10,
-                alignItems: "center",
-              }}
-            >
-              <TouchableOpacity
+            <TouchableWithoutFeedback onPress={() => { }} >
+              <View
                 style={{
-                  padding: 10,
+                  margin: 10,
                   justifyContent: "center",
-                  backgroundColor: "#2d1d2a",
-                  borderRadius: 20,
                   borderWidth: 1,
-                  borderColor: "#623c34",
-                  width: "40%",
-                }}
-                onPress={() => {
-                  setPenaltyListModalVisible(false);
+                  borderColor: "white",
+                  borderRadius: 20,
+                  width: "90%",
+                  padding: 10,
+                  backgroundColor: "#0f203e",
                 }}
               >
-                <Text
+                <FlatList
+                  data={allPenalties}
+                  renderItem={renderPenaltyItem}
+                  keyExtractor={(item, index) => index.toString()}
+                />
+                <View
                   style={{
-                    color: "white",
-                    fontSize: 16,
-                    textAlign: "center",
+                    padding: 10,
+                    alignItems: "center",
                   }}
                 >
-                  キャンセル
-                </Text>
-              </TouchableOpacity>
-            </View>
+                  <TouchableOpacity
+                    style={{
+                      padding: 10,
+                      justifyContent: "center",
+                      backgroundColor: "#2d1d2a",
+                      borderRadius: 20,
+                      borderWidth: 1,
+                      borderColor: "#623c34",
+                      width: "40%",
+                    }}
+                    onPress={() => {
+                      setPenaltyListModalVisible(false);
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: "white",
+                        fontSize: 16,
+                        textAlign: "center",
+                      }}
+                    >
+                      キャンセル
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
           </View>
         </TouchableWithoutFeedback>
-        </View>
-      </TouchableWithoutFeedback>
       </Modal>
 
       <Modal

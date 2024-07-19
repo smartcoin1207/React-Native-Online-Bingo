@@ -1104,17 +1104,35 @@ export const setPlusMinusSubmitResultFirestore = async (
 
   const docRef = doc(db, plusMinusTable, gameRoomId);
   
-  const score = {
+  const newScore = {
     uid: uid,
     score: problemScores
   }
 
   try {
-    await updateDoc(docRef, {
-      scores: arrayUnion(score)
-    });
-  } catch (error) {
+    const docSnapshot = await getDoc(docRef);
+    if (docSnapshot.exists()) {
+      const existingScores = docSnapshot.data().scores || [];
+      const uidExists = existingScores.some((score : any) => score.uid === uid);
 
+      if (!uidExists) {
+        await updateDoc(docRef, {
+          scores: arrayUnion(newScore)
+        });
+        return true; // Indicate success
+      } else {
+        console.log('UID already exists in scores, not updating.');
+        return false; // Indicate that the update did not occur
+      }
+    } else {
+      await updateDoc(docRef, {
+        scores: arrayUnion(newScore)
+      });
+      return true; // Indicate success
+    }
+  } catch (error) {
+    console.error('Error updating document: ', error);
+    return false; // Indicate failure
   }
 };
 

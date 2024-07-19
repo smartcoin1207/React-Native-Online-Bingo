@@ -66,7 +66,6 @@ const GameRoomScreen = () => {
 
   const dispatch = useDispatch();
   const insets = useSafeAreaInsets();
-  console.log(insets.bottom, "333")
 
   useFocusEffect(
     useCallback(() => {

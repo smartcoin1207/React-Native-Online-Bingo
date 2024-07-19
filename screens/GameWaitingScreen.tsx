@@ -452,7 +452,6 @@ const GameWaitingScreen = () => {
     setHostSortingLoading(false);
 
     setTimeout(() => {
-      console.log(";333434343")
       handleGameStart();
     }, 2000);
   };
@@ -658,7 +657,7 @@ const GameWaitingScreen = () => {
                     width: "90%",
                     height: '90%',
                     borderWidth: 0,
-                    borderRadius: 15,
+                    borderRadius: 20,
                     paddingTop: 0,
                     paddingBottom: 0,
                     paddingHorizontal: 0,
@@ -675,7 +674,6 @@ const GameWaitingScreen = () => {
                       alignItems: "center",
                       borderWidth: 0,
                       borderColor: "green",
-                      
                     },
                   ]}
                 >
@@ -690,7 +688,6 @@ const GameWaitingScreen = () => {
                         padding: 10,
                         alignItems: "center",
                         zIndex: 100,
-
                       }}
                     >
                       <TouchableOpacity
@@ -742,7 +739,7 @@ const GameWaitingScreen = () => {
                           borderColor: "grey",
                           paddingTop: 20,
                           borderRadius: 20,
-                          marginTop: 20,
+                          marginTop: 0,
                           marginHorizontal: 0,
                           marginLeft: 0,
                           marginVertical: 0,

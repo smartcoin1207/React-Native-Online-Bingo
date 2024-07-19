@@ -22,7 +22,7 @@ interface PlusMinusPenaltyTableProps {
 
 const PlusMinusPenaltyTable: React.FC<PlusMinusPenaltyTableProps> = ({ isVisible, setVisible, setExitVisible, scores, penaltyResult }) => {
     const columns: TableColumn[] = [
-        { key: 'displayName', title: 'Name', width: 100, type: 'text' },
+        { key: 'displayName', title: 'プレイヤー名', width: 100, type: 'text' },
         { key: 'correctResult', title: '正解', width: 100, type: 'text' },
         { key: 'wrongResult', title: '間違い', width: 100, type: 'text' },
       ];

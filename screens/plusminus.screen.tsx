@@ -435,20 +435,24 @@ const PlusMinusScreen: React.FC = () => {
       sumScores.push(sumScoreOne);
     });
 
+    console.log(sumScores);
+
     sumScores.sort((a, b) => {
       if (a.sum_score == b.sum_score) {
         return a.index - b.index;
       }
-      return a.sum_score - b.sum_score;
+      return b.sum_score - a.sum_score;
     })
 
     const sortedScores = sumScores.map(({ index, ...item }) => item);
-    // Create the final array with uid, displayName, and score
+
+    console.log(sortedScores);
+
     const finalScores = sortedScores.map(score => {
       const subscriber = subscribers.find(sub => sub.uid === score.uid);
       return {
         uid: score.uid,
-        displayName: subscriber?.displayName || 'Unknown',
+        displayName: subscriber?.displayName || '',
         score: score.sum_score,
         correctResult: score.correctResult + " 問",
         wrongResult: score.wrongResult + " 問"
@@ -574,7 +578,7 @@ const PlusMinusScreen: React.FC = () => {
 
           <View>
             <Text style={{ color: 'white', fontSize: 20, fontWeight: '500' }}>
-              問題番号{displayProNum}
+              {displayProNum}問目
             </Text>
           </View>
           <Progress.Bar progress={progressRate} width={viewportWidth - 25} height={5} style={{ position: 'absolute', top: 10 }} />
