@@ -4,23 +4,22 @@ import { Text } from "react-native-elements";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { addPlusMinusHistoryFirestore, deletePlusMinusFirestore, exitGameRoom, getGamePenalty, getGameRoom, getPlusMinusFirestore, getPlusMinusHistoriesFirestore, setMoveGameRoom, setPlusMinusNewProblemFirestore, setPlusMinusSubmitResultFirestore, startPlusMinusFirestore } from "../utils/firebase/FirebaseUtil";
+import { deletePlusMinusFirestore, exitGameRoom, finishPlusMinusFirestore, getGamePenalty, getGameRoom, getPlusMinusFirestore, getPlusMinusScoresFirestore, setMoveGameRoom, setPlusMinusSubmitResultFirestore, startPlusMinusFirestore } from "../utils/firebase/FirebaseUtil";
 import { setGameRoomInitial } from "../store/reducers/bingo/gameRoomSlice";
-import { GameType, Player, PlusMinusCurrentProblem, PlusMinusResultType, UnsubscribeOnsnapCallbackFunction } from "../utils/Types";
+import { GameType, Player, PlusMinusResultType, UnsubscribeOnsnapCallbackFunction } from "../utils/Types";
 import { generateRandomNumber, generateRandomNumber01, generateResultOptionValues } from "../utils/Utils";
-import { first, result } from "lodash";
 import { customColors } from "../utils/Color";
 import { setPenaltyInitial } from "../store/reducers/bingo/penaltySlice";
 import * as Progress from 'react-native-progress';
-import InputSpinner from "react-native-input-spinner";
 import { styles } from "../utils/Styles";
 import PlusMinusSettingModal from "../components/plusminus/PlusMinusSettingModal";
 import PlusMinusValueButton from "../components/plusminus/PlusMinusValueButton";
+import PlusMinusPenaltyTable from "../components/plusminus/PlusMinusPenaltyTable";
 import ConfirmModal from "../components/ConfirmModal";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const { width: viewportWidth, height: viewportHeight } = Dimensions.get("window");
+const { width: viewportWidth } = Dimensions.get("window");
 
 enum Operator {
   plus = "+",
@@ -47,23 +46,23 @@ const PlusMinusScreen: React.FC = () => {
   );
 
   //state variables by usestate
+  const [started, setStarted] = useState<boolean>(false);
+  const [finished, setFinished] = useState<boolean>(false);
+  const [problemDelay, setProblemDelay] = useState<number>(10);
+  const [clickDisable, setClickDisable] = useState<boolean>(false);
+  const [allProblems, setAllProblems] = useState<any[]>([]);
+  const [allProblemScoreResults, setAllProblemScoreResults] = useState<any[]>([]);
+
   const [firstNum, setFirstNum] = useState<number>(0);
   const [secondNum, setSecondNum] = useState<number>(0);
   const [operator, setOperator] = useState<Operator>(Operator.plus);
   const [resultPattern, setResultPattern] = useState<ResultPattern>(ResultPattern.input);
   const [resultOptions, setResultOptions] = useState<number[]>([]);
-  const [problemHistory, setProblemHistory] = useState<any>(null);
-  const [problemHistories, setProblemHistories] = useState<any[]>([]);
-
-  const [timing, setTiming] = useState<number>(10);
-  const [autoNextProblemActive, setAutoNextProblemActive] = useState<boolean>(false);
-  const [problemTypeOptionActive, setProblemTypeOptionActive] = useState<boolean>(false);
-
-  const [nextProblemButtonDisplay, setNextProblemButtonDisplay] = useState<boolean>(false);
-  const [problemScoreStyle, setProblemScoreStyle] = useState<any>(null);
+  const [scores, setScores] = useState<any[]>([]);
+  const [penaltyResult, setPenaltyResult] = useState<any>(null);
 
   const [proNum, setProNum] = useState<number>(0);
-  const [currentProblemScores, setCurrentProblemScores] = useState<PlusMinusResultType[]>([]);
+  const [displayProNum, setDisplayProNum] = useState<number>(0);
   const [submited, setSubmited] = useState<boolean>(false);
   const submitedRef = useRef(submited);
 
@@ -77,6 +76,7 @@ const PlusMinusScreen: React.FC = () => {
 
   const [exitModalVisible, setExitModalVisible] = useState<boolean>(false);
   const [waitModalVisible, setWaitModalVisible] = useState<boolean>(true);
+  const [penaltyDisplayModalVisible, setPenaltyDisplayModalVisible] = useState<boolean>(true);
 
   //pelanty variables
   const [penaltyAList, setPenaltyAList] = useState<any[]>([]);
@@ -125,65 +125,98 @@ const PlusMinusScreen: React.FC = () => {
   useFocusEffect(
     useCallback(() => {
       const unsubscribe2: UnsubscribeOnsnapCallbackFunction = getPlusMinusFirestore(gameRoomId, (plusMinus: any) => {
-        const proNum = plusMinus?.proNum as number;
-        if (proNum) {
+        const firestoreStarted: boolean = plusMinus?.started;
+        console.log(firestoreStarted, "started");
+        if(!firestoreStarted) {
+          return false;
+        } else {
+          console.log("modalvisible false")
           setWaitModalVisible(false);
+          setStarted(true);
         }
-
-        const finished: boolean = plusMinus?.finished;
-        if(finished) {
+        
+        const firestoreFinished: boolean = plusMinus?.finished;
+        if(firestoreFinished) {
           handleFinishedGame();
-
           return false;
         }
 
-        const currentProblem: PlusMinusCurrentProblem = plusMinus?.currentProblem || null;
-        const firstNum = currentProblem?.firstNum;
-        const secondNum = currentProblem?.secondNum;
-        const operator: Operator = currentProblem?.operator;
-        const resultPattern: ResultPattern = currentProblem?.resultPattern;
-        const resultOptions: number[] = currentProblem?.resultOptions;
-        const currentProblemScores: PlusMinusResultType[] = plusMinus?.currentProblemScores || [];
+        if(!started) {
+          const isAllSame: boolean = plusMinus?.isAllSame as boolean;
+          const problemDelay:  number = plusMinus?.problemDelay;
+          const inputOption: boolean = plusMinus?.inputOption;
+          const selectOption: boolean = plusMinus?.selectOption;
+  
+          let allProblems: any[] = [];
+          if(isAllSame) {
+            allProblems = plusMinus?.allProblems || [];
+          } else {
+            allProblems = generateAllProblems(penaltyRunCount, inputOption, selectOption);
+          }
+  
+          setAllProblems(allProblems);
+          setProblemDelay(problemDelay);
+          setProNum(1);
+        } else if(isHost) {
+          const scores: any[] = plusMinus?.scores || [];
+          if(scores.length == subscribers.length) {
+            finishPlusMinusFirestore(gameRoomId);
+          }
+        }
+      })
+
+      return unsubscribe2;
+    }, [subscribers, penaltyRunCount, started])
+  )
+
+  useEffect(() => {
+    if(proNum > allProblems.length) {
+      if(authUser.uid) {
+        setPlusMinusSubmitResultFirestore(gameRoomId, authUser.uid, allProblemScoreResults);
+      }
+
+      return () => {};
+    }
+
+    if(proNum > 0 && proNum <= (allProblems.length)) {
+      setClickDisable(false);
+
+      displayNextProblem(proNum);
+      setSubmited(false);
+      setCalResult('');
+      progressInterval();
+
+      // Set new timer
+      const newTimerId = setTimeout(() => {
+        handleSubmitResult(true);
+      }, problemDelay * 1000);
+
+
+      return () => {
+        clearTimeout(newTimerId); // Clear timer when component unmounts or effect reruns
+      };
+    }
+
+  }, [proNum, allProblemScoreResults])
+
+  const displayNextProblem = (proNum: number) => {
+    const problem = allProblems[proNum - 1];
+    
+    if(problem) {
+        const firstNum = problem?.firstNum;
+        const secondNum = problem?.secondNum;
+        const operator = problem?.operator;
+        const resultPattern = problem?.resultPattern;
+        const resultOptions = problem?.resultOptions;
 
         setFirstNum(firstNum);
         setSecondNum(secondNum);
         setOperator(operator);
         setResultPattern(resultPattern);
         setResultOptions(resultOptions);
-        setProNum(proNum);
-        setCurrentProblemScores(currentProblemScores);
-        console.log("unsubscribe:", proNum)
-
-        if (subscribers.length == currentProblemScores.length) {
-          const history = {
-            proNum: proNum,
-            problem: currentProblem,
-            problemScores: currentProblemScores
-          };
-
-          if(proNum >= penaltyRunCount) {
-            if(isHost) {
-              setProblemHistory(history);
-              handleFinishedGameHost(history);
-            }
-          } else {
-            if(isHost) {
-              setProblemHistory(history);
-
-              if (autoNextProblemActive) {
-                setNextProblemButtonDisplay(false);
-                handleNextProblem(proNum);
-              } else {
-                setNextProblemButtonDisplay(true);
-              }
-            }
-          }
-        }
-      })
-
-      return unsubscribe2;
-    }, [subscribers, penaltyRunCount])
-  )
+        setDisplayProNum(proNum);
+    }
+  }
 
   // //get penalty
   useEffect(() => {
@@ -199,8 +232,6 @@ const PlusMinusScreen: React.FC = () => {
         setIsSubPattern1(gamePenaltyData?.subPattern1);
         setIsSubPattern3(gamePenaltyData?.subPattern3);
       }
-
-      // Handle the game penalty data as needed
     };
 
     fetchGamePenaltyData();
@@ -215,35 +246,36 @@ const PlusMinusScreen: React.FC = () => {
   }, [JSON.stringify(currentGameRoom)]);
 
   useEffect(() => {
-    // if (isHost) {
-    //   startPlusMinusFirestore(gameRoomId);
-    //   handleNextProblem(0);
-    // }
-  }, [])
-
-  useEffect(() => {
     submitedRef.current = submited;
   }, [submited]);
 
-  useEffect(() => {
-    setProblemScoreStyle({ borderColor: '', borderWidth: 0 });
+  const progressInterval = () => {
+    setProgressRate(0);
 
-    if (proNum > 0) {
-      setSubmited(false);
-      setCalResult('');
-      progressInterval();
-      setNextProblemButtonDisplay(false);
-
-      // Set new timer
-      const newTimerId = setTimeout(() => {
-        handleSubmitResult(true);
-      }, timing * 1000);
-
-      return () => {
-        clearTimeout(newTimerId); // Clear timer when component unmounts or effect reruns
-      };
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
     }
-  }, [proNum])
+
+    intervalRef.current = setInterval(() => {
+      setProgressRate((prevProgress) => {
+        const newProgress = prevProgress + (0.2 / problemDelay);
+        if (newProgress >= 1) {
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+          }
+
+          return 1;
+        }
+        return newProgress;
+      });
+    }, 200);
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    }
+  }
 
   useFocusEffect(
     useCallback(() => {
@@ -271,36 +303,59 @@ const PlusMinusScreen: React.FC = () => {
   }, [navigation])
 
   /** ----------------------------- Functions ------------------------------ */
-  const handleGameStart = (timingNumber: number, autoNextProblemActive: boolean, problemTypeOptionActive: boolean) => {
-    setTiming(timingNumber);
-    setAutoNextProblemActive(autoNextProblemActive);
-    setProblemTypeOptionActive(problemTypeOptionActive);
-
-    console.log(timingNumber, autoNextProblemActive, problemTypeOptionActive);
-
-    startPlusMinusFirestore(gameRoomId);
-    handleNextProblem(0);
+  const handleGameStart = (timingNumber: number,  isAllSameProblem: boolean, problemTypeInputOptionActive: boolean, problemTypeSelectOptionActive: boolean) => {
+    let allProblems: any[] = [];
+    if(isAllSameProblem) {
+      allProblems = generateAllProblems(penaltyRunCount, problemTypeInputOptionActive, problemTypeSelectOptionActive); 
+    }
+    
+    startPlusMinusFirestore(gameRoomId, timingNumber, isAllSameProblem, problemTypeInputOptionActive, problemTypeSelectOptionActive, allProblems);
   }
 
-  //only host
-  const handleNextProblem = (proNum: number) => {
-    createNewProblemByRandom(proNum);
+  //Generate All Problems for problem count
+  const generateAllProblems = (allProblemCount: number, inputOption: boolean, selectOption: boolean) => {
+    const allProblems: any[] = [];
+    for (let i = 0; i < allProblemCount; i++) {
+      const problem = generateNewProblem(i + 1, inputOption, selectOption);
+      allProblems.push(problem);
+    }
+
+    return allProblems;
   }
 
-  //only host
-  const createNewProblemByRandom = (proNum_: number) => {
+  //Generate One Problem
+  const generateNewProblem = (proNum: number, inputOption: boolean, selectOption: boolean) => {
     const num1 = generateRandomNumber();
     const num2 = generateRandomNumber();
-    const number01 = generateRandomNumber01();
-    const operator = number01 == 1 ? Operator.plus : Operator.minus;
+    const operator = generateRandomNumber01() == 1 ? Operator.plus : Operator.minus;
+    
+    const firstNum = (operator == Operator.minus) ?  (num1 >= num2 ? num1 : num2) : num1;
+    const secondNum = (operator == Operator.minus) ? (num1 >= num2 ? num2 : num1) : num2;
 
-    const number_01_1 = generateRandomNumber01();
-    const resultPattern = number_01_1 == 1 ? ResultPattern.input : ResultPattern.option;
-    const resultOptions = resultPattern == 'input' ? [] : generateResultOptionValues(num1, num2, operator);
-    console.log("-----> :", gameRoomId, num1, num2, operator, resultPattern, proNum_ + 1, resultOptions);
-    setPlusMinusNewProblemFirestore(gameRoomId, num1, num2, operator, resultPattern, proNum_ + 1, resultOptions, problemHistory);
+    let resultPattern = ResultPattern.input;
+
+    if(inputOption && selectOption) {
+      resultPattern = generateRandomNumber01() == 1 ? ResultPattern.input : ResultPattern.option;
+    } else if(inputOption) {
+      resultPattern = ResultPattern.input;
+    } else if(selectOption) {
+      resultPattern = ResultPattern.option;
+    }
+
+    const resultOptions = resultPattern == ResultPattern.input ? [] : generateResultOptionValues(firstNum, secondNum, operator);
+
+    const newPro = {
+      proNum: proNum,
+      firstNum: firstNum,
+      secondNum: secondNum,
+      operator: operator,
+      resultPattern: resultPattern,
+      resultOptions: resultOptions,
+    }
+
+    return newPro;
   }
-
+  
   //will be called by all user
   const handleSubmitResult = (auto: boolean, value?: number) => {
     if (intervalRef.current) {
@@ -308,6 +363,10 @@ const PlusMinusScreen: React.FC = () => {
     }
 
     if (!submitedRef.current) {
+      if(proNum > allProblems.length) {
+        return false;
+      }
+      
       let x = 0;
       let resultValue = 0;
 
@@ -327,76 +386,100 @@ const PlusMinusScreen: React.FC = () => {
         }
       }
 
-      if (resultValue == 1) {
-        const style = {
-          borderColor: customColors.customLightBlue1,
-          borderWidth: 2
-        }
+      setClickDisable(true);
 
-        setProblemScoreStyle(style);
-      } else {
-        const style = {
-          borderColor: customColors.blackRed,
-          borderWidth: 2
-        }
-
-        setProblemScoreStyle(style)
+      const score = {
+        proNum: proNum,
+        score: resultValue
       }
 
-      const uid = authUser.uid;
-      if (uid) {
-        setPlusMinusSubmitResultFirestore(gameRoomId, uid, resultValue);
-      }
+      setProNum(prevProNum => prevProNum + 1);
+      setAllProblemScoreResults(prevResults => [...prevResults, score]);
       setSubmited(true);
     }
   }
 
-  const handleFinishedGameHost = async (history: any) => {
-    console.log("finished game")
-    addPlusMinusHistoryFirestore(gameRoomId, history)
-    .then(() => {
-      console.log("xxxx")
-    }).catch((error) => {
-      console.log("error finished")
-    });
-  }
-
   const handleFinishedGame = async () => {
     console.log("all finished game.");
-    const histories = await getPlusMinusHistoriesFirestore(gameRoomId);
-    console.log(histories, "---");
-  }
+    const plusminusData = await getPlusMinusScoresFirestore(gameRoomId);
+    const scores: any[] = plusminusData?.scores || [];
 
+    const sumScores: any[] = [];
+    scores.forEach((item, index) => {
+      const uid = item?.uid || '';
 
+      const player_score: any[] = item?.score || [];
+      let sum_result = 0;
+      let correctResult = 0;
+      let wrongResult = 0;
 
-  const progressInterval = () => {
-    setProgressRate(0);
-
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-
-    intervalRef.current = setInterval(() => {
-      setProgressRate((prevProgress) => {
-        const newProgress = prevProgress + (0.2 / timing);
-        if (newProgress >= 1) {
-          if (intervalRef.current) {
-            clearInterval(intervalRef.current);
-          }
-
-          return 1;
+      player_score.forEach(problem_score => {
+        const result_value = problem_score?.score;
+        if(result_value == 1) {
+          sum_result++;
+          correctResult++;
+        } else {
+          wrongResult++;
         }
-        return newProgress;
       });
-    }, 200);
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+      
+      const sumScoreOne = {
+        index: index,
+        uid: uid,
+        sum_score: sum_result,
+        correctResult: correctResult,
+        wrongResult: wrongResult
       }
+      
+      sumScores.push(sumScoreOne);
+    });
+
+    sumScores.sort((a, b) => {
+      if(a.sum_score == b.sum_score) {
+        return a.index - b.index;
+      }
+      return a.sum_score - b.sum_score;
+    })
+
+    const sortedScores = sumScores.map(({index, ...item}) => item);
+     // Create the final array with uid, displayName, and score
+    const finalScores = sortedScores.map(score => {
+      const subscriber = subscribers.find(sub => sub.uid === score.uid);
+      return {
+        uid: score.uid,
+        displayName: subscriber?.displayName || 'Unknown',
+        score: score.sum_score,
+        correctResult: score.correctResult,
+        wrongResult: score.wrongResult
+      };
+    });
+    
+    const firstUid = sortedScores[0]?.uid;
+    const lastUid = sortedScores[sortedScores.length - 1]?.uid;
+    const firstUser = subscribers.find(sub => sub.uid === firstUid);
+    const lastUser = subscribers.find(sub => sub.uid === lastUid);
+
+    let penaltyTitle = "";
+    if(isPatternASet) {
+      const penalty = penaltyAList.find(penaltyA => penaltyA.uid === firstUid);
+      penaltyTitle = penalty?.penaltyTitle;
+    } else if(isPatternBSet) {
+      const penalty = penaltyB;
+      penaltyTitle = penalty?.penaltyTitle;
     }
+
+    const penaltyResult = {
+      firstUser: firstUser,
+      lastUser: lastUser,
+      penaltyTitle: penaltyTitle
+    }
+
+    setPenaltyResult(penaltyResult);
+    setScores(finalScores);
+    setPenaltyDisplayModalVisible(true);
   }
 
+  //force quit even if the game is not over.
   const exitGame = () => {
     if (isHost) {
       deletePlusMinusFirestore(gameRoomId);
@@ -413,12 +496,18 @@ const PlusMinusScreen: React.FC = () => {
     }
   }
 
+  //Control setting modal visible
   const handleWaitModalVisible = (isVisible: boolean) => {
     setWaitModalVisible(isVisible);
   }
 
+  //control exit modal visible 
   const handleExitModalVisible = (isVisible: boolean) => {
     setExitModalVisible(isVisible);
+  }
+
+  const handlePenaltyDisplayModalVisible = (isVisible: boolean) => {
+    setPenaltyDisplayModalVisible(isVisible);
   }
 
   return (
@@ -441,12 +530,10 @@ const PlusMinusScreen: React.FC = () => {
           justifyContent: "space-evenly",
           flex: 1,
           borderRadius: 10,
-          borderColor: problemScoreStyle?.borderColor || '#00000000',
-          borderWidth: problemScoreStyle?.borderWidth || 0
         }}>
           <View
             style={{
-              display: problemScoreStyle?.borderWidth ? "flex" : "none",
+              display: clickDisable ? "flex" : "none",
               backgroundColor: '#0000004a',
               flex: 1,
               position: "absolute",
@@ -459,7 +546,7 @@ const PlusMinusScreen: React.FC = () => {
           ></View>
           <View>
             <Text style={{ color: 'white', fontSize: 20, fontWeight: '500' }}>
-              問題番号{proNum}
+              問題番号{displayProNum}
             </Text>
           </View>
           <Progress.Bar progress={progressRate} width={viewportWidth - 25} height={5} style={{ position: 'absolute', top: 10 }} />
@@ -544,19 +631,6 @@ const PlusMinusScreen: React.FC = () => {
             </View>
           )}
         </View>
-
-
-        {(isHost && nextProblemButtonDisplay) && (
-          <View style={{ marginVertical: 20 }}>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => { handleNextProblem(proNum);  }}
-            >
-              <Text style={styles.textTitle}>次の問題</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
       </View>
 
       <ConfirmModal
@@ -572,8 +646,12 @@ const PlusMinusScreen: React.FC = () => {
         confirmBackgroundColor={customColors.blackRed}
       />
 
-      <PlusMinusSettingModal isHost={isHost} isVisible={waitModalVisible} setVisible={handleWaitModalVisible}  handleGameStart={handleGameStart} />
+      <PlusMinusSettingModal isHost={isHost} isVisible={waitModalVisible} setVisible={handleWaitModalVisible} setExitVisible={handleExitModalVisible}  handleGameStart={handleGameStart} />
+
+      <PlusMinusPenaltyTable isVisible={penaltyDisplayModalVisible} setVisible={handlePenaltyDisplayModalVisible} setExitVisible={handleExitModalVisible} scores={scores} penaltyResult={penaltyResult} />
     </View>
+
+      
   );
 }
 

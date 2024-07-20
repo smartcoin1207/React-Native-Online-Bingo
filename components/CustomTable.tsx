@@ -74,7 +74,7 @@ const CustomTable: React.FC<CustomTableProps> = ({
             default:
               return (
                 <View key={column.key} style={[styles.dataCell, { width: columnWidthPercent }, cellStyle]}>
-                    <Text>
+                    <Text style={{color: 'white'}}>
                         {value}
                     </Text>
                 </View>
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   },
   headerRow: {
     flexDirection: 'row',
-    backgroundColor: '#f0f0f0',
+    // backgroundColor: '#f0f0f0',
   },
   headerCell: {
     // flex: 1,

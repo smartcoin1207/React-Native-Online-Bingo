@@ -1139,7 +1139,7 @@ const PlayBoard: React.FC = () => {
                                         <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '100%', }}>
                                             <TouchableOpacity
                                                 style={{ padding: 10, borderWidth: 1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.blackRed, justifyContent: 'center', alignItems: 'center', marginTop: 10 }}
-                                                onPress={() => {   setExitModalText(jpLanguage.bingoExitModalTextString);  setExitModalVisible(true);}}
+                                                onPress={() => {   setExitModalText(jpLanguage.bingoExitModalTextString); setBingoEndedModalVisible(false);  setExitModalVisible(true);}}
                                             >
                                                 <Text style={{ fontSize: 18, color: 'white', letterSpacing: 5 }}>退出する</Text>
                                             </TouchableOpacity>
@@ -1157,7 +1157,7 @@ const PlayBoard: React.FC = () => {
                                         <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '100%' }}>
                                             <TouchableOpacity
                                                 style={{ padding: 10, borderWidth: 1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.blackRed, justifyContent: 'center', alignItems: 'center', marginTop: 10 }}
-                                                onPress={() => { setExitModalText(jpLanguage.bingoExitModalTextString); setExitModalVisible(true);  }}
+                                                onPress={() => { setExitModalText(jpLanguage.bingoExitModalTextString); setBingoEndedModalVisible(false); setExitModalVisible(true);  }}
                                             >
                                                 <Text style={{ fontSize: 18, color: 'white', letterSpacing: 5 }}>退出する</Text>
                                             </TouchableOpacity>

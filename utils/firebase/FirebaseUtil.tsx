@@ -1063,17 +1063,19 @@ export const getPlusMinusFirestore = (gameRoomId: string, callback: any) : Unsub
     return () => {};
   }
 
-  // const docRef = doc(db, plusMinusTable, gameRoomId);
-
    // Specify the fields to retrieve using the select method
    const docRef = doc(db, plusMinusTable, gameRoomId).withConverter({
       toFirestore: (data: any) => data,
       fromFirestore: (snapshot: any) => {
         const data = snapshot.data();
         return {
-          proNum: data.proNum,
-          currentProblem: data.currentProblem,
-          currentProblemScores: data.currentProblemScores,
+          problemDelay: data.problemDelay,
+          isAllSame: data.isAllSame,
+          inputOption: data.inputOption,
+          selectOption: data.selectOption,
+          allProblems: data.allProblems,
+          scores: data.scores,
+          started: data.started,
           finished: data.finished
         };
       }
@@ -1096,48 +1098,23 @@ export const getPlusMinusFirestore = (gameRoomId: string, callback: any) : Unsub
   });
 };
 
-export const setPlusMinusNewProblemFirestore = async (
-  gameRoomId: string, firstNum: number, secondNum: number, operator: Operator, resultPattern: ResultPattern, proNum: number, resultOptions: Array<number>, problemHistory: any ) => {
+export const setPlusMinusSubmitResultFirestore = async (
+  gameRoomId: string, uid: string, problemScores: any[] ) => {
   if (!gameRoomId) return false;
 
   const docRef = doc(db, plusMinusTable, gameRoomId);
   
-  const currentProblem: PlusMinusCurrentProblem = {
-    proNum: proNum,
-    firstNum: firstNum,
-    secondNum: secondNum,
-    operator: operator,
-    resultPattern: resultPattern,
-    resultOptions: resultOptions,
-  }
-
-  try {
-    await updateDoc(docRef, {
-      currentProblem: currentProblem,
-      proNum: proNum,
-      currentProblemScores: [],
-      problemHistories: problemHistory ? arrayUnion(problemHistory) : []
-    });
-  } catch (error) {
-
-  }
-};
-
-export const setPlusMinusSubmitResultFirestore = async (
-  gameRoomId: string, uid:string, resultValue: number ) => {
-  if (!gameRoomId) return false;
-
-  const docRef = doc(db, plusMinusTable, gameRoomId);
-  const result = {
+  const score = {
     uid: uid,
-    result: resultValue,
-  };
+    score: problemScores
+  }
+
   try {
     await updateDoc(docRef, {
-      currentProblemScores: arrayUnion(result)
+      scores: arrayUnion(score)
     });
   } catch (error) {
-    console.log("game error1");
+
   }
 };
 
@@ -1159,7 +1136,7 @@ export const startGamePlusMinus = async (
 };
 
 export const startPlusMinusFirestore = async (
-  gameRoomId: string
+  gameRoomId: string, problemDelay: number, isAllSame: boolean, inputOption: boolean, selectOption: boolean, allProblems: any[]
 ) => {
   if(!gameRoomId) return false;
 
@@ -1170,10 +1147,49 @@ export const startPlusMinusFirestore = async (
     );
 
     await setDoc(newGamePlusMinusDocRef, {
-      proNum: 0,
+      problemDelay: problemDelay,
+      isAllSame: isAllSame,
+      inputOption: inputOption,
+      selectOption: selectOption,
+      allProblems: allProblems,
+      started: true,
+      finished: false
     });
   } catch (error) {
     
+  }
+}
+
+export const finishPlusMinusFirestore = async (
+  gameRoomId: string
+) => {
+  if(!gameRoomId) return false;
+
+  try {
+    const docRef = doc(collection(db, plusMinusTable), gameRoomId);
+
+    await updateDoc(docRef, {
+      finished: true
+    });
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+export const getPlusMinusScoresFirestore = async (gameRoomId: string) => {
+  if(!gameRoomId) {
+    return null;
+  }
+
+  try {
+    const docRef = doc(db, plusMinusTable, gameRoomId);
+    const document = await getDoc(docRef);
+    const data = document.data();
+    
+    return data;
+  } catch (error) {
+    console.log(error);
+    return null;
   }
 }
 
@@ -1191,36 +1207,3 @@ export const deletePlusMinusFirestore = async (
   }
 }
 
-export const addPlusMinusHistoryFirestore = async (
-  gameRoomId: string, problemHistory: any ) => {
-  if (!gameRoomId) return false;
-
-  const docRef = doc(db, plusMinusTable, gameRoomId);
-  console.log("add11111...")
-  try {
-    if(problemHistory) {
-      await updateDoc(docRef, {
-        problemHistories: arrayUnion(problemHistory),
-        finished: true
-      });
-    }
-  } catch (error) {
-    
-  }
-};
-
-export const getPlusMinusHistoriesFirestore = async (gameRoomId: string) => {
-  if(!gameRoomId) {
-    return false;
-  }
-
-  try {
-    const docRef = doc(db, plusMinusTable, gameRoomId);
-    const historyDocument = await getDoc(docRef);
-    
-    return {...historyDocument.data()};
-  } catch (error) {
-    console.log(error);
-    return false;
-  }
-};

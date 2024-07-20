@@ -18,11 +18,15 @@ export const generateResultOptionValues = (num1: number, num2: number, operator:
   }
 
   // Generate two similar incorrect results
-  const incorrectResult1_temp = correctResult + Math.floor(Math.random() * 10) - 5; // Close to correct result
-  const incorrectResult1 = incorrectResult1_temp == correctResult ? correctResult + 1 : incorrectResult1_temp;
+  let incorrectResult1, incorrectResult2; // Close to correct result
 
-  const incorrectResult2_temp = correctResult + Math.floor(Math.random() * 10) - 5; // Close to correct result
-  const incorrectResult2 = (incorrectResult2_temp == correctResult || incorrectResult2_temp == incorrectResult1) ? correctResult + 1 : incorrectResult2_temp;
+  do {
+    incorrectResult1 = correctResult + Math.floor(Math.random() * 10) - 5;
+  } while (incorrectResult1 === correctResult);
+
+  do {
+    incorrectResult2 = correctResult + Math.floor(Math.random() * 10) - 5;
+  } while (incorrectResult2 === correctResult || incorrectResult2 === incorrectResult1);
 
   // Shuffle the result values
   const resultValues = [correctResult, incorrectResult1, incorrectResult2].sort(() => Math.random() - 0.5);

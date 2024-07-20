@@ -656,7 +656,7 @@ const GameWaitingScreen = () => {
                   styles.modalBody,
                   {
                     width: "90%",
-                    height: '60%',
+                    height: '90%',
                     borderWidth: 0,
                     borderRadius: 15,
                     paddingTop: 0,
@@ -700,8 +700,8 @@ const GameWaitingScreen = () => {
                             // width: '100%',
                             maxWidth: '100%',
                             backgroundColor: "#133a4edb",
-                            borderWidth: 1,
-                            borderColor: "grey",
+                            // borderWidth: 1,
+                            // borderColor: "grey",
                             flexDirection: "row",
                             paddingHorizontal: 20,
                           },
@@ -737,13 +737,16 @@ const GameWaitingScreen = () => {
                       style={[
                         styles.FlatListStyle,
                         {
-                          borderWidth: 1,
+                          width: '100%',
+                          borderWidth: 0,
                           borderColor: "grey",
                           paddingTop: 20,
                           borderRadius: 20,
                           marginTop: 20,
                           marginHorizontal: 0,
-                          marginLeft: 0
+                          marginLeft: 0,
+                          marginVertical: 0,
+                          marginBottom: 0
                         },
                       ]}
                     >

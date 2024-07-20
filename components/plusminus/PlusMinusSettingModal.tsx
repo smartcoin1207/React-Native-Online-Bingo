@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Modal, Platform, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Slider from '@react-native-community/slider';
 import {
     PureRoundedCheckbox,
@@ -12,19 +12,23 @@ interface PlusMinusSettingModalProps {
     isHost: boolean;
     isVisible: boolean;
     setVisible: (isVisible: boolean) => void;
-    handleGameStart: (timingNumber: number, autoNextProblemActive: boolean, problemTypeOptionActive: boolean) => void;
+    setExitVisible: (isVisible: boolean) => void;
+    handleGameStart: (timingNumber: number, isAllSameProblem: boolean, problemTypeInputOptionActive: boolean, problemTypeSelectOptionActive: boolean) => void;
 }
 
-const PlusMinusSettingModal: React.FC<PlusMinusSettingModalProps> = ({ isHost, isVisible, setVisible, handleGameStart }) => {
+const PlusMinusSettingModal: React.FC<PlusMinusSettingModalProps> = ({ isHost, isVisible, setVisible, setExitVisible, handleGameStart }) => {
     const [timing, setTiming] = useState<number>(10);
     const [timingNumber, setTimingNumber] = useState<number>(0);
-    const [autoNextProblemActive, setAutoNextProblemActive] = useState<boolean>(false);
-    const [problemTypeOptionActive, setProblemTypeOptionActive] = useState<boolean>(false);
+    const [isAllSameProblem, setIsAllSameProblem] = useState<boolean>(false);
+    const [problemTypeInputOptionActive, setProblemTypeInputOptionActive] = useState<boolean>(false);
+    const [problemTypeSelectOptionActive, setProblemTypeSelectOptionActive] = useState<boolean>(false);
 
     useEffect(() => {
         console.log(timing);
         setTimingNumber(Math.floor(timing))
     }, [timing])
+
+    const statusBarHeight = (Platform.OS === 'ios' ? 20 : StatusBar.currentHeight) || 0; // On iOS, StatusBar.currentHeight is undefined, typically use 20
 
     return (
         <Modal
@@ -103,13 +107,20 @@ const PlusMinusSettingModal: React.FC<PlusMinusSettingModalProps> = ({ isHost, i
                                     </View>
                                     <Divider />
                                     <View style={{display: 'flex', width: '100%', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 15, alignItems: 'center'}}>
-                                        <Text style={{fontSize: 15, color: 'white'}}>次の問題の自動リリース</Text>
-                                        <PureRoundedCheckbox onPress={(checked) => setAutoNextProblemActive(checked)}  textStyle={{fontSize: 17}} innerStyle={{width: 30, height:30}} outerStyle={{borderColor: 'black', borderWidth: 0, width: 35, height:35}} text="✔" uncheckedColor="grey"  />
+                                        <Text style={{fontSize: 15, color: 'white'}}>All same problems</Text>
+                                        <PureRoundedCheckbox onPress={(checked) => setIsAllSameProblem(checked)}  textStyle={{fontSize: 17}} innerStyle={{width: 30, height:30}} outerStyle={{borderColor: 'black', borderWidth: 0, width: 35, height:35}} text="✔" uncheckedColor="grey"  />
                                     </View>
+
                                     <Divider />
                                     <View style={{display: 'flex', width: '100%', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 15, alignItems: 'center'}}>
-                                        <Text style={{fontSize: 15, color: 'white'}}>空白の塗りつぶしと選択</Text>
-                                        <PureRoundedCheckbox onPress={(checked) => setProblemTypeOptionActive(checked)}  textStyle={{fontSize: 17}} innerStyle={{width: 30, height:30}} outerStyle={{borderColor: 'black', borderWidth: 0,  width: 35, height:35}} text="✔" uncheckedColor="grey"  />
+                                        <Text style={{fontSize: 15, color: 'white'}}>Input option</Text>
+                                        <PureRoundedCheckbox onPress={(checked) => setProblemTypeInputOptionActive(checked)}  textStyle={{fontSize: 17}} innerStyle={{width: 30, height:30}} outerStyle={{borderColor: 'black', borderWidth: 0,  width: 35, height:35}} text="✔" uncheckedColor="grey"  />
+                                    </View>
+
+                                    <Divider />
+                                    <View style={{display: 'flex', width: '100%', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 15, alignItems: 'center'}}>
+                                        <Text style={{fontSize: 15, color: 'white'}}>Select option</Text>
+                                        <PureRoundedCheckbox onPress={(checked) => setProblemTypeSelectOptionActive(checked)}  textStyle={{fontSize: 17}} innerStyle={{width: 30, height:30}} outerStyle={{borderColor: 'black', borderWidth: 0,  width: 35, height:35}} text="✔" uncheckedColor="grey"  />
                                     </View>
                                 </View>
 
@@ -118,7 +129,7 @@ const PlusMinusSettingModal: React.FC<PlusMinusSettingModalProps> = ({ isHost, i
                                         styles.button,
                                         { paddingHorizontal: 30, paddingVertical: 15, marginTop: 100 },
                                     ]}
-                                    onPress={() => handleGameStart(timingNumber, autoNextProblemActive, problemTypeOptionActive)}
+                                    onPress={() => handleGameStart(timingNumber, isAllSameProblem, problemTypeInputOptionActive, problemTypeSelectOptionActive)}
                                 >
                                     <Text
                                         style={{
