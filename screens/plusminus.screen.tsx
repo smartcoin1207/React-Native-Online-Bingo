@@ -438,9 +438,9 @@ const PlusMinusScreen: React.FC = () => {
         proNum: proNum,
         score: resultValue
       }
+      setAllProblemScoreResults(prevResults => [...prevResults, score]);
 
       setProNum(prevProNum => prevProNum + 1);
-      setAllProblemScoreResults(prevResults => [...prevResults, score]);
       setSubmited(true);
     }
   }
