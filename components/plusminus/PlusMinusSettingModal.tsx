@@ -7,6 +7,8 @@ import {
 
 import { styles } from "../../utils/Styles";
 import { customColors } from "../../utils/Color";
+import Icon from "react-native-vector-icons/Ionicons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface PlusMinusSettingModalProps {
     isHost: boolean;
@@ -22,6 +24,10 @@ const PlusMinusSettingModal: React.FC<PlusMinusSettingModalProps> = ({ isHost, i
     const [isAllSameProblem, setIsAllSameProblem] = useState<boolean>(false);
     const [problemTypeInputOptionActive, setProblemTypeInputOptionActive] = useState<boolean>(false);
     const [problemTypeSelectOptionActive, setProblemTypeSelectOptionActive] = useState<boolean>(true);
+
+    const inset = useSafeAreaInsets();
+
+    const statusBarHeight = (Platform.OS === 'ios' ? 20 : StatusBar.currentHeight) || 0; // On iOS, StatusBar.currentHeight is undefined, typically use 20
 
     useEffect(() => {
         console.log(timing);
@@ -39,7 +45,6 @@ const PlusMinusSettingModal: React.FC<PlusMinusSettingModalProps> = ({ isHost, i
             setProblemTypeInputOptionActive(false);
         }
     }, [problemTypeSelectOptionActive])
-    const statusBarHeight = (Platform.OS === 'ios' ? 20 : StatusBar.currentHeight) || 0; // On iOS, StatusBar.currentHeight is undefined, typically use 20
 
     return (
         <Modal
@@ -73,6 +78,9 @@ const PlusMinusSettingModal: React.FC<PlusMinusSettingModalProps> = ({ isHost, i
                         },
                     ]}
                 >
+                    <Icon name="chevron-back-sharp" size={30} color="white" style={{position: 'absolute', left: 10, top: (Platform.OS === 'ios' ? (inset.top) : statusBarHeight ),  zIndex: 1}} onPress={() => {
+                        setVisible(false)
+                    }}  />
                     <View
                         style={[
                             styles.container,

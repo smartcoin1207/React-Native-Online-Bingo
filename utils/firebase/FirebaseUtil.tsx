@@ -728,7 +728,6 @@ export const deleteBingoCollection = async () => {
 
   querySnapshot.forEach(async (doc) => {
     await deleteDoc(doc.ref);
-    console.log("xxx");
   });
 
   console.log('Collection "bingo" deleted successfully');
@@ -1110,26 +1109,22 @@ export const setPlusMinusSubmitResultFirestore = async (
   }
 
   try {
-    const docSnapshot = await getDoc(docRef);
-    if (docSnapshot.exists()) {
-      const existingScores = docSnapshot.data().scores || [];
-      const uidExists = existingScores.some((score : any) => score.uid === uid);
-
-      if (!uidExists) {
-        await updateDoc(docRef, {
-          scores: arrayUnion(newScore)
-        });
-        return true; // Indicate success
-      } else {
-        console.log('UID already exists in scores, not updating.');
-        return false; // Indicate that the update did not occur
-      }
-    } else {
-      await updateDoc(docRef, {
-        scores: arrayUnion(newScore)
-      });
-      return true; // Indicate success
-    }
+      const document = await getDoc(docRef);
+      if(document.exists()) {
+        const existingScores = document.data().scores || [];
+      
+        const uidExists = existingScores.some((score : any) => score.uid == uid);
+        console.log(uidExists, "uidexists")
+        if (!uidExists) {
+          await updateDoc(docRef, {
+            scores: arrayUnion(newScore)
+          });
+          return true; // Indicate success
+        } else {
+          console.log('UID already exists in scores, not updating.');
+          return false; // Indicate that the update did not occur
+        }
+      }    
   } catch (error) {
     console.error('Error updating document: ', error);
     return false; // Indicate failure
@@ -1170,11 +1165,26 @@ export const startPlusMinusFirestore = async (
       inputOption: inputOption,
       selectOption: selectOption,
       allProblems: allProblems,
+      scores: [],
       started: true,
       finished: false
     });
   } catch (error) {
     
+  }
+}
+
+export const setStartPlusMinusFirestore = async (gameRoomId: string) => {
+  if(!gameRoomId) return false;
+
+  try {
+    const docRef = doc(collection(db, plusMinusTable), gameRoomId);
+
+    await updateDoc(docRef, {
+      started: false
+    })
+  } catch (error) {
+    console.log(error);
   }
 }
 
@@ -1187,7 +1197,7 @@ export const finishPlusMinusFirestore = async (
     const docRef = doc(collection(db, plusMinusTable), gameRoomId);
 
     await updateDoc(docRef, {
-      finished: true
+      finished: true,
     });
   } catch (error) {
     console.log(error)
@@ -1224,4 +1234,3 @@ export const deletePlusMinusFirestore = async (
     console.log(error)
   }
 }
-

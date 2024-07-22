@@ -11,16 +11,19 @@ import Icon  from "react-native-vector-icons/Ionicons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TableColumn } from "../../utils/Types";
 import CustomTable from "../CustomTable";
+import Language from "../../utils/Variables";
+const jpLanguage = Language.jp;
 
 interface PlusMinusPenaltyTableProps {
     isVisible: boolean;
     setVisible: (isVisible: boolean) => void;
     setExitVisible: (isVisible: boolean) => void;
     scores: any[];
-    penaltyResult: any
+    penaltyResult: any;
+    handleNextRound: () => void
 }
 
-const PlusMinusPenaltyTable: React.FC<PlusMinusPenaltyTableProps> = ({ isVisible, setVisible, setExitVisible, scores, penaltyResult }) => {
+const PlusMinusPenaltyTable: React.FC<PlusMinusPenaltyTableProps> = ({ isVisible, setVisible, setExitVisible, scores, penaltyResult, handleNextRound }) => {
     const columns: TableColumn[] = [
         { key: 'displayName', title: 'プレイヤー名', width: 100, type: 'text' },
         { key: 'correctResult', title: '正解', width: 100, type: 'text' },
@@ -119,6 +122,23 @@ const PlusMinusPenaltyTable: React.FC<PlusMinusPenaltyTableProps> = ({ isVisible
                                 </Text>
                             </View>
                         </View>
+                        {true  && (
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '100%', marginVertical: 'auto', alignItems: 'center',  flex: 1 }}>
+                                <TouchableOpacity
+                                    style={{ padding: 10, borderWidth: 1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.blackRed, justifyContent: 'center', alignItems: 'center', marginTop: 10 }}
+                                    onPress={() => { setExitVisible(true);}}
+                                >
+                                    <Text style={{ fontSize: 18, color: 'white', letterSpacing: 5 }}>退出する</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={{ padding: 10, borderWidth: 1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.customLightBlue, justifyContent: 'center', alignItems: 'center', marginTop: 10 }}
+                                    onPress={() => handleNextRound()}
+                                >
+                                    <Text style={{ fontSize: 18, color: 'white', letterSpacing: 5 }}>もう1回</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
                     </View>
                 </View>
             </View>

@@ -1195,7 +1195,6 @@ const PlayBoard: React.FC = () => {
                     <Icon name="chevron-back-sharp" size={40} color="white" style={{ marginRight: 20, marginLeft: -10, marginTop: 0 }} onPress={() => {
                         setExitModalText(jpLanguage.bingoExitModalTextString);
                         setExitModalVisible(true);
-                        console.log("xxxex")
                     }} />
                 </View>
                 <Text style={[styles.title]}>BINGO</Text>

@@ -134,7 +134,6 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
           const penaltyB1 = penalty?.penaltyB || null;
           if (penaltyB1 && penalty?.patternBSet) {
             if (!isHost) {
-              console.log("xxx", penaltyB1)
             }
             const p: Penalty = { id: penaltyB1?.penaltyId, title: penaltyB1?.penaltyTitle };
             setPenalty(p);
@@ -333,7 +332,6 @@ const PenaltyScreen: React.FC<PenaltyScreenProps> = ({ route }) => {
     await handlePublicPattern();
     setTimeout(() => {
       dispatch(setMainGameStart(true));
-      console.log("xxxx")
     }, 3000);
   };
 
