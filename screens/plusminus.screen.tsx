@@ -50,7 +50,7 @@ const PlusMinusScreen: React.FC = () => {
   const [problemDelaySeconds, setProblemDelaySeconds] = useState<number>(10);
   const [isAllSameProblem, setIsAllSameProblem] = useState<boolean>(false);
   const [problemTypeInputOptionActive, setProblemTypeInputOptionActive] = useState<boolean>(false);
-  const [problemTypeSelectOptionActive, setProblemTypeSelectOptionActive] = useState<boolean>(false); 
+  const [problemTypeSelectOptionActive, setProblemTypeSelectOptionActive] = useState<boolean>(false);
 
   //state variables by usestate
   const [started, setStarted] = useState<boolean>(false);
@@ -211,7 +211,7 @@ const PlusMinusScreen: React.FC = () => {
   )
 
   useEffect(() => {
-    console.log(proNum, "useeffect"); 
+    console.log(proNum, "useeffect");
     if (proNum > penaltyRunCount) {
       if (authUser.uid) {
         setPlusMinusSubmitResultFirestore(gameRoomId, authUser.uid, allProblemScoreResults);
@@ -554,7 +554,7 @@ const PlusMinusScreen: React.FC = () => {
     setWaitModalVisible(isVisible);
   }
 
-  //control exit modal visible 
+  //control exit modal visible
   const handleExitModalVisible = (isVisible: boolean) => {
     setExitModalVisible(isVisible);
   }
@@ -612,7 +612,7 @@ const PlusMinusScreen: React.FC = () => {
               backgroundColor: '#000000a1',
               // flex: 1,
               justifyContent: 'center',
-              alignItems: 'center', 
+              alignItems: 'center',
               position: "absolute",
               top: 0,
               bottom: 0,
@@ -732,11 +732,12 @@ const PlusMinusScreen: React.FC = () => {
         onConfirm={exitGame}
         onCancel={() => { }}
         confirmBackgroundColor={customColors.blackRed}
+        zindex={30}
       />
 
-      <PlusMinusSettingModal isHost={isHost} isVisible={waitModalVisible} setVisible={handleWaitModalVisible} setExitVisible={handleExitModalVisible} handleGameStart={handleGameStart} />
+      <PlusMinusSettingModal isHost={isHost} isVisible={waitModalVisible} setVisible={handleWaitModalVisible} setExitVisible={handleExitModalVisible} handleGameStart={handleGameStart} zindex={20} />
 
-      <PlusMinusPenaltyTable isVisible={penaltyDisplayModalVisible} setVisible={handlePenaltyDisplayModalVisible} setExitVisible={handleExitModalVisible} scores={scores} penaltyResult={penaltyResult} handleNextRound={handleNextRound} />
+      <PlusMinusPenaltyTable isVisible={penaltyDisplayModalVisible} setVisible={handlePenaltyDisplayModalVisible} setExitVisible={handleExitModalVisible} scores={scores} penaltyResult={penaltyResult} handleNextRound={handleNextRound} zindex={10} isHost={isHost}/>
     </View>
   );
 }

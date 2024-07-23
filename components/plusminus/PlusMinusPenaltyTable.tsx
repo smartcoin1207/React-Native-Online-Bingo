@@ -20,10 +20,12 @@ interface PlusMinusPenaltyTableProps {
     setExitVisible: (isVisible: boolean) => void;
     scores: any[];
     penaltyResult: any;
+    zindex?: number;
+    isHost?: boolean;
     handleNextRound: () => void
 }
 
-const PlusMinusPenaltyTable: React.FC<PlusMinusPenaltyTableProps> = ({ isVisible, setVisible, setExitVisible, scores, penaltyResult, handleNextRound }) => {
+const PlusMinusPenaltyTable: React.FC<PlusMinusPenaltyTableProps> = ({ isVisible, setVisible, setExitVisible, scores, penaltyResult, zindex = 10, isHost=false, handleNextRound }) => {
     const columns: TableColumn[] = [
         { key: 'displayName', title: 'プレイヤー名', width: 100, type: 'text' },
         { key: 'correctResult', title: '正解', width: 100, type: 'text' },
@@ -54,6 +56,7 @@ const PlusMinusPenaltyTable: React.FC<PlusMinusPenaltyTableProps> = ({ isVisible
                     justifyContent: "center",
                     alignItems: "center",
                     backgroundColor: customColors.modalBackgroundColor,
+                    zIndex: zindex
                 }}
             >
                 <View
@@ -122,11 +125,11 @@ const PlusMinusPenaltyTable: React.FC<PlusMinusPenaltyTableProps> = ({ isVisible
                                 </Text>
                             </View>
                         </View>
-                        {true  && (
+                        {isHost  && (
                             <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '100%', marginVertical: 'auto', alignItems: 'center',  flex: 1 }}>
                                 <TouchableOpacity
                                     style={{ padding: 10, borderWidth: 1, borderColor: customColors.blackGrey, borderRadius: 20, backgroundColor: customColors.blackRed, justifyContent: 'center', alignItems: 'center', marginTop: 10 }}
-                                    onPress={() => { setExitVisible(true);}}
+                                    onPress={() => { setVisible(false); setExitVisible(true);  }}
                                 >
                                     <Text style={{ fontSize: 18, color: 'white', letterSpacing: 5 }}>退出する</Text>
                                 </TouchableOpacity>

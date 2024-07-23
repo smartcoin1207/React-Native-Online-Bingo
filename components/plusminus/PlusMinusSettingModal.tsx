@@ -16,9 +16,10 @@ interface PlusMinusSettingModalProps {
     setVisible: (isVisible: boolean) => void;
     setExitVisible: (isVisible: boolean) => void;
     handleGameStart: (timingNumber: number, isAllSameProblem: boolean, problemTypeInputOptionActive: boolean, problemTypeSelectOptionActive: boolean) => void;
+    zindex?: number
 }
 
-const PlusMinusSettingModal: React.FC<PlusMinusSettingModalProps> = ({ isHost, isVisible, setVisible, setExitVisible, handleGameStart }) => {
+const PlusMinusSettingModal: React.FC<PlusMinusSettingModalProps> = ({ isHost, isVisible, setVisible, setExitVisible, handleGameStart, zindex=10 }) => {
     const [timing, setTiming] = useState<number>(10);
     const [timingNumber, setTimingNumber] = useState<number>(0);
     const [isAllSameProblem, setIsAllSameProblem] = useState<boolean>(false);
@@ -62,6 +63,7 @@ const PlusMinusSettingModal: React.FC<PlusMinusSettingModalProps> = ({ isHost, i
                     justifyContent: "center",
                     alignItems: "center",
                     backgroundColor: customColors.modalBackgroundColor,
+                    zIndex: zindex
                 }}
             >
                 <View
